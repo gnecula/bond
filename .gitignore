@@ -1,0 +1,22 @@
+# Python
+*.pyc
+
+# Emacs:
+*~
+\#*\#
+auto-save-list
+.\#*
+
+# Vim:
+[._]*.s[a-w][a-z]
+[._]s[a-w][a-z]
+*.un~
+Session.vim
+.netrwhist
+*~
+
+# JetBrains IDEs:
+*.iml
+
+## Directory-based project format:
+.idea/
