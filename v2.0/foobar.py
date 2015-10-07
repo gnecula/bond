@@ -2,13 +2,14 @@ import bond
 import os
 
 
-@bond.observeFunction(spyPointName='foobarEntry', mockMandatory=True)
-def foobar(arg1, arg2 = 'default', arg3 = "blah", **kwargs):
+@bond.observeFunction(spyPointName='foobarEntry', excludedKeys=('exkey',),
+                      formatter=lambda args: {k: str(v).upper() for k,v in args.iteritems()})
+def foobar(arg1, arg2='default', arg3="blah", **kwargs):
     print "Inside foobar: arg1={}, arg2={}, arg3={}, kwargs={}".format(arg1, arg2, arg3, kwargs)
 
 foobar(10)
 foobar(5, arg3='hello', mykey=70)
-foobar(arg3='boo', arg1='foo')
+foobar(arg3='boo', arg1='foo', exkey='excluded')
 
 # import unittest
 # class BondTest(unittest.TestCase):
