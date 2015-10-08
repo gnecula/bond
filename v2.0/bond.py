@@ -48,10 +48,15 @@ class Bond:
         return Bond._instance
 
     def __init__(self):
-        pass
+        self.pointReturns = {}
+
+    def pushObserverReturn(self, spyPointName, returnValue):
+        self.pointReturns[spyPointName] = returnValue
 
     def observe(self, spyPointName, observationDictionary, formatter=None):
         if formatter is not None:
             observationDictionary = formatter(observationDictionary)
         print "{}: {}".format(spyPointName, observationDictionary)
+        if spyPointName in self.pointReturns:
+            return self.pointReturns[spyPointName]
         return Bond.NO_MOCK_RESPONSE
