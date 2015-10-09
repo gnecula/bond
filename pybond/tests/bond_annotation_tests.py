@@ -63,7 +63,7 @@ class BondAnnotationTests(unittest.TestCase):
         self.annotatedWithNewName()
         self.assertEqual('testPointName', BondAnnotationTests.bondMock.getLastSpyPointName())
 
-    @bond.observeFunction(bond=bondMock, excludedKeys=('arg2', 'newArg'))
+    @bond.observeFunction(bond=bondMock, excludedKeys=('self', 'arg2', 'newArg'))
     def annotatedWithExclusion(self, arg1, arg2, **kwargs):
         pass
 
@@ -85,6 +85,16 @@ class BondAnnotationTests(unittest.TestCase):
             self.fail()
         except AssertionError:
             pass
+
+    @classmethod
+    @bond.observeFunction(bond=bondMock)
+    def annotatedClassMethod(cls, arg1):
+        pass
+
+    def testClassMethod(self):
+        BondAnnotationTests.annotatedClassMethod('foobar')
+        # TODO do we want the class printed for a class method? Not sure
+        self.assertEqual({'arg1': 'foobar', 'cls': BondAnnotationTests}, BondAnnotationTests.bondMock.getLastObservationDictionary())
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,5 +1,6 @@
 from functools import wraps
 import inspect
+import types
 
 TESTING = True # False # should be False by default but leaving as True during initial development
 
@@ -38,7 +39,8 @@ class Bond:
       the inspect.getargspec() won't work
 """
 # Dependency injection for mocking out bond for testing?
-def observeFunction(spyPointName=None, mockMandatory=False, excludedKeys=(), formatter=None, observeReturn=False, bond=Bond.instance()):
+# TODO right now excluding 'self' using excludedKeys, should attempt to find a better way?
+def observeFunction(spyPointName=None, mockMandatory=False, excludedKeys=('self'), formatter=None, observeReturn=False, bond=Bond.instance()):
     assert TESTING, 'Must be in testing mode to use observations!'
 
     def wrap(fn):
@@ -50,12 +52,11 @@ def observeFunction(spyPointName=None, mockMandatory=False, excludedKeys=(), for
         def fnWrapper(*args, **kwargs):
             observationDictionary = {}
             for idx, arg in enumerate(args):
-                if idx != 0 or arginfo.args[idx] != 'self':  # TODO more rigorous check?
-                    observationDictionary[arginfo.args[idx]] = arg
+                observationDictionary[arginfo.args[idx]] = arg
             for key, val in kwargs.iteritems():
                 observationDictionary[key] = val
             observationDictionary = {key: val for (key, val) in observationDictionary.iteritems()
-                                     if key not in excludedKeys and key != 'self'}
+                                     if key not in excludedKeys}
 
             response = bond.observe(pointName, formatter=formatter, **observationDictionary)
             if mockMandatory:
