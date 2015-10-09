@@ -96,5 +96,6 @@ class BondAnnotationTests(unittest.TestCase):
         # TODO do we want the class printed for a class method? Not sure
         self.assertEqual({'arg1': 'foobar', 'cls': BondAnnotationTests}, BondAnnotationTests.bondMock.getLastObservationDictionary())
 
+
 if __name__ == '__main__':
     unittest.main()

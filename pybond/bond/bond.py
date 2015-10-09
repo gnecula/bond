@@ -45,6 +45,8 @@ def observeFunction(spyPointName=None, mockMandatory=False, excludedKeys=('self'
 
     def wrap(fn):
         pointName = fn.__name__ if spyPointName is None else spyPointName
+        if not inspect.isfunction(fn):
+            raise TypeError('The observeFunction decorator may only be applied to functions/methods!')
         arginfo = inspect.getargspec(fn)
         # print arginfo
 
