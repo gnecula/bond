@@ -152,7 +152,6 @@ def spy_point(spy_point_name=None,
     :return:
     """
     # TODO: Should we also have an excluded_from_groups parameter?
-    # TODO: can we avoid the "bond" argument ?
 
     def wrap(fn):
         # TODO: we get an error here if we do not specify spy_point_name and this is a staticmethod
@@ -309,7 +308,7 @@ class Bond:
             self.spy_groups[sg] = True
 
 
-        # TODO: the rest is specific to unittest. We need to factor it out to allow other frameworks
+        # TODO: the rest is specific to unittest. We need to factor it out to allow other frameworks. See issue #2
         #       (the use of current_python_test._testMethodName above is unittest specific as well)
         # Register us on test exit
         current_python_test.addCleanup(self._finish_test)
@@ -397,15 +396,7 @@ class Bond:
     def _format_observation(self,
                             observation,
                             agents=None):
-        # TODO: I do not quite like how formatters work. Right now, they modify the observation dictionary in place
-        # This makes it easy for the formatter, but has unpleasant side-effects, which are visible to the
-        # downstream functions (result, doers). This also make it impossible to write
-        # a one-line formatter using 'lambda' (but that is really a weakness in Python).
-        # Also it is still pretty annoying to write these
-        # formatters. What I would really like is to override how particular keys are formatted, in depth.
-        # For example, I want to split the lines for key1[*].foo, or I want to replace all strings
-        # that match a date in key2.dates[*]. But that seems to require a custom implementation of
-        # the JSON serializer.
+        # TODO: I do not quite like how formatters work. See issue #1
         if agents:
             for agent in agents:
                 agent.formatter(observation)
@@ -429,7 +420,7 @@ class Bond:
             TESTING = False
 
             # Were there failures and errors in this test?
-            # TODO: this is specific to unittest
+            # TODO: this is specific to unittest. See issue #2
             failures_and_errors = (
                 "\n".join([err for tst, err in
                            self.current_python_test._resultForDoCleanups.failures[self.start_count_failures:] +

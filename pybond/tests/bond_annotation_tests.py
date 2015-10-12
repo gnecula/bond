@@ -38,8 +38,9 @@ class AnnotationTests(unittest.TestCase):
     def test_with_formatter(self):
         "Test the standard annotation with a formatter"
         def my_format(obs):
-            pass
-        bond.deploy_agent('AnnotationTests.annotatedStandardMethod',
+            obs['arg1'] += 1000
+
+        bond.deploy_agent('AnnotationTests.annotated_standard_method',
                           formatter=my_format)
         self.annotated_standard_method(8, 9)
 
