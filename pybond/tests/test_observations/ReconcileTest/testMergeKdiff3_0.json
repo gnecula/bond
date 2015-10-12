@@ -9,9 +9,7 @@
 },
 {
     "__spy_point_name": "bond_reconcile._print", 
-    "what": [
-        "Saving updated reference observation file for test 1"
-    ]
+    "what": "Saving updated reference observation file for test 1"
 },
 {
     "__spy_point_name": "invoke_top_reconcile_results", 

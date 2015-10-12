@@ -56,7 +56,22 @@ class ReconcileTest(unittest.TestCase):
                           cmd__startswith='kdiff3 ',
                           result=mock_kdiff3)
 
-    def prepare_observations(self,
+
+        # A special formatter for the printing of diffs
+        def _print_formatter(obs):
+            # We want to observe each line individually
+            # And we remove dates, which diff insists on putting in
+            res = []
+            for l in obs['what'].split('\n'):
+                l = re.sub(r'\d{4}-\d{2}-\d{2} \d{2}:.*', 'date', l)
+                res.append(l)
+            obs['what'] = res
+        bond.deploy_agent('bond_reconcile._print',
+                          what__contains='@@',
+                          formatter=_print_formatter)
+                    
+     def prepare_observations(self,
+
                              reference_file_content=None,
                              current_file_content=None):
         """

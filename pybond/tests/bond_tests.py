@@ -64,6 +64,22 @@ class BondTest(unittest.TestCase):
         # Otherwise, the test will try to reconcile with it
         shutil.rmtree(test_dir)
 
+
+    def test_formatter(self):
+        "Apply the formatter"
+
+        def my_formatter(obs):
+            obs['new_key'] = 'new_value'
+        bond.deploy_agent('fun1',
+                          cmd__contains="fun",
+                          formatter=my_formatter)
+        bond.deploy_agent('fun1',
+                          cmd__startswith="myfun",
+                          result=lambda obs: obs)
+
+        # Now the spying. Theresult should be the modified observation
+        bond.spy('spy result', res=bond.spy('fun1', cmd="myfun3"))
+
     def test_result(self):
         "Test the result aspect of the bond mocking"
 

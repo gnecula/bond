@@ -5,9 +5,7 @@
 },
 {
     "__spy_point_name": "bond_reconcile._print", 
-    "what": [
-        "There were differences in observations for test 1: "
-    ]
+    "what": "There were differences in observations for test 1: "
 },
 {
     "__spy_point_name": "bond_reconcile._print", 
@@ -27,15 +25,11 @@
 },
 {
     "__spy_point_name": "bond_reconcile._print", 
-    "what": [
-        "There were differences in observations for test 1: "
-    ]
+    "what": "There were differences in observations for test 1: "
 },
 {
     "__spy_point_name": "bond_reconcile._print", 
-    "what": [
-        "Aborting (merge=abort) due to differences for test test 1"
-    ]
+    "what": "Aborting (merge=abort) due to differences for test test 1"
 },
 {
     "__spy_point_name": "invoke_top_reconcile_results", 

@@ -70,18 +70,7 @@ class MergeTool:
 
 
     @staticmethod
-    def _bond_print_formatter(obs):
-        # We want to observe each line individually
-        # And we remove dates, which diff insists on putting in
-        res = []
-        for l in obs['what'].split('\n'):
-            l = re.sub(r'\d{4}-\d{2}-\d{2} \d{2}:.*', 'date', l)
-            res.append(l)
-        obs['what'] = res
-
-    @staticmethod
-    @spy_point(enabled_for_groups='bond_self_test',
-               formatter=lambda obs: MergeTool._bond_print_formatter(obs))
+    @spy_point(enabled_for_groups='bond_self_test')
     def _print(what):
         """
         A function to do the printing, so we can spy on it

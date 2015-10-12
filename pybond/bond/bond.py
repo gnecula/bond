@@ -68,7 +68,7 @@ def spy(spy_point_name, **kwargs):
     @param spyPointName: the spy point name, useful to distinguish among different observations
     @param kwargs: key-value pairs to be observed. There is a special key name:
 
-    @return: the result from the observer, if any (see bond.push_observer)
+    @return: the result from the agent, if any (see bond.deploy_agent)
     """
     return Bond.instance().spy(spy_point_name, **kwargs)
 
@@ -98,19 +98,28 @@ def deploy_agent(spy_point_name, **kwargs):
                       string value that starts with the given substr
              * key__endswith=substr : only when the observed argument dictionary contains the 'key' with a string value
                       that ends with the given substr
-             * filter=func : only when the given func returns true when passed observed argument dictionary
+             * filter=func : only when the given func returns true when passed observed argument dictionary.
+                      Uses the observation before formatting.
+
         * Keys that control what the observer does when processed:
              * ignore=value : determines if the observation is ignored. If the value is a function,
-                     it is invoked on the observation.
+                              it is invoked on the observation. The first processed agent that
+                              specified an "ignore" value takes precendence. Uses the observation before
+                              formatting.
+             * formatter : if specified, a function that is given the observation and can update it in place.
+                           The formatted observation is what gets saved, and used in 'exception' or 'result'
+                           or 'do' functions.
              * do=func : executes the given function with the observed argument dictionary.
                          func can also be a list of functions, executed in order.
 
-        * Keys that control what the corresponding bond.spy returns (by default None):
+
+        * Keys that control what the corresponding spy returns (by default AGENT_RESULT_NONE):
              * exception=x : the call to bond.spy throws the given exception. If 'x' is a function
                              it is invoked on the observe argument dictionary to compute the exception to throw.
              * result=x : the call to bond.spy returns the given value. If 'x' is a function
                              it is invoked on the observe argument dictionary to compute the value to return.
-    @return:
+    @return: either AGENT_RESULT_NONE if not agent matches or contains a "result", or the result from
+             the first agent that matches.
     """
     # TODO: should we support deploying agents that are not reset when the test ends? MAybe not, esepcially
     #       if we will create one instance for each test.
@@ -118,13 +127,13 @@ def deploy_agent(spy_point_name, **kwargs):
     #             in your test setUp() ?
     Bond.instance().deploy_agent(spy_point_name, **kwargs)
 
+
 # Dependency injection for mocking out bond for testing?
 # TODO right now excluding 'self' using excludedKeys, should attempt to find a better way?
 def spy_point(spy_point_name=None,
               enabled_for_groups=None,
               require_agent_result=False,
               excluded_keys=('self'),
-              formatter=None,
               spy_return=False):
     """
     Decorator for marking Bond spy points.
@@ -139,7 +148,6 @@ def spy_point(spy_point_name=None,
                            The agent may still provide AGENT_RESULT_CONTINUE to tell the spy point
                            to continue the invocation of the underlying function.
     :param excluded_keys:
-    :param formatter:
     :param spy_return:
     :return:
     """
@@ -211,7 +219,7 @@ def spy_point(spy_point_name=None,
             observation_dictionary = {key: val for (key, val) in observation_dictionary.iteritems()
                                       if key not in excluded_keys}
 
-            response = the_bond.spy(spy_point_name_local, formatter=formatter, **observation_dictionary)
+            response = the_bond.spy(spy_point_name_local, **observation_dictionary)
             if require_agent_result:
                 assert response is not AGENT_RESULT_NONE, \
                     'You MUST mock out spy_point {}: {}'.format(spy_point_name_local,
@@ -235,8 +243,6 @@ def spy_point(spy_point_name=None,
 
 
 class Bond:
-
-
 
     DEFAULT_OBSERVATION_DIRECTORY = '/tmp/bond_observations'
 
@@ -317,14 +323,15 @@ class Bond:
                 Bond.DEFAULT_OBSERVATION_DIRECTORY
             ))
 
-    def spy(self, spy_point_name, formatter=None, **kwargs):
+    def spy(self, spy_point_name, **kwargs):
         assert self.current_python_test, "Should not call spy unless you have called start_test first"
         assert isinstance(spy_point_name, basestring), "spy_point_name must be a string"
 
         # Does at least one agent tell us to ignore this
         # Process the agents in order
         applicable_agents = []
-        dont_ignore = None
+        ignore_result = None
+
         for agent in self.spy_agents.get(spy_point_name, []):
             if not agent.filter(kwargs):
                 continue
@@ -334,7 +341,7 @@ class Bond:
             #       then later push one with no specification of ignore, based on the logic that more recent
             #       agents take precedence I would expect the second one (with the default behavior of
             #       not ignoring) to win
-            if dont_ignore is None:
+            if ignore_result is None:
                 agent_ignore = agent.ignore(kwargs)
                 if agent_ignore is not None:
                     if agent_ignore:
@@ -342,13 +349,14 @@ class Bond:
                         return AGENT_RESULT_NONE
                     else:
                         # This agent says "do not ignore", don't ask others
-                        dont_ignore = True
+                        ignore_result = False
 
         observation = copy.deepcopy(kwargs)
         observation['__spy_point_name'] = spy_point_name  # Use a key that should come first alphabetically
         # TODO: Why are we including this in the observation dictionary?
 
-        formatted = self._format_observation(spy_point_name, observation, formatter=formatter)
+        formatted = self._format_observation(observation,
+                                             agents=applicable_agents)
 
         # TODO: This is not nice in general, we need a way to control this from settings
         print("Observing: " + formatted + "\n")
@@ -387,11 +395,21 @@ class Bond:
         spy_agent_list.insert(0, agent)
 
     def _format_observation(self,
-                            spy_point_name,
                             observation,
-                            formatter=None):
-        if formatter is not None:
-            formatter(observation)
+                            agents=None):
+        # TODO: I do not quite like how formatters work. Right now, they modify the observation dictionary in place
+        # This makes it easy for the formatter, but has unpleasant side-effects, which are visible to the
+        # downstream functions (result, doers). This also make it impossible to write
+        # a one-line formatter using 'lambda' (but that is really a weakness in Python).
+        # Also it is still pretty annoying to write these
+        # formatters. What I would really like is to override how particular keys are formatted, in depth.
+        # For example, I want to split the lines for key1[*].foo, or I want to replace all strings
+        # that match a date in key2.dates[*]. But that seems to require a custom implementation of
+        # the JSON serializer.
+        if agents:
+            for agent in agents:
+                agent.formatter(observation)
+
         return json.dumps(observation,
                           sort_keys=True,
                           indent=4,
@@ -493,7 +511,7 @@ class SpyAgent:
         self.ignore_spec = None
         self.result_spec = None
         self.exception_spec = None
-        self.format_spec = None
+        self.formatter_spec = None
         self.doers = []  # A list of things to do
         self.point_filter = None  # The filter for pointName, if present
         self.filters = []  # The generic filters
@@ -503,8 +521,8 @@ class SpyAgent:
                 self.result_spec = kwargs['result']
             elif k == 'exception':
                 self.exception_spec = kwargs['exception']
-            elif k == 'format':
-                self.format_spec = kwargs['format']
+            elif k == 'formatter':
+                self.formatter_spec = kwargs['formatter']
             elif k == 'ignore':
                 self.ignore_spec = kwargs['ignore']
             elif k == 'do':
@@ -542,6 +560,11 @@ class SpyAgent:
                 return self.ignore_spec
         else:
             return None
+
+    def formatter(self, observation):
+        """Apply the formatter to modify the observation in place"""
+        if self.formatter_spec is not None:
+            self.formatter_spec(observation)
 
     def do(self, observation):
         for d in self.doers:
