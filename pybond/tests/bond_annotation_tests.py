@@ -43,7 +43,7 @@ class AnnotationTests(unittest.TestCase):
         self.annotatedStandardMethodEnabledForGroups(arg1=1, arg2=2)
 
     def testWithMocking(self):
-        bond.deploy_agent('annotatedStandardMethod',
+        bond.deploy_agent('AnnotationTests.annotatedStandardMethod',
                           result='mocked value')
 
         self.assertEquals('mocked value', self.annotatedStandardMethod(arg1=1, arg2=2))
@@ -80,7 +80,7 @@ class AnnotationTests(unittest.TestCase):
         return 'return value'
 
     def testWithMockingMandatoryApplied(self):
-        bond.deploy_agent('annotatedWithMockingMandatory',
+        bond.deploy_agent('AnnotationTests.annotatedWithMockingMandatory',
                           result='mocked value')
         self.assertEqual('mocked value', self.annotatedWithMockingMandatory())
 
@@ -101,6 +101,13 @@ class AnnotationTests(unittest.TestCase):
         # TODO do we want the class printed for a class method? Not sure
 
 
+    def testModuleMethod(self):
+        annotatedModuleMethod(1)
+
+
+@bond.spy_point()
+def annotatedModuleMethod(arg1, arg2='2'):
+    return 'something'
 
 if __name__ == '__main__':
     unittest.main()

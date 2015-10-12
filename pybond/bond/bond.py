@@ -139,14 +139,11 @@ def spy_point(spy_point_name=None,
 
     def wrap(fn):
         # TODO: we get an error here if we do not specify spy_point_name and this is a staticmethod
-        # The is if we have @spy_point() @staticmethod
-        pointName = fn.__name__ if spy_point_name is None else spy_point_name
+        # TODO: This is if we have @spy_point() @staticmethod
+
+        # We have as little code here as possible, because this runs in production code
         if not inspect.isfunction(fn):
             raise TypeError('The observeFunction decorator may only be applied to functions/methods!')
-
-        # TODO: do we need to getargspec so early. What if this point is not enabled?
-        arginfo = inspect.getargspec(fn)
-        # print arginfo
 
         @wraps(fn)
         def fnWrapper(*args, **kwargs):
@@ -162,6 +159,34 @@ def spy_point(spy_point_name=None,
                     # We are only enabled for some groups, but none of those and active
                     return fn(*args, **kwargs)
 
+            arginfo = inspect.getargspec(fn)
+            # print arginfo
+
+            fn_kind = 0
+            if spy_point_name is None:
+                # We recognize instance methods by the first argument 'self'
+                # TODO: there must be a better way to do this
+                spy_point_name_local = None
+                if arginfo and arginfo[0]:
+                    if arginfo[0][0] == 'self':
+                        spy_point_name_local = args[0].__class__.__name__+'.'+fn.__name__
+                    elif arginfo[0][0] == 'cls':
+                        # A class method
+                        spy_point_name_local = args[0].__name__+'.'+fn.__name__
+                if spy_point_name_local is None:
+                    # TODO We get here both for staticmethod and for module-level functions
+                    # If we had the spy_point wrapper outside the @staticmethod we could tell
+                    # more easily what kind of method this was !!
+                    module_name = getattr(fn, '__module__')
+                    # Keep only the last component of the name
+                    module_name = module_name.split('.')[-1]
+                    spy_point_name_local = module_name+'.'+fn.__name__
+            else:
+                spy_point_name_local = spy_point_name
+
+
+
+
             observationDictionary = {}
             for idx, arg in enumerate(args):
                 observationDictionary[arginfo.args[idx]] = arg
@@ -170,9 +195,10 @@ def spy_point(spy_point_name=None,
             observationDictionary = {key: val for (key, val) in observationDictionary.iteritems()
                                      if key not in excluded_keys}
 
-            response = the_bond.spy(pointName, formatter=formatter, **observationDictionary)
+            response = the_bond.spy(spy_point_name_local, formatter=formatter, **observationDictionary)
             if mock_mandatory:
-                assert response is not Bond.NO_MOCK_RESPONSE, 'You MUST mock out spypoint {}'.format(pointName)
+                assert response is not Bond.NO_MOCK_RESPONSE, \
+                    'You MUST mock out spy_point {}'.format(spy_point_name_local)
             if response is Bond.NO_MOCK_RESPONSE:
                 retVal = fn(*args, **kwargs)
                 # if observe_return:

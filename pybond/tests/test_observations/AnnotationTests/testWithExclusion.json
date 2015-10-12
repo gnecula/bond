@@ -1,6 +1,6 @@
 [
 {
-    "__spy_point_name": "annotatedWithExclusion", 
+    "__spy_point_name": "AnnotationTests.annotatedWithExclusion", 
     "arg1": "foo", 
     "newArg2": "baz"
 }
