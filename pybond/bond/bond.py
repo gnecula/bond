@@ -12,6 +12,12 @@ import json
 # called.
 TESTING = False
 
+# Special result from spy when no agent matches, or no agent provides a result
+AGENT_RESULT_NONE = '_bond_agent_result_none'
+
+# Special result from spy when an agent specifically wants the spy point
+# to continue. This is useful for spy points that require an agent result
+AGENT_RESULT_CONTINUE = '_bond_agent_result_continue'
 
 # Function annotation for observation
 """ Internal Notes:
@@ -116,7 +122,7 @@ def deploy_agent(spy_point_name, **kwargs):
 # TODO right now excluding 'self' using excludedKeys, should attempt to find a better way?
 def spy_point(spy_point_name=None,
               enabled_for_groups=None,
-              mock_mandatory=False,
+              require_agent_result=False,
               excluded_keys=('self'),
               formatter=None,
               spy_return=False):
@@ -128,7 +134,10 @@ def spy_point(spy_point_name=None,
                            of the decorated function.
     :param enabled_for_groups: An optional list or tuple of spy point groups to which this spy point belongs.
                            If missing then it is enabled for all groups.
-    :param mock_mandatory:
+    :param require_agent_result: if True, and if this spy point is enabled, then there must be an
+                           agent that provides a result, or else the invocation of the function aborts.
+                           The agent may still provide AGENT_RESULT_CONTINUE to tell the spy point
+                           to continue the invocation of the underlying function.
     :param excluded_keys:
     :param formatter:
     :param spy_return:
@@ -144,14 +153,23 @@ def spy_point(spy_point_name=None,
         if not inspect.isfunction(fn):
             raise TypeError('The observeFunction decorator may only be applied to functions/methods!')
 
+        # Convert enabled_for_groups into a tuple
+        if enabled_for_groups is None:
+            enabled_for_groups_local = None
+        elif isinstance(enabled_for_groups, basestring):
+            enabled_for_groups_local = (enabled_for_groups,)
+        else:
+            assert isinstance(enabled_for_groups, (list, tuple))
+            enabled_for_groups_local = enabled_for_groups
+
         @wraps(fn)
         def fnWrapper(*args, **kwargs):
             # Bypass spying if we are not TESTING
             if not TESTING:
                 return fn(*args, **kwargs)
             the_bond = Bond.instance()
-            if enabled_for_groups is not None:
-                for grp in enabled_for_groups:
+            if enabled_for_groups_local is not None:
+                for grp in enabled_for_groups_local:
                     if grp in the_bond.spy_groups:
                         break
                 else:
@@ -191,10 +209,11 @@ def spy_point(spy_point_name=None,
                                      if key not in excluded_keys}
 
             response = the_bond.spy(spy_point_name_local, formatter=formatter, **observationDictionary)
-            if mock_mandatory:
-                assert response is not Bond.NO_MOCK_RESPONSE, \
-                    'You MUST mock out spy_point {}'.format(spy_point_name_local)
-            if response is Bond.NO_MOCK_RESPONSE:
+            if require_agent_result:
+                assert response is not AGENT_RESULT_NONE, \
+                    'You MUST mock out spy_point {}: {}'.format(spy_point_name_local,
+                                                                repr(observationDictionary))
+            if response is AGENT_RESULT_NONE or response is AGENT_RESULT_CONTINUE:
                 retVal = fn(*args, **kwargs)
             else:
                 retVal = response
@@ -215,7 +234,9 @@ def spy_point(spy_point_name=None,
 
 
 class Bond:
-    NO_MOCK_RESPONSE = '_bond_no_mock_response'  # TODO ?
+
+
+
     DEFAULT_OBSERVATION_DIRECTORY = '/tmp/bond_observations'
 
     _instance = None
@@ -311,7 +332,7 @@ class Bond:
                 if agent_ignore is not None:
                     if agent_ignore:
                         # This agent says "ignore", don't even bother anymore
-                        return Bond.NO_MOCK_RESPONSE
+                        return AGENT_RESULT_NONE
                     else:
                         # This agent says "do not ignore", don't ask others
                         dont_ignore = True
@@ -329,13 +350,13 @@ class Bond:
         for agent in applicable_agents:
             agent.do(observation)
             res = agent.result(observation)  # This may throw an exception
-            if res != Bond.NO_MOCK_RESPONSE:
+            if res != AGENT_RESULT_NONE:
                 # If an agent says return, we have our return
                 # TODO: should we try the "doers" of the other agents?
                 print("   Returned "+repr(res))
                 return res
 
-        return Bond.NO_MOCK_RESPONSE
+        return AGENT_RESULT_NONE
 
 
     def deploy_agent(self,
@@ -536,7 +557,7 @@ class SpyAgent:
             else:
                 return r
         else:
-            return Bond.NO_MOCK_RESPONSE
+            return AGENT_RESULT_NONE
 
 
 class SpyAgentFilter:

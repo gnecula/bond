@@ -1,9 +1,7 @@
 [
 {
-    "__spy_point_name": "bond_reconcile._print", 
-    "what": [
-        "Creating reference observation file for test 1: /tmp/bondObservationsDir/reference.json"
-    ]
+    "__spy_point_name": "bond_reconcile._invoke_command", 
+    "cmd": "diff -u -w \"/tmp/bondObservationsDir/reference.json\" \"/tmp/bondObservationsDir/reference_now.json\" >\"/tmp/bondObservationsDir/reference_now.json.diff\""
 },
 {
     "__spy_point_name": "invoke_top_reconcile_results", 
