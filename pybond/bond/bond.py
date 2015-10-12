@@ -108,7 +108,6 @@ def deploy_agent(spy_point_name, **kwargs):
                              it is invoked on the observe argument dictionary to compute the value to return.
     @return:
     """
-    # TODO: should we call this deploy_agent ?
     # TODO: should we support deploying agents that are not reset when the test ends? MAybe not, esepcially
     #       if we will create one instance for each test.
     Bond.instance().deploy_agent(spy_point_name, **kwargs)
@@ -120,7 +119,7 @@ def spy_point(spy_point_name=None,
               mock_mandatory=False,
               excluded_keys=('self'),
               formatter=None,
-              observe_return=False):
+              spy_return=False):
     """
     Decorator for marking Bond spy points.
     Must be applied directly to a method or a function, not to another decorator.
@@ -132,7 +131,7 @@ def spy_point(spy_point_name=None,
     :param mock_mandatory:
     :param excluded_keys:
     :param formatter:
-    :param observe_return:
+    :param spy_return:
     :return:
     """
     # TODO: can we avoid the "bond" argument ?
@@ -162,7 +161,6 @@ def spy_point(spy_point_name=None,
             arginfo = inspect.getargspec(fn)
             # print arginfo
 
-            fn_kind = 0
             if spy_point_name is None:
                 # We recognize instance methods by the first argument 'self'
                 # TODO: there must be a better way to do this
@@ -184,9 +182,6 @@ def spy_point(spy_point_name=None,
             else:
                 spy_point_name_local = spy_point_name
 
-
-
-
             observationDictionary = {}
             for idx, arg in enumerate(args):
                 observationDictionary[arginfo.args[idx]] = arg
@@ -201,14 +196,16 @@ def spy_point(spy_point_name=None,
                     'You MUST mock out spy_point {}'.format(spy_point_name_local)
             if response is Bond.NO_MOCK_RESPONSE:
                 retVal = fn(*args, **kwargs)
-                # if observe_return:
+            else:
+                retVal = response
+
+            if spy_return:
                 # TODO would be nice for these two observations to be on the same output. maybe could have
                 # some sort of 'observePartial' that keeps saves info but doesn't log it yet, waits for an
                 # 'observeComplete' or something
-                # bond.observe(pointName + '.return', retVal)
-                return retVal
-            else:
-                return response
+                the_bond.spy(spy_point_name_local+'.return', result=retVal)
+            return retVal
+
 
         return fnWrapper
 

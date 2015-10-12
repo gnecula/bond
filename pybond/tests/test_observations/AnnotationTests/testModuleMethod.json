@@ -2,5 +2,9 @@
 {
     "__spy_point_name": "bond_annotation_tests.annotatedModuleMethod", 
     "arg1": 1
+},
+{
+    "__spy_point_name": "bond_annotation_tests.annotatedModuleMethod.return", 
+    "result": "something"
 }
 ]
