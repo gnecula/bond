@@ -137,6 +137,8 @@ def deploy_agent(spy_point_name, **kwargs):
                       that ends with the given substr
              * filter=func : only when the given func returns true when passed observed argument dictionary
         * Keys that control what the observer does when processed:
+             * ignore=value : determines if the observation is ignored. If the value is a function,
+                     it is invoked on the observation.
              * do=func : executes the given function with the observed argument dictionary.
                          func can also be a list of functions, executed in order.
 
@@ -177,6 +179,7 @@ class Bond:
         self.start_count_errors = None
         self.test_name = None
         self.observations = []  # Here we will collect the observations
+        self.spy_agents = {}  # Map from spy_point_name to SpyAgents
 
     def settings(self, **kwargs):
         """
@@ -198,7 +201,8 @@ class Bond:
         :param kwargs:
         :return:
         """
-
+        self.observations = []
+        self.spy_agents = {}
         self.current_python_test = current_python_test
         self.test_name = (kwargs.get('test_name') or
                           current_python_test.__class__.__name__ + "." + current_python_test._testMethodName)
@@ -215,12 +219,30 @@ class Bond:
                 Bond.DEFAULT_OBSERVATION_DIRECTORY
             ))
 
-    def pushObserverReturn(self, spyPointName, returnValue):
-        self.pointReturns[spyPointName] = returnValue
 
     def spy(self, spy_point_name, formatter=None, **kwargs):
         assert self.current_python_test, "Should not call spy unless you have called start_test first"
         assert isinstance(spy_point_name, basestring), "spy_point_name must be a string"
+
+        # Does at least one agent tell us to ignore this
+        # Process the agents in order
+        applicable_agents = []
+        dont_ignore = None
+        for agent in self.spy_agents.get(spy_point_name, []):
+            if not agent.filter(kwargs):
+                continue
+            applicable_agents.append(agent)
+
+            if dont_ignore is None:
+                agent_ignore = agent.ignore(kwargs)
+                if agent_ignore is not None:
+                    if agent_ignore:
+                        # This agent says "ignore", don't even bother anymore
+                        return Bond.NO_MOCK_RESPONSE
+                    else:
+                        # This agent says "do not ignore", don't ask others
+                        dont_ignore = True
+
 
         observation = copy.deepcopy(kwargs)
         observation['__spy_point_name'] = spy_point_name  # Use a key that should come first alphabetically
@@ -230,8 +252,16 @@ class Bond:
         print("Observing: " + formatted + "\n")
         self.observations.append(formatted)
 
-        if spy_point_name in self.pointReturns:
-            return self.pointReturns[spy_point_name]
+        # Now process the agents
+        for agent in applicable_agents:
+            agent.do(observation)
+            res = agent.result(observation)  # This may throw an exception
+            if res != Bond.NO_MOCK_RESPONSE:
+                # If an agent says return, we have our return
+                # TODO: should we try the "doers" of the other agents?
+                print("   Returned "+repr(res))
+                return res
+
         return Bond.NO_MOCK_RESPONSE
 
 
@@ -245,8 +275,16 @@ class Bond:
         :param kwargs:
         :return:
         """
+        assert self.current_python_test, "Should not call deploy_agent unless you have called start_test first"
         assert isinstance(spy_point_name, basestring), "spy_point_name must be a string"
-        assert False, 'Not implemented'
+
+        agent = SpyAgent(spy_point_name, **kwargs)
+        spy_agent_list = self.spy_agents.get(spy_point_name)
+        if spy_agent_list is None:
+            spy_agent_list = []
+            self.spy_agents[spy_point_name] = spy_agent_list
+        # add the agent at the start of the list
+        spy_agent_list.insert(0, agent)
 
 
     def _format_observation(self,
@@ -337,6 +375,136 @@ class Bond:
                                                      test_name=self.test_name,
                                                      reference_file=reference_file,
                                                      current_file=current_file)
+
+
+
+class SpyAgent:
+    """
+    A spy agent applies to a particular spy_point_name, has
+    some optional filters to select only certain observations,
+    and has optional mocking parameters.
+    See documentation for the deploy_agent top-level function.
+    """
+    def __init__(self, spy_point_name, **kwargs):
+        self.spy_point_name = spy_point_name
+        self.ignore_spec = None
+        self.result_spec = None
+        self.exception_spec = None
+        self.format_spec = None
+        self.doers = []  # A list of things to do
+        self.point_filter = None  # The filter for pointName, if present
+        self.filters = []  # The generic filters
+
+        for k in kwargs:
+            if k == 'result':
+                self.result_spec = kwargs['result']
+            elif k == 'exception':
+                self.exception_spec = kwargs['exception']
+            elif k == 'format':
+                self.format_spec = kwargs['format']
+            elif k == 'ignore':
+                self.format_spec = kwargs['ignore']
+            elif k == 'do':
+                doers = kwargs[k]
+                if isinstance(doers, list):
+                    self.doers += doers
+                else:
+                    self.doers.append(doers)
+            else:
+                # Must be a filter
+                fo = SpyAgentFilter(k, kwargs[k])
+                self.filters.append(fo)
+
+
+    def filter(self, observation):
+        """
+        Run the filter on an observation to see if the SpyAgent applies
+        :param observation:
+        :return: True, if the
+        """
+        for f in self.filters:
+            if not f.filter(observation):
+                return False
+        return True
+
+    def ignore(self, observation):
+        """
+        See if we need to ignore
+        @return None for 'don't care', True/False otherwise
+        """
+        if self.ignore_spec is not None:
+            if hasattr(self.ignore_spec, '__call__'):
+                return self.ignore_spec(observation)
+            else:
+                return self.ignore_spec
+        else:
+            return None
+
+    def do(self, observation):
+        for d in self.doers:
+            d(observation)
+
+    def result(self, observation):
+        """Compute the result"""
+        es = self.exception_spec
+        if es is not None:
+            if hasattr(es, '__call__'):
+                raise es ()
+            else:
+                raise es
+
+        r = self.result_spec
+        if r is not None:
+            if hasattr(r, '__call__'):
+                return r(observation)
+            else:
+                return r
+        else:
+            return Bond.NO_MOCK_RESPONSE
+
+
+class SpyAgentFilter:
+    """
+    Each SpyAgent can have multiple filters.
+    See documentation for deploy_agent function.
+    """
+    def __init__(self, filter_key, filter_value):
+        self.field_name = None   # The observation field name the filter applies to
+        self.filter_func = None  # A filter function (applies to the field value)
+        if filter_key == 'filter':
+            assert type(filter_value) == type(lambda :0)
+            self.field_name = None
+            self.filter_func = filter_value
+            return
+
+        parts = filter_key.split("__")
+        if len(parts) == 1:
+            self.field_name = parts[0]
+            self.filter_func = (lambda f: f == filter_value)
+        elif len(parts) == 2:
+            self.field_name = parts[0]
+            cmpSpec = parts[1]
+            if cmpSpec == 'exact':
+                self.filter_func = (lambda f: f == filter_value)
+            elif cmpSpec == 'eq':
+                self.filter_func = (lambda f: f == filter_value)
+            elif cmpSpec == 'startswith':
+                self.filter_func = (lambda f: f.find(filter_value) == 0)
+            elif cmpSpec == 'endswith':
+                self.filter_func = (lambda f: f.find(filter_value) == len(f) - len(filter_value))
+            elif cmpSpec == 'contains':
+                self.filter_func = (lambda f: filter_value in f)
+            else:
+                assert False, "Unknown operator: "+cmpSpec
+        else:
+            assert False
+
+    def filter(self, observation):
+        if self.field_name:
+            return self.field_name in observation and self.filter_func(observation[self.field_name])
+        else:
+            return self.filter_func(observation)
+
 
 
 # Import bond_reconcile at the end, because we import bond from bond_reconcile, and

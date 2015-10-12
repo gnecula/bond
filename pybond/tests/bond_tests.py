@@ -32,6 +32,7 @@ class BondTest(unittest.TestCase):
 
         bond.spy('there', val=10)
 
+
     def test_spy_create_dir(self):
         "Test the creation of the observation directory"
         test_dir = '/tmp/bondTestOther'
@@ -54,5 +55,50 @@ class BondTest(unittest.TestCase):
         # Otherwise, the test will try to reconcile with it
         shutil.rmtree(test_dir)
 
+    def test_result(self):
+        "Test the result aspect of the bond mocking"
+
+        bond.deploy_agent('fun1',
+                          cmd__contains="fun",
+                          result=lambda obs: obs['cmd'] + ' here')
+        bond.deploy_agent('fun1',
+                          cmd__startswith="myfun",
+                          result=123)
+        # Now the spying
+        self.assertEquals('a ton of fun here', bond.spy('fun1', cmd="a ton of fun"))
+        self.assertEquals(bond.Bond.NO_MOCK_RESPONSE, bond.spy('nofun', cmd="myfun2"))
+        self.assertEquals(123, bond.spy('fun1', cmd="myfun3"))
 
 
+    def test_doers(self):
+        "Test the doer aspect of the bond mocking"
+        results = []
+
+        bond.deploy_agent('fun1',
+                          cmd__startswith="myfun",
+                          do=(lambda args: results.append("1: " + args['cmd'])))
+        bond.deploy_agent('fun1',
+                          cmd__contains="fun",
+                          do=(lambda args: results.append("2: " + args['cmd'])))
+        # Now the spying
+        bond.spy('fun1', cmd="myfun1")
+        bond.spy('nofun', cmd="myfun2")
+        bond.spy('fun1', cmd="myfun3")
+
+        self.assertSequenceEqual(['2: myfun1', '1: myfun1',
+                                  '2: myfun3', '1: myfun3'], results)
+
+    def test_exception(self):
+        "A test that throws exceptions"
+        bond.deploy_agent('fun1',
+                          cmd__startswith="myfun",
+                          result=1,
+                          exception=Exception("some exception"))
+        self.assertRaises(Exception,
+                          lambda :  bond.spy('fun1', cmd="myfun1"))
+
+        bond.deploy_agent('fun1',
+                          cmd="myfun2",
+                          result=1,
+                          exception=lambda : Exception("some exception"))
+        self.assertRaises(Exception, lambda :  bond.spy('fun1', cmd="myfun2"))

@@ -48,7 +48,7 @@ class MergeTool:
 
 
     @staticmethod
-    @spy_point()
+    #@spy_point()
     def _invoke_command(cmd):
         """
         Invoke a shell command. Return the exit code.
@@ -58,7 +58,7 @@ class MergeTool:
         return os.system(cmd)
 
     @staticmethod
-    @spy_point()
+    #@spy_point()
     def _read_console(prompt):
         """
         A function to read from the console
@@ -67,7 +67,7 @@ class MergeTool:
 
 
     @staticmethod
-    @spy_point()
+    #@spy_point()
     def _print(what):
         """
         A function to do the printing, so we can spy on it
