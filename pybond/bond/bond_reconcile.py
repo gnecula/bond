@@ -10,7 +10,7 @@ try:
     # Import bond safely
     from bond import spy_point
 except ImportError:
-    spy_point = lambda *kw: lambda f:f
+    spy_point = lambda **kw: lambda f: f
 
 
 """
@@ -82,6 +82,7 @@ class MergeTool:
         Compute a diff between files and save it into a diff_file.
         Return True if there are no diffs
         """
+        # TODO: implicit dependency on a 'diff' command line tool with the same usage syntax that you're expecting
         return (0 == MergeTool._invoke_command('diff -u -w "{0}" "{1}" >"{2}"'.format(reference_file,
                                                                                       current_file,
                                                                                       diff_file)))

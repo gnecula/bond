@@ -1,8 +1,6 @@
 from __future__ import print_function
 from functools import wraps
 import inspect
-import unittest
-import types
 import copy
 import os
 import json
@@ -12,14 +10,6 @@ import json
 # called.
 TESTING = False
 
-
-# Function annotation for observation
-""" Internal Notes:
-    - wouldn't make sense to pass an observe function here since that puts the 'mock' inside of prod code
-      - maybe would make sense to have a single default return value to return during testing?
-    - this MUST be the first decorator applied to your function (i.e. the bottommost one) or else
-      the inspect.getargspec() won't work
-"""
 
 # We export some function to module-level for more convenient use
 def settings(observation_directory=None,
@@ -58,7 +48,7 @@ def start_test(current_python_test,
 def spy(spy_point_name, **kwargs):
     """
     This is the most frequently used Bond function. It will collect the key-value pairs passed
-    in the argument list and will emit them to the spy observation log..
+    in the argument list and will emit them to the spy observation log.
     If there is an observer registered for the current spy point (see Bond.PushObserver), it will process the observer.
 
     The values are formatted to JSON using the json module, with sorted keys, and indentation, with
@@ -78,6 +68,14 @@ def spy(spy_point_name, **kwargs):
 
 
 def deploy_agent(spy_point_name, **kwargs):
+    # TODO: I think saying "agents for a point are processed in reverse order" is a little misleading;
+    # to me it implies that all of the agents are processed, when really only one is processed (kind of...
+    # we need to fully specify behavior of result and doers))
+    # I think a better description might be "Agents are evaluated to see if they apply to the specific
+    # spy invocation in reverse order" or something along those lines
+    # Also you mix "observer" and "agent", we should be consistent
+    # TODO: Right now it seems that the filters are applied in an AND fashion (all filter criteria must
+    #       be met). Do we want to make this configurable (AND or OR)? Either way this should be documented
     """
     Create a new agent for the named spy point. Agents for a point are processed in reverse order
     of their introduction (last one is processed first).
@@ -101,7 +99,7 @@ def deploy_agent(spy_point_name, **kwargs):
              * do=func : executes the given function with the observed argument dictionary.
                          func can also be a list of functions, executed in order.
 
-        * Keys that control what the corresponding Bond.Observe returns (by default None):
+        * Keys that control what the corresponding bond.spy returns (by default None):
              * exception=x : the call to bond.spy throws the given exception. If 'x' is a function
                              it is invoked on the observe argument dictionary to compute the exception to throw.
              * result=x : the call to bond.spy returns the given value. If 'x' is a function
@@ -110,6 +108,8 @@ def deploy_agent(spy_point_name, **kwargs):
     """
     # TODO: should we support deploying agents that are not reset when the test ends? MAybe not, esepcially
     #       if we will create one instance for each test.
+    #       ERIK: I think probably not, if you want an agent to be present for all tests shouldn't you just put it
+    #             in your test setUp() ?
     Bond.instance().deploy_agent(spy_point_name, **kwargs)
 
 # Dependency injection for mocking out bond for testing?
@@ -134,13 +134,16 @@ def spy_point(spy_point_name=None,
     :param spy_return:
     :return:
     """
+    # TODO: Should we also have an excluded_from_groups parameter?
     # TODO: can we avoid the "bond" argument ?
 
     def wrap(fn):
         # TODO: we get an error here if we do not specify spy_point_name and this is a staticmethod
         # TODO: This is if we have @spy_point() @staticmethod
+        # ERIK: The @staticmethod should appear above @spy_point and that solves this issue
 
         # We have as little code here as possible, because this runs in production code
+        # ^ not if we use the try/except on import idiom. But good to still work if bond is imported
         if not inspect.isfunction(fn):
             raise TypeError('The observeFunction decorator may only be applied to functions/methods!')
 
@@ -182,35 +185,33 @@ def spy_point(spy_point_name=None,
             else:
                 spy_point_name_local = spy_point_name
 
-            observationDictionary = {}
+            observation_dictionary = {}
             for idx, arg in enumerate(args):
-                observationDictionary[arginfo.args[idx]] = arg
+                observation_dictionary[arginfo.args[idx]] = arg
             for key, val in kwargs.iteritems():
-                observationDictionary[key] = val
-            observationDictionary = {key: val for (key, val) in observationDictionary.iteritems()
+                observation_dictionary[key] = val
+            observation_dictionary = {key: val for (key, val) in observation_dictionary.iteritems()
                                      if key not in excluded_keys}
 
-            response = the_bond.spy(spy_point_name_local, formatter=formatter, **observationDictionary)
+            response = the_bond.spy(spy_point_name_local, formatter=formatter, **observation_dictionary)
             if mock_mandatory:
                 assert response is not Bond.NO_MOCK_RESPONSE, \
                     'You MUST mock out spy_point {}'.format(spy_point_name_local)
             if response is Bond.NO_MOCK_RESPONSE:
-                retVal = fn(*args, **kwargs)
+                return_val = fn(*args, **kwargs)
             else:
-                retVal = response
+                return_val = response
 
             if spy_return:
                 # TODO would be nice for these two observations to be on the same output. maybe could have
                 # some sort of 'observePartial' that keeps saves info but doesn't log it yet, waits for an
                 # 'observeComplete' or something
-                the_bond.spy(spy_point_name_local+'.return', result=retVal)
-            return retVal
-
+                the_bond.spy(spy_point_name_local+'.return', result=return_val)
+            return return_val
 
         return fnWrapper
 
     return wrap
-
 
 
 
@@ -233,6 +234,8 @@ class Bond:
         # The remaining parameters are per-test
         # TODO: maybe we do not need a singleton, and we can create a Bond
         # instance for each test ?
+        # ERIK: That might make more sense, especially if you bond being used in e.g. a parallel
+        #       test runner. Though it's slightly less convenient since module-level functions won't work
         self.current_python_test = None
         self.start_count_failures = None
         self.start_count_errors = None
@@ -280,6 +283,7 @@ class Bond:
 
 
         # TODO: the rest is specific to unittest. We need to factor it out to allow other frameworks
+        #       (the use of current_python_test._testMethodName above is unittest specific as well)
         # Register us on test exit
         current_python_test.addCleanup(self._finish_test)
         # We remember the start counter for failures and errors
@@ -291,7 +295,6 @@ class Bond:
             print('WARNING: you should set the settings(observation_directory). Observations saved to {}'.format(
                 Bond.DEFAULT_OBSERVATION_DIRECTORY
             ))
-
 
     def spy(self, spy_point_name, formatter=None, **kwargs):
         assert self.current_python_test, "Should not call spy unless you have called start_test first"
@@ -306,6 +309,10 @@ class Bond:
                 continue
             applicable_agents.append(agent)
 
+            # TODO: Is this really the correct behavior? If I push an agent that says ignore=True,
+            #       then later push one with no specification of ignore, based on the logic that more recent
+            #       agents take precedence I would expect the second one (with the default behavior of
+            #       not ignoring) to win
             if dont_ignore is None:
                 agent_ignore = agent.ignore(kwargs)
                 if agent_ignore is not None:
@@ -316,9 +323,10 @@ class Bond:
                         # This agent says "do not ignore", don't ask others
                         dont_ignore = True
 
-
         observation = copy.deepcopy(kwargs)
         observation['__spy_point_name'] = spy_point_name  # Use a key that should come first alphabetically
+        # TODO: Why are we including this in the observation dictionary?
+
         formatted = self._format_observation(spy_point_name, observation, formatter=formatter)
 
         # TODO: This is not nice in general, we need a way to control this from settings
@@ -332,18 +340,16 @@ class Bond:
             if res != Bond.NO_MOCK_RESPONSE:
                 # If an agent says return, we have our return
                 # TODO: should we try the "doers" of the other agents?
+                # ERIK: Excellent question - I think we should discuss the exact behavior here
                 print("   Returned "+repr(res))
                 return res
 
         return Bond.NO_MOCK_RESPONSE
 
-
-    def deploy_agent(self,
-                   spy_point_name,
-                   **kwargs):
+    def deploy_agent(self, spy_point_name, **kwargs):
         """
         Deploy an agent for a spy point.
-        See documentation for the top-level push_agent function.
+        See documentation for the top-level deploy_agent function.
         :param spy_point_name:
         :param kwargs:
         :return:
@@ -358,7 +364,6 @@ class Bond:
             self.spy_agents[spy_point_name] = spy_agent_list
         # add the agent at the start of the list
         spy_agent_list.insert(0, agent)
-
 
     def _format_observation(self,
                             spy_point_name,
@@ -400,6 +405,7 @@ class Bond:
                 if not os.path.isdir(fdir):
                     os.makedirs(fdir)
                     top_git_ignore = os.path.join(self._observation_directory(), '.gitignore')
+                    # TODO: This should be configurable, you may not use git
                     if not os.path.isfile(top_git_ignore):
                         # Add the .gitignore file
                         with open(top_git_ignore, 'w') as f:
@@ -479,7 +485,7 @@ class SpyAgent:
             elif k == 'format':
                 self.format_spec = kwargs['format']
             elif k == 'ignore':
-                self.format_spec = kwargs['ignore']
+                self.ignore_spec = kwargs['ignore']
             elif k == 'do':
                 doers = kwargs[k]
                 if isinstance(doers, list):
@@ -525,7 +531,7 @@ class SpyAgent:
         es = self.exception_spec
         if es is not None:
             if hasattr(es, '__call__'):
-                raise es ()
+                raise es()
             else:
                 raise es
 
@@ -548,7 +554,7 @@ class SpyAgentFilter:
         self.field_name = None   # The observation field name the filter applies to
         self.filter_func = None  # A filter function (applies to the field value)
         if filter_key == 'filter':
-            assert type(filter_value) == type(lambda :0)
+            assert isinstance(filter_value, type(lambda: 0))
             self.field_name = None
             self.filter_func = filter_value
             return
@@ -559,19 +565,19 @@ class SpyAgentFilter:
             self.filter_func = (lambda f: f == filter_value)
         elif len(parts) == 2:
             self.field_name = parts[0]
-            cmpSpec = parts[1]
-            if cmpSpec == 'exact':
+            cmp_spec = parts[1]
+            if cmp_spec == 'exact':
                 self.filter_func = (lambda f: f == filter_value)
-            elif cmpSpec == 'eq':
+            elif cmp_spec == 'eq':
                 self.filter_func = (lambda f: f == filter_value)
-            elif cmpSpec == 'startswith':
+            elif cmp_spec == 'startswith':
                 self.filter_func = (lambda f: f.find(filter_value) == 0)
-            elif cmpSpec == 'endswith':
-                self.filter_func = (lambda f: f.find(filter_value) == len(f) - len(filter_value))
-            elif cmpSpec == 'contains':
+            elif cmp_spec == 'endswith':
+                self.filter_func = (lambda f: f.rfind(filter_value) == len(f) - len(filter_value))
+            elif cmp_spec == 'contains':
                 self.filter_func = (lambda f: filter_value in f)
             else:
-                assert False, "Unknown operator: "+cmpSpec
+                assert False, "Unknown operator: "+cmp_spec
         else:
             assert False
 
