@@ -1,9 +1,0 @@
-[
-{
-    "__spy_point_name": "AnnotationTests.annotatedWithMockingMandatory"
-},
-{
-    "__spy_point_name": "AnnotationTests.annotatedWithMockingMandatory.return", 
-    "result": "mocked value"
-}
-]

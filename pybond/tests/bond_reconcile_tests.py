@@ -70,8 +70,7 @@ class ReconcileTest(unittest.TestCase):
                           what__contains='@@',
                           formatter=_print_formatter)
                     
-     def prepare_observations(self,
-
+    def prepare_observations(self,
                              reference_file_content=None,
                              current_file_content=None):
         """

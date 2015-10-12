@@ -41,7 +41,7 @@ class AnnotationTests(unittest.TestCase):
             pass
         bond.deploy_agent('AnnotationTests.annotatedStandardMethod',
                           formatter=my_format)
-        self.annotatedStandardMethod(8, 9)
+        self.annotated_standard_method(8, 9)
 
     def test_with_groups_enabled(self):     
         "Test annotations enabled for specific groups, when the group is enabled, as a tuple"
