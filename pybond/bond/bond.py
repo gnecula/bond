@@ -8,7 +8,9 @@ import os
 import json
 
 
-TESTING = True  # False # should be False by default but leaving as True during initial development
+# We use this global to signal that we are in Bond spying mode, i.e., start_test has been
+# called.
+TESTING = False
 
 
 # Function annotation for observation
@@ -18,54 +20,6 @@ TESTING = True  # False # should be False by default but leaving as True during 
     - this MUST be the first decorator applied to your function (i.e. the bottommost one) or else
       the inspect.getargspec() won't work
 """
-
-
-# Dependency injection for mocking out bond for testing?
-# TODO right now excluding 'self' using excludedKeys, should attempt to find a better way?
-def spy_point(spy_point_name=None,
-              mock_mandatory=False,
-              excludedKeys=('self'),
-              formatter=None,
-              observeReturn=False,
-              bond=None):
-    # TODO: can we avoid the "bond" argument ?
-
-    def wrap(fn):
-        # TODO: we get an error here if we do not specify spy_point_name and this is a staticmethod
-        # The is if we have @spy_point() @staticmethod
-        pointName = fn.__name__ if spy_point_name is None else spy_point_name
-        if not inspect.isfunction(fn):
-            raise TypeError('The observeFunction decorator may only be applied to functions/methods!')
-        arginfo = inspect.getargspec(fn)
-        # print arginfo
-
-        @wraps(fn)
-        def fnWrapper(*args, **kwargs):
-            observationDictionary = {}
-            for idx, arg in enumerate(args):
-                observationDictionary[arginfo.args[idx]] = arg
-            for key, val in kwargs.iteritems():
-                observationDictionary[key] = val
-            observationDictionary = {key: val for (key, val) in observationDictionary.iteritems()
-                                     if key not in excludedKeys}
-            the_bond = bond or Bond.instance()
-            response = the_bond.spy(pointName, formatter=formatter, **observationDictionary)
-            if mock_mandatory:
-                assert response is not Bond.NO_MOCK_RESPONSE, 'You MUST mock out spypoint {}'.format(pointName)
-            if response is Bond.NO_MOCK_RESPONSE:
-                retVal = fn(*args, **kwargs)
-                # if observeReturn:
-                # TODO would be nice for these two observations to be on the same output. maybe could have
-                # some sort of 'observePartial' that keeps saves info but doesn't log it yet, waits for an
-                # 'observeComplete' or something
-                # bond.observe(pointName + '.return', retVal)
-                return retVal
-            else:
-                return response
-
-        return fnWrapper
-
-    return wrap
 
 # We export some function to module-level for more convenient use
 def settings(observation_directory=None,
@@ -81,7 +35,8 @@ def settings(observation_directory=None,
 
 
 def start_test(current_python_test,
-               test_name=None):
+               test_name=None,
+               spy_groups=None):
     """
     This function should be called in a unittest.TestCase before any
     of the other Bond functions can be used. This will initialize the Bond
@@ -90,10 +45,14 @@ def start_test(current_python_test,
 
     @param current_python_test: the instance of TestCase that is running
     @param test_name: the name of the test. By default, it is TestCase.testName.
+    @param spy_groups: the list of spy point groups that are enabled. By default,
+                      enable all spy points that do not have an enable_for_groups
+                      attribute.
     @return:
     """
     Bond.instance().start_test(current_python_test,
-                               test_name=test_name)
+                               test_name=test_name,
+                               spy_groups=spy_groups)
 
 
 def spy(spy_point_name, **kwargs):
@@ -154,6 +113,83 @@ def deploy_agent(spy_point_name, **kwargs):
     #       if we will create one instance for each test.
     Bond.instance().deploy_agent(spy_point_name, **kwargs)
 
+# Dependency injection for mocking out bond for testing?
+# TODO right now excluding 'self' using excludedKeys, should attempt to find a better way?
+def spy_point(spy_point_name=None,
+              enabled_for_groups=None,
+              mock_mandatory=False,
+              excluded_keys=('self'),
+              formatter=None,
+              observe_return=False):
+    """
+    Decorator for marking Bond spy points.
+    Must be applied directly to a method or a function, not to another decorator.
+
+    :param spy_point_name: An optional name to use for this spy point. Default is obtained from the name
+                           of the decorated function.
+    :param enabled_for_groups: An optional list or tuple of spy point groups to which this spy point belongs.
+                           If missing then it is enabled for all groups.
+    :param mock_mandatory:
+    :param excluded_keys:
+    :param formatter:
+    :param observe_return:
+    :return:
+    """
+    # TODO: can we avoid the "bond" argument ?
+
+    def wrap(fn):
+        # TODO: we get an error here if we do not specify spy_point_name and this is a staticmethod
+        # The is if we have @spy_point() @staticmethod
+        pointName = fn.__name__ if spy_point_name is None else spy_point_name
+        if not inspect.isfunction(fn):
+            raise TypeError('The observeFunction decorator may only be applied to functions/methods!')
+
+        # TODO: do we need to getargspec so early. What if this point is not enabled?
+        arginfo = inspect.getargspec(fn)
+        # print arginfo
+
+        @wraps(fn)
+        def fnWrapper(*args, **kwargs):
+            # Bypass spying if we are not TESTING
+            if not TESTING:
+                return fn(*args, **kwargs)
+            the_bond = Bond.instance()
+            if enabled_for_groups is not None:
+                for grp in enabled_for_groups:
+                    if grp in the_bond.spy_groups:
+                        break
+                else:
+                    # We are only enabled for some groups, but none of those and active
+                    return fn(*args, **kwargs)
+
+            observationDictionary = {}
+            for idx, arg in enumerate(args):
+                observationDictionary[arginfo.args[idx]] = arg
+            for key, val in kwargs.iteritems():
+                observationDictionary[key] = val
+            observationDictionary = {key: val for (key, val) in observationDictionary.iteritems()
+                                     if key not in excluded_keys}
+
+            response = the_bond.spy(pointName, formatter=formatter, **observationDictionary)
+            if mock_mandatory:
+                assert response is not Bond.NO_MOCK_RESPONSE, 'You MUST mock out spypoint {}'.format(pointName)
+            if response is Bond.NO_MOCK_RESPONSE:
+                retVal = fn(*args, **kwargs)
+                # if observe_return:
+                # TODO would be nice for these two observations to be on the same output. maybe could have
+                # some sort of 'observePartial' that keeps saves info but doesn't log it yet, waits for an
+                # 'observeComplete' or something
+                # bond.observe(pointName + '.return', retVal)
+                return retVal
+            else:
+                return response
+
+        return fnWrapper
+
+    return wrap
+
+
+
 
 class Bond:
     NO_MOCK_RESPONSE = '_bond_no_mock_response'  # TODO ?
@@ -178,6 +214,7 @@ class Bond:
         self.start_count_failures = None
         self.start_count_errors = None
         self.test_name = None
+        self.spy_groups = None  # Map indexed on enabled spy groups
         self.observations = []  # Here we will collect the observations
         self.spy_agents = {}  # Map from spy_point_name to SpyAgents
 
@@ -201,11 +238,24 @@ class Bond:
         :param kwargs:
         :return:
         """
+        global TESTING
+        TESTING = True
+
         self.observations = []
         self.spy_agents = {}
         self.current_python_test = current_python_test
         self.test_name = (kwargs.get('test_name') or
                           current_python_test.__class__.__name__ + "." + current_python_test._testMethodName)
+        spy_groups = kwargs.get('spy_groups')
+        if isinstance(spy_groups, basestring):
+            spy_groups = (spy_groups,)
+        else:
+            assert isinstance(spy_groups, (list, tuple))
+        self.spy_groups = {}
+        for sg in spy_groups:
+            self.spy_groups[sg] = True
+
+
         # TODO: the rest is specific to unittest. We need to factor it out to allow other frameworks
         # Register us on test exit
         current_python_test.addCleanup(self._finish_test)
@@ -308,6 +358,9 @@ class Bond:
         :return:
         """
         try:
+            global TESTING
+            TESTING = False
+
             # Were there failures and errors in this test?
             # TODO: this is specific to unittest
             failures_and_errors = (

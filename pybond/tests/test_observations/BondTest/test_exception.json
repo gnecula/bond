@@ -1,0 +1,10 @@
+[
+{
+    "__spy_point_name": "fun1", 
+    "cmd": "myfun1"
+},
+{
+    "__spy_point_name": "fun1", 
+    "cmd": "myfun2"
+}
+]

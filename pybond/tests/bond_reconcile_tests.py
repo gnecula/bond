@@ -23,7 +23,7 @@ class ReconcileTest(unittest.TestCase):
 }
 ]
 """
-        BondTest.setupUpBond(self)
+        BondTest.setupUpBondSelfTests(self)
 
 
     def prepareObservations(self,

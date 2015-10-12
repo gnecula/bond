@@ -8,17 +8,27 @@ from bond import bond, bond_helpers
 class BondTest(unittest.TestCase):
 
     @staticmethod
-    def setupUpBond(self):
-        if not os.path.isdir('/tmp/bondTest'):
-            os.makedirs('/tmp/bondTest', 0777)
+    def setupUpBondSelfTests(self,
+                             spy_groups=None):
+        """
+        Setup Bond for self-tests
+        :param spy_groups:
+        :return:
+        """
+        bond_observations_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                                             'tests',
+                                             'test_observations')
+
         # By default we abort the test if it fails. No user-interface
-        bond.settings(observation_directory="/tmp/bondTest",
+        bond.settings(observation_directory=bond_observations_dir,
                       merge=os.environ.get('BOND_MERGE', 'abort'))
-        bond.start_test(self)
+        spy_groups = 'bond_self_test' if spy_groups is None else spy_groups
+        bond.start_test(self,
+                        spy_groups=spy_groups)
 
 
     def setUp(self):
-        BondTest.setupUpBond(self)
+        BondTest.setupUpBondSelfTests(self)
         self.assertTrue(bond.TESTING)
 
     def test_spy_basic(self):

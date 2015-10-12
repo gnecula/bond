@@ -1,0 +1,22 @@
+[
+{
+    "__spy_point_name": "here", 
+    "array_arg": [
+        1, 
+        2, 
+        3, 
+        "a string at the end"
+    ], 
+    "bool_arg": false, 
+    "dict_arg": {
+        "bar": 2, 
+        "foo": 1
+    }, 
+    "int_arg": 1, 
+    "string_arg": "a string"
+},
+{
+    "__spy_point_name": "there", 
+    "val": 10
+}
+]

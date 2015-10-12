@@ -2,82 +2,86 @@ import unittest
 
 import setup_paths_test
 from bond import bond
+from bond_tests import BondTest
 
 class AnnotationTests(unittest.TestCase):
 
-    class BondMock:
 
-        def __init__(self):
-            self.nextReturnValue = None
+    # Some functions for introspecting internal Bond state
+    def internal_last_observation(self):
+        bond_instance = bond.Bond.instance()
+        return bond_instance.observations[len(bond_instance.observations) - 1]
 
-        def spy(self, spyPointName, formatter=None, **kwargs):
-            self.spyPointName = spyPointName
-            self.observationDictionary = kwargs
-            if self.nextReturnValue is not None:
-                value = self.nextReturnValue
-                self.nextReturnValue = None
-                return value
-            return bond.Bond.NO_MOCK_RESPONSE
+    def setUp(self):
+        # For some of the tests, we specy spy_groups
+        spy_groups = None
+        if self._testMethodName == 'testWithGroups_1':
+            spy_groups = ('group_other', 'group2')
+        elif self._testMethodName == 'testWithGroups_2':
+            spy_groups = ('group_other')
 
-        def setNextReturnValue(self, value):
-            self.nextReturnValue = value
+        BondTest.setupUpBondSelfTests(self,
+                                      spy_groups=spy_groups)
 
-        def getLastSpyPointName(self):
-            return self.spyPointName
-
-        def getLastObservationDictionary(self):
-            return self.observationDictionary
-    bondMock = BondMock()
-
-    @bond.spy_point(bond=bondMock)
+    @bond.spy_point()
     def annotatedStandardMethod(self, arg1, arg2):
+        return 'return value'
+
+    @bond.spy_point(enabled_for_groups=('group1', 'group2'))
+    def annotatedStandardMethodEnabledForGroups(self, arg1, arg2):
         return 'return value'
 
     def testStandardAnnotation(self):
         self.assertEquals('return value', self.annotatedStandardMethod(1, 2))
-        # These tests later can be replaced with bond.observe but for now use asserts
-        self.assertEqual('annotatedStandardMethod', AnnotationTests.bondMock.getLastSpyPointName())
-        self.assertDictEqual({'arg1': 1, 'arg2': 2}, AnnotationTests.bondMock.getLastObservationDictionary())
+
+    def testWithGroupsEnabled(self):
+        "Test annotations enabled for specific groups, when the group is enabled"
+        self.annotatedStandardMethodEnabledForGroups(arg1=1, arg2=2)
+
+    def testWithGroupsDisabled(self):
+        "Test annotations enabled for specific groups, when the group is NOT enabled"
+        self.annotatedStandardMethodEnabledForGroups(arg1=1, arg2=2)
 
     def testWithMocking(self):
-        AnnotationTests.bondMock.setNextReturnValue('mocked value')
+        bond.deploy_agent('annotatedStandardMethod',
+                          result='mocked value')
+
         self.assertEquals('mocked value', self.annotatedStandardMethod(arg1=1, arg2=2))
-        self.assertEqual('annotatedStandardMethod', AnnotationTests.bondMock.getLastSpyPointName())
-        self.assertDictEqual({'arg1': 1, 'arg2': 2}, AnnotationTests.bondMock.getLastObservationDictionary())
+
 
     @staticmethod
-    @bond.spy_point(bond=bondMock)
+    @bond.spy_point()
     def annotatedStaticMethod(arg1='foo', arg2='bar'):
         pass
 
     def testStaticAnnotation(self):
+        "Test annotations working on static methods"
         self.annotatedStaticMethod(arg2='bar2')
-        # These tests later can be replaced with bond.observe but for now use asserts
-        self.assertEqual('annotatedStaticMethod', AnnotationTests.bondMock.getLastSpyPointName())
-        self.assertDictEqual({'arg2': 'bar2'}, AnnotationTests.bondMock.getLastObservationDictionary())
 
-    @bond.spy_point(spy_point_name='testPointName', bond=bondMock)
+
+    @bond.spy_point(spy_point_name='testPointName')
     def annotatedWithNewName(self):
         pass
 
     def testNewPointName(self):
         self.annotatedWithNewName()
-        self.assertEqual('testPointName', AnnotationTests.bondMock.getLastSpyPointName())
 
-    @bond.spy_point(bond=bondMock, excludedKeys=('self', 'arg2', 'newArg'))
+
+    @bond.spy_point(excluded_keys=('self', 'arg2', 'newArg'))
     def annotatedWithExclusion(self, arg1, arg2, **kwargs):
         pass
 
     def testWithExclusion(self):
         self.annotatedWithExclusion('foo', 'bar', newArg='disappears', newArg2='baz')
-        self.assertDictEqual({'arg1': 'foo', 'newArg2': 'baz'}, AnnotationTests.bondMock.getLastObservationDictionary())
 
-    @bond.spy_point(bond=bondMock, mock_mandatory=True)
+
+    @bond.spy_point(mock_mandatory=True)
     def annotatedWithMockingMandatory(self, arg1=None):
         return 'return value'
 
     def testWithMockingMandatoryApplied(self):
-        AnnotationTests.bondMock.setNextReturnValue('mocked value')
+        bond.deploy_agent('annotatedWithMockingMandatory',
+                          result='mocked value')
         self.assertEqual('mocked value', self.annotatedWithMockingMandatory())
 
     def testWithMockingMandatoryNotApplied(self):
@@ -88,14 +92,14 @@ class AnnotationTests(unittest.TestCase):
             pass
 
     @classmethod
-    @bond.spy_point(bond=bondMock)
+    @bond.spy_point(excluded_keys=('cls'))
     def annotatedClassMethod(cls, arg1):
         pass
 
     def testClassMethod(self):
         AnnotationTests.annotatedClassMethod('foobar')
         # TODO do we want the class printed for a class method? Not sure
-        self.assertEqual({'arg1': 'foobar', 'cls': AnnotationTests}, AnnotationTests.bondMock.getLastObservationDictionary())
+
 
 
 if __name__ == '__main__':
