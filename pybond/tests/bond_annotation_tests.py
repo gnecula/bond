@@ -15,10 +15,11 @@ class AnnotationTests(unittest.TestCase):
     def setUp(self):
         # For some of the tests, we specy spy_groups
         spy_groups = None
-        if self._testMethodName == 'testWithGroups_1':
+        if (self._testMethodName == 'testWithGroupsEnabled' or self._testMethodName == 'testWithGroupsEnabled2'):
             spy_groups = ('group_other', 'group2')
-        elif self._testMethodName == 'testWithGroups_2':
+        elif self._testMethodName == 'testWithGroupsDisabled':
             spy_groups = ('group_other')
+
 
         BondTest.setupUpBondSelfTests(self,
                                       spy_groups=spy_groups)
@@ -31,12 +32,21 @@ class AnnotationTests(unittest.TestCase):
     def annotatedStandardMethodEnabledForGroups(self, arg1, arg2):
         return 'return value'
 
+    @bond.spy_point(enabled_for_groups='group2')
+    def annotatedStandardMethodEnabledForSingleGroup(self, arg1, arg2):
+        return 'return value'
+
     def testStandardAnnotation(self):
         self.assertEquals('return value', self.annotatedStandardMethod(1, 2))
 
     def testWithGroupsEnabled(self):
-        "Test annotations enabled for specific groups, when the group is enabled"
+        "Test annotations enabled for specific groups, when the group is enabled, as a tuple"
         self.annotatedStandardMethodEnabledForGroups(arg1=1, arg2=2)
+
+
+    def testWithGroupsEnabled2(self):
+        "Test annotations enabled for specific groups, when the group is enabled, as a string"
+        self.annotatedStandardMethodEnabledForSingleGroup(arg1=1, arg2=2)
 
     def testWithGroupsDisabled(self):
         "Test annotations enabled for specific groups, when the group is NOT enabled"
@@ -75,7 +85,7 @@ class AnnotationTests(unittest.TestCase):
         self.annotatedWithExclusion('foo', 'bar', newArg='disappears', newArg2='baz')
 
 
-    @bond.spy_point(mock_mandatory=True,
+    @bond.spy_point(require_agent_result=True,
                     spy_return=True)
     def annotatedWithMockingMandatory(self, arg1=None):
         return 'return value'

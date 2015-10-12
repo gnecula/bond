@@ -76,7 +76,7 @@ class BondTest(unittest.TestCase):
                           result=123)
         # Now the spying
         self.assertEquals('a ton of fun here', bond.spy('fun1', cmd="a ton of fun"))
-        self.assertEquals(bond.Bond.NO_MOCK_RESPONSE, bond.spy('nofun', cmd="myfun2"))
+        self.assertEquals(bond.AGENT_RESULT_NONE, bond.spy('nofun', cmd="myfun2"))
         self.assertEquals(123, bond.spy('fun1', cmd="myfun3"))
 
 
