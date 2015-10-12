@@ -4,120 +4,108 @@ import setup_paths_test
 from bond import bond
 from bond_tests import BondTest
 
+
 class AnnotationTests(unittest.TestCase):
 
-
-    # Some functions for introspecting internal Bond state
-    def internal_last_observation(self):
-        bond_instance = bond.Bond.instance()
-        return bond_instance.observations[len(bond_instance.observations) - 1]
-
     def setUp(self):
-        # For some of the tests, we specy spy_groups
+        # For some of the tests, we specify spy_groups
         spy_groups = None
-        if (self._testMethodName == 'testWithGroupsEnabled' or self._testMethodName == 'testWithGroupsEnabled2'):
+        if self._testMethodName == 'testWithGroupsEnabled' or self._testMethodName == 'testWithGroupsEnabled2':
             spy_groups = ('group_other', 'group2')
         elif self._testMethodName == 'testWithGroupsDisabled':
-            spy_groups = ('group_other')
+            spy_groups = ('group_other',)
+        # TODO: This ^ seems a little hacky to me, if we want test-specific override behavior shouldn't that
+        #       be specified in the test case itself?
 
-
-        BondTest.setupUpBondSelfTests(self,
-                                      spy_groups=spy_groups)
+        BondTest.setup_bond_self_tests(self, spy_groups=spy_groups)
 
     @bond.spy_point()
-    def annotatedStandardMethod(self, arg1, arg2):
+    def annotated_standard_method(self, arg1, arg2):
         return 'return value'
 
     @bond.spy_point(enabled_for_groups=('group1', 'group2'))
-    def annotatedStandardMethodEnabledForGroups(self, arg1, arg2):
+    def annotated_standard_method_enabled_for_groups(self, arg1, arg2):
         return 'return value'
 
     @bond.spy_point(enabled_for_groups='group2')
-    def annotatedStandardMethodEnabledForSingleGroup(self, arg1, arg2):
+    def annotated_standard_method_enabled_for_single_group(self, arg1, arg2):
         return 'return value'
 
-    def testStandardAnnotation(self):
-        self.assertEquals('return value', self.annotatedStandardMethod(1, 2))
+    def test_standard_annotation(self):
+        self.assertEquals('return value', self.annotated_standard_method(1, 2))
 
-    def testWithGroupsEnabled(self):
+    def test_with_groups_enabled(self):
         "Test annotations enabled for specific groups, when the group is enabled, as a tuple"
-        self.annotatedStandardMethodEnabledForGroups(arg1=1, arg2=2)
+        self.annotated_standard_method_enabled_for_groups(arg1=1, arg2=2)
 
-
-    def testWithGroupsEnabled2(self):
+    def test_with_groups_enabled2(self):
         "Test annotations enabled for specific groups, when the group is enabled, as a string"
-        self.annotatedStandardMethodEnabledForSingleGroup(arg1=1, arg2=2)
+        self.annotated_standard_method_enabled_for_single_group(arg1=1, arg2=2)
 
-    def testWithGroupsDisabled(self):
+    def test_with_groups_disabled(self):
         "Test annotations enabled for specific groups, when the group is NOT enabled"
-        self.annotatedStandardMethodEnabledForGroups(arg1=1, arg2=2)
+        self.annotated_standard_method_enabled_for_groups(arg1=1, arg2=2)
 
-    def testWithMocking(self):
-        bond.deploy_agent('AnnotationTests.annotatedStandardMethod',
+    def test_with_mocking(self):
+        bond.deploy_agent('AnnotationTests.annotated_standard_method',
                           result='mocked value')
 
-        self.assertEquals('mocked value', self.annotatedStandardMethod(arg1=1, arg2=2))
-
+        self.assertEquals('mocked value', self.annotated_standard_method(arg1=1, arg2=2))
 
     @staticmethod
     @bond.spy_point()
-    def annotatedStaticMethod(arg1='foo', arg2='bar'):
+    def annotated_static_method(arg1='foo', arg2='bar'):
         pass
 
-    def testStaticAnnotation(self):
+    def test_static_annotation(self):
         "Test annotations working on static methods"
-        self.annotatedStaticMethod(arg2='bar2')
-
+        self.annotated_static_method(arg2='bar2')
 
     @bond.spy_point(spy_point_name='testPointName')
-    def annotatedWithNewName(self):
+    def annotated_with_new_name(self):
         pass
 
-    def testNewPointName(self):
-        self.annotatedWithNewName()
-
+    def test_new_point_name(self):
+        self.annotated_with_new_name()
 
     @bond.spy_point(excluded_keys=('self', 'arg2', 'newArg'))
-    def annotatedWithExclusion(self, arg1, arg2, **kwargs):
+    def annotated_with_exclusion(self, arg1, arg2, **kwargs):
         pass
 
-    def testWithExclusion(self):
-        self.annotatedWithExclusion('foo', 'bar', newArg='disappears', newArg2='baz')
+    def test_with_exclusion(self):
+        self.annotated_with_exclusion('foo', 'bar', newArg='disappears', newArg2='baz')
 
-
-    @bond.spy_point(require_agent_result=True,
-                    spy_return=True)
-    def annotatedWithMockingMandatory(self, arg1=None):
+    @bond.spy_point(require_agent_result=True, spy_return=True)
+    def annotated_with_mocking_mandatory(self, arg1=None):
         return 'return value'
 
-    def testWithMockingMandatoryApplied(self):
-        bond.deploy_agent('AnnotationTests.annotatedWithMockingMandatory',
+    def test_with_mocking_mandatory_applied(self):
+        bond.deploy_agent('AnnotationTests.annotated_with_mocking_mandatory',
                           result='mocked value')
-        self.assertEqual('mocked value', self.annotatedWithMockingMandatory())
+        self.assertEqual('mocked value', self.annotated_with_mocking_mandatory())
 
-    def testWithMockingMandatoryNotApplied(self):
+    def test_with_mocking_mandatory_not_applied(self):
         try:
-            self.annotatedWithMockingMandatory()
+            self.annotated_with_mocking_mandatory()
             self.fail()
         except AssertionError:
             pass
 
     @classmethod
     @bond.spy_point(excluded_keys=('cls'))
-    def annotatedClassMethod(cls, arg1):
+    def annotated_class_method(cls, arg1):
         pass
 
-    def testClassMethod(self):
-        AnnotationTests.annotatedClassMethod('foobar')
+    def test_class_method(self):
+        AnnotationTests.annotated_class_method('foobar')
         # TODO do we want the class printed for a class method? Not sure
 
-
-    def testModuleMethod(self):
-        annotatedModuleMethod(1)
+    def test_module_method(self):
+        annotated_module_method(1)
 
 
 @bond.spy_point(spy_return=True)
-def annotatedModuleMethod(arg1, arg2='2'):
+def annotated_module_method(arg1, arg2='2'):
     return 'something'
 
 if __name__ == '__main__':

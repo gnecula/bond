@@ -17,6 +17,7 @@ class ReconcileTest(unittest.TestCase):
         self.testing_observation_dir = '/tmp/bondObservationsDir'
         self.reference_file = os.path.join(self.testing_observation_dir, 'reference.json')
         self.current_file = self.reference_file.replace('reference', 'reference_now')
+        # TODO This will break if 'reference' appears elsewhere in the path name?
 
         self.reference_file_content = """
 [
@@ -26,7 +27,7 @@ class ReconcileTest(unittest.TestCase):
 }
 ]
 """
-        BondTest.setupUpBondSelfTests(self)
+        BondTest.setup_bond_self_tests(self)
         # By default allow diffs
         bond.deploy_agent('bond_reconcile._invoke_command',
                           cmd__startswith='diff ',
@@ -55,9 +56,9 @@ class ReconcileTest(unittest.TestCase):
                           cmd__startswith='kdiff3 ',
                           result=mock_kdiff3)
 
-    def prepareObservations(self,
-                            reference_file_content=None,
-                            current_file_content=None):
+    def prepare_observations(self,
+                             reference_file_content=None,
+                             current_file_content=None):
         """
         Prepare reference and current files
         :param reference_file_content:
@@ -94,53 +95,53 @@ class ReconcileTest(unittest.TestCase):
                                                            collect_file_contents=True))
 
 
-    def testNoReference(self):
+    def test_no_reference(self):
         "Test with no reference file"
-        self.prepareObservations(reference_file_content=None,
-                                 current_file_content=self.reference_file_content)
+        self.prepare_observations(reference_file_content=None,
+                                  current_file_content=self.reference_file_content)
         self.invoke_top_reconcile(merge='console')
 
-    def testSame(self):
+    def test_same(self):
         "Test with reference and current the same"
-        self.prepareObservations(reference_file_content=self.reference_file_content,
-                                 current_file_content=self.reference_file_content)
+        self.prepare_observations(reference_file_content=self.reference_file_content,
+                                  current_file_content=self.reference_file_content)
         self.invoke_top_reconcile(merge='console')
 
-    def helperTestMerge(self, merge=''):
+    def helper_test_merge(self, merge=''):
         "Test with reference and current the same"
-        self.prepareObservations(reference_file_content=self.reference_file_content,
-                                 current_file_content=self.reference_file_content.replace('12345', 'abcde'))
+        self.prepare_observations(reference_file_content=self.reference_file_content,
+                                  current_file_content=self.reference_file_content.replace('12345', 'abcde'))
         self.invoke_top_reconcile(merge=merge)
 
-    def testMergeAccept(self):
-        self.helperTestMerge(merge='accept')
+    def test_merge_accept(self):
+        self.helper_test_merge(merge='accept')
 
-    def testMergeAbort(self):
-        self.helperTestMerge(merge='abort')
+    def test_merge_abort(self):
+        self.helper_test_merge(merge='abort')
 
-    def testMergeConsole0(self):
+    def test_merge_console0(self):
         self.console_reply = 'y'  # Do not accept
-        self.helperTestMerge(merge='console')
+        self.helper_test_merge(merge='console')
 
-    def testMergeConsole1(self):
+    def test_merge_console1(self):
         self.console_reply = 'n'  # Do accept
-        self.helperTestMerge(merge='console')
+        self.helper_test_merge(merge='console')
 
 
-    def testMergeConsoleK0(self):
+    def test_merge_console_k0(self):
         self.console_reply = 'k'  # Switch to kdiff3
         self.kdiff3_result = 0    # Kdiff3 is happy
-        self.helperTestMerge(merge='console')
+        self.helper_test_merge(merge='console')
 
-    def testMergeConsoleK1(self):
+    def test_merge_console_k1(self):
         self.console_reply = 'k'  # Switch to kdiff3
         self.kdiff3_result = 1    # Kdiff3 is NOT happy
-        self.helperTestMerge(merge='console')
+        self.helper_test_merge(merge='console')
 
-    def testMergeKdiff3_0(self):
+    def test_merge_kdiff3_0(self):
         self.kdiff3_result = 0    # Kdiff3 is happy
-        self.helperTestMerge(merge='kdiff3')
+        self.helper_test_merge(merge='kdiff3')
 
-    def testMergeKdiff3_1(self):
+    def test_merge_kdiff3_1(self):
         self.kdiff3_result = 1    # Kdiff3 is NOT happy
-        self.helperTestMerge(merge='kdiff3')
+        self.helper_test_merge(merge='kdiff3')

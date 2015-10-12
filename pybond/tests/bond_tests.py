@@ -8,8 +8,7 @@ from bond import bond, bond_helpers
 class BondTest(unittest.TestCase):
 
     @staticmethod
-    def setupUpBondSelfTests(self,
-                             spy_groups=None):
+    def setup_bond_self_tests(self, spy_groups=None):
         """
         Setup Bond for self-tests
         :param spy_groups:
@@ -28,7 +27,7 @@ class BondTest(unittest.TestCase):
 
 
     def setUp(self):
-        BondTest.setupUpBondSelfTests(self)
+        BondTest.setup_bond_self_tests(self)
         self.assertTrue(bond.TESTING)
 
     def test_spy_basic(self):
