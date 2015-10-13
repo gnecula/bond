@@ -91,7 +91,6 @@ class ReconcileTest(unittest.TestCase):
             with open(self.current_file, 'w') as f:
                 f.write(current_file_content)
 
-
     def invoke_top_reconcile(self, merge=None):
         """
         Helper function to invoke the top-level reconcile

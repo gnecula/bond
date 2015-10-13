@@ -8,16 +8,7 @@ from bond_tests import BondTest
 class AnnotationTests(unittest.TestCase):
 
     def setUp(self):
-        # For some of the tests, we specify spy_groups
-        spy_groups = None
-        if self._testMethodName == 'testWithGroupsEnabled' or self._testMethodName == 'testWithGroupsEnabled2':
-            spy_groups = ('group_other', 'group2')
-        elif self._testMethodName == 'testWithGroupsDisabled':
-            spy_groups = ('group_other',)
-        # TODO: This ^ seems a little hacky to me, if we want test-specific override behavior shouldn't that
-        #       be specified in the test case itself?
-
-        BondTest.setup_bond_self_tests(self, spy_groups=spy_groups)
+        BondTest.setup_bond_self_tests(self)
 
     @bond.spy_point()
     def annotated_standard_method(self, arg1, arg2):
@@ -46,14 +37,17 @@ class AnnotationTests(unittest.TestCase):
 
     def test_with_groups_enabled(self):     
         "Test annotations enabled for specific groups, when the group is enabled, as a tuple"
+        bond.set_spy_groups(('group_other', 'group2'))
         self.annotated_standard_method_enabled_for_groups(arg1=1, arg2=2)
 
     def test_with_groups_enabled2(self):
         "Test annotations enabled for specific groups, when the group is enabled, as a string"
+        bond.set_spy_groups(('group_other', 'group2'))
         self.annotated_standard_method_enabled_for_single_group(arg1=1, arg2=2)
 
     def test_with_groups_disabled(self):
         "Test annotations enabled for specific groups, when the group is NOT enabled"
+        bond.set_spy_groups('group_other')
         self.annotated_standard_method_enabled_for_groups(arg1=1, arg2=2)
 
     def test_with_mocking(self):

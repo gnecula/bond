@@ -5,10 +5,11 @@ import shutil
 import setup_paths_test
 from bond import bond, bond_helpers
 
+
 class BondTest(unittest.TestCase):
 
     @staticmethod
-    def setup_bond_self_tests(self, spy_groups=None):
+    def setup_bond_self_tests(test_instance, spy_groups=None):
         """
         Setup Bond for self-tests
         :param spy_groups:
@@ -22,9 +23,8 @@ class BondTest(unittest.TestCase):
         bond.settings(observation_directory=bond_observations_dir,
                       merge=os.environ.get('BOND_MERGE', 'abort'))
         spy_groups = 'bond_self_test' if spy_groups is None else spy_groups
-        bond.start_test(self,
+        bond.start_test(test_instance,
                         spy_groups=spy_groups)
-
 
     def setUp(self):
         BondTest.setup_bond_self_tests(self)

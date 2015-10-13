@@ -50,6 +50,17 @@ def start_test(current_python_test,
                                test_name=test_name,
                                spy_groups=spy_groups)
 
+def set_spy_groups(spy_groups):
+    """
+    Change the spy groups that are currently enabled. This is useful if you call bond.start_test
+    in a generic way for many tests (e.g. in a setUp() method) but want to override the spy
+    group rules for certain tests. It will completely replace the current spy_groups, so
+    calling this with an empty list or None will revert to the default spy group (i.e. everything enabled)
+    :param spy_groups: The list of spy point groups to enable. By default, enabled all spy points
+                       that do not have an enable_for_groups attribute
+    :return:
+    """
+    Bond.instance().set_spy_groups(spy_groups)
 
 def spy(spy_point_name, **kwargs):
     """
@@ -289,16 +300,8 @@ class Bond:
         self.test_name = (kwargs.get('test_name') or
                           current_python_test.__class__.__name__ + "." + current_python_test._testMethodName)
         spy_groups = kwargs.get('spy_groups')
-        self.spy_groups = {}
         if spy_groups is not None:
-            if isinstance(spy_groups, basestring):
-                spy_groups = (spy_groups,)
-            else:
-                assert isinstance(spy_groups, (list, tuple))
-
-            for sg in spy_groups:
-                self.spy_groups[sg] = True
-
+            self.set_spy_groups(spy_groups)
 
         # TODO: the rest is specific to unittest. We need to factor it out to allow other frameworks. See issue #2
         #       (the use of current_python_test._testMethodName above is unittest specific as well)
@@ -313,6 +316,14 @@ class Bond:
             print('WARNING: you should set the settings(observation_directory). Observations saved to {}'.format(
                 Bond.DEFAULT_OBSERVATION_DIRECTORY
             ))
+
+    def set_spy_groups(self, spy_groups):
+        self.spy_groups = {}
+        if isinstance(spy_groups, basestring):
+            spy_groups = (spy_groups,)
+        for sg in spy_groups:
+            assert isinstance(sg, basestring)
+            self.spy_groups[sg] = True
 
     def spy(self, spy_point_name, **kwargs):
         assert self.current_python_test, "Should not call spy unless you have called start_test first"
