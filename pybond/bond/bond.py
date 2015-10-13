@@ -195,6 +195,8 @@ def spy_point(spy_point_name=None,
                     # If we had the spy_point wrapper outside the @staticmethod we could tell
                     # more easily what kind of method this was !!
                     module_name = getattr(fn, '__module__')
+                    if module_name == '__main__':  # Get the original module name from the filename
+                        module_name = os.path.splitext(os.path.basename(inspect.getmodule(fn).__file__))[0]
                     # Keep only the last component of the name
                     module_name = module_name.split('.')[-1]
                     spy_point_name_local = module_name+'.'+fn.__name__
