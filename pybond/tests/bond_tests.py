@@ -82,9 +82,13 @@ class BondTest(unittest.TestCase):
 
     def test_result(self):
         "Test the result aspect of the bond mocking"
+        def my_formatter(obs):
+            obs['cmd'] += ' : formatted'
 
+        # The formatter is processed after the result is computed
         bond.deploy_agent('fun1',
                           cmd__contains="fun",
+                          formatter=my_formatter,
                           result=lambda obs: obs['cmd'] + ' here')
         bond.deploy_agent('fun1',
                           cmd__startswith="myfun",
@@ -98,26 +102,33 @@ class BondTest(unittest.TestCase):
     def test_doers(self):
         "Test the doer aspect of the bond mocking"
         results = []
+        def my_formatter(obs):
+            obs['cmd'] += ' : formatted'
 
         bond.deploy_agent('fun1',
                           cmd__startswith="myfun",
+                          formatter=my_formatter,
                           do=(lambda args: results.append("1: " + args['cmd'])))
         bond.deploy_agent('fun1',
-                          cmd__contains="fun",
+                          cmd__contains="fun1",
                           do=(lambda args: results.append("2: " + args['cmd'])))
         # Now the spying
-        bond.spy('fun1', cmd="myfun1")
-        bond.spy('nofun', cmd="myfun2")
-        bond.spy('fun1', cmd="myfun3")
+        bond.spy('fun1', cmd="myfun1")   # agent 2: only
+        bond.spy('nofun', cmd="myfun2")  # no agent
+        bond.spy('fun1', cmd="myfun3")   # agent 1: only
 
-        self.assertSequenceEqual(['2: myfun1', '1: myfun1',
-                                  '2: myfun3', '1: myfun3'], results)
+        self.assertSequenceEqual(['2: myfun1',
+                                  '1: myfun3'], results)
 
     def test_exception(self):
         "A test that throws exceptions"
+        def my_formatter(obs):
+            obs['cmd'] += ' : formatted'
+
         bond.deploy_agent('fun1',
                           cmd__startswith="myfun",
                           result=1,
+                          formatter=my_formatter,
                           exception=Exception("some exception"))
         self.assertRaises(Exception,
                           lambda :  bond.spy('fun1', cmd="myfun1"))
@@ -125,8 +136,11 @@ class BondTest(unittest.TestCase):
         bond.deploy_agent('fun1',
                           cmd="myfun2",
                           result=1,
-                          exception=lambda : Exception("some exception"))
+                          formatter=my_formatter,
+                          exception=lambda obs: Exception("some exception: "+obs['cmd']))
         self.assertRaises(Exception, lambda :  bond.spy('fun1', cmd="myfun2"))
+
+
 
     def test_no_spy_groups(self):
         # For this test use a separate instance of Bond

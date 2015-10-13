@@ -74,57 +74,48 @@ def spy(spy_point_name, **kwargs):
 
 
 def deploy_agent(spy_point_name, **kwargs):
-    # TODO: I think saying "agents for a point are processed in reverse order" is a little misleading;
-    # to me it implies that all of the agents are processed, when really only one is processed (kind of...
-    # we need to fully specify behavior of result and doers))
-    # I think a better description might be "Agents are evaluated to see if they apply to the specific
-    # spy invocation in reverse order" or something along those lines
-    # Also you mix "observer" and "agent", we should be consistent
-    # TODO: Right now it seems that the filters are applied in an AND fashion (all filter criteria must
-    #       be met). Do we want to make this configurable (AND or OR)? Either way this should be documented
     """
-    Create a new agent for the named spy point. Agents for a point are processed in reverse order
-    of their introduction (last one is processed first).
+    Create a new agent for the named spy point. When a spy point is encountered, the agents are searched
+    in reverse order of their deployment, and the first agent that matches is used.
 
-    @param spyPointName: the point for which to create the observer. This observer will only be executed
+
+    @param spy_point_name: the point for which to create the observer. This observer will only be executed
         for invocations of Bond.Observe with the the same spyPointName.
     @param kwargs: key-value pairs that control the execution of the observer. The following keys are
         recognized:
-        * Keys that restrict for which invocations of bond.spy this observer is processed:
-             * key=val : only when the observed argument dictionary contains the 'key' with the given value
-             * key__contains=substr : only when the observed argument dictionary contains the 'key' with a string value
+        * Keys that restrict for which invocations of bond.spy this agent is active. All of these conditions
+          must be true for the agent to be the active one:
+             * key=val : only when the observation dictionary contains the 'key' with the given value
+             * key__contains=substr : only when the observation dictionary contains the 'key' with a string value
                       that contains the given substr
-             * key__startswith=substr : only when the observed argument dictionary contains the 'key' with a
+             * key__startswith=substr : only when the observation dictionary contains the 'key' with a
                       string value that starts with the given substr
-             * key__endswith=substr : only when the observed argument dictionary contains the 'key' with a string value
+             * key__endswith=substr : only when the observation dictionary contains the 'key' with a string value
                       that ends with the given substr
-             * filter=func : only when the given func returns true when passed observed argument dictionary.
+             * filter=func : only when the given func returns true when passed observation dictionary.
                       Uses the observation before formatting.
 
         * Keys that control what the observer does when processed:
-             * ignore=value : determines if the observation is ignored. If the value is a function,
-                              it is invoked on the observation. The first processed agent that
-                              specified an "ignore" value takes precendence. Uses the observation before
-                              formatting.
-             * formatter : if specified, a function that is given the observation and can update it in place.
-                           The formatted observation is what gets saved, and used in 'exception' or 'result'
-                           or 'do' functions.
              * do=func : executes the given function with the observed argument dictionary.
                          func can also be a list of functions, executed in order.
-
+                         Uses the observation before formatting.
 
         * Keys that control what the corresponding spy returns (by default AGENT_RESULT_NONE):
              * exception=x : the call to bond.spy throws the given exception. If 'x' is a function
                              it is invoked on the observe argument dictionary to compute the exception to throw.
+                             Uses the observation before formatting.
              * result=x : the call to bond.spy returns the given value. If 'x' is a function
                              it is invoked on the observe argument dictionary to compute the value to return.
+                             Uses the observation before formatting.
+
+        * Keys that control how the observation is logged. This is processed after all the above functions.
+             * formatter : if specified, a function that is given the observation and can update it in place.
+                           The formatted observation is what gets saved.
+
+
     @return: either AGENT_RESULT_NONE if not agent matches or contains a "result", or the result from
              the first agent that matches.
     """
-    # TODO: should we support deploying agents that are not reset when the test ends? MAybe not, esepcially
-    #       if we will create one instance for each test.
-    #       ERIK: I think probably not, if you want an agent to be present for all tests shouldn't you just put it
-    #             in your test setUp() ?
     Bond.instance().deploy_agent(spy_point_name, **kwargs)
 
 
@@ -148,7 +139,7 @@ def spy_point(spy_point_name=None,
                            The agent may still provide AGENT_RESULT_CONTINUE to tell the spy point
                            to continue the invocation of the underlying function.
     :param excluded_keys:
-    :param spy_return:
+    :param spy_return: if True, then the return value is spied also
     :return:
     """
     # TODO: Should we also have an excluded_from_groups parameter?
@@ -229,9 +220,6 @@ def spy_point(spy_point_name=None,
                 return_val = response
 
             if spy_return:
-                # TODO would be nice for these two observations to be on the same output. maybe could have
-                # some sort of 'observePartial' that keeps saves info but doesn't log it yet, waits for an
-                # 'observeComplete' or something
                 the_bond.spy(spy_point_name_local+'.return', result=return_val)
             return return_val
 
@@ -328,51 +316,40 @@ class Bond:
         assert self.current_python_test, "Should not call spy unless you have called start_test first"
         assert isinstance(spy_point_name, basestring), "spy_point_name must be a string"
 
-        # Does at least one agent tell us to ignore this
-        # Process the agents in order
-        applicable_agents = []
-        ignore_result = None
+        # Find the agent to apply. We process the agents in order, because they are deployed at the start of the list
+        active_agent = None
 
         for agent in self.spy_agents.get(spy_point_name, []):
             if not agent.filter(kwargs):
                 continue
-            applicable_agents.append(agent)
-
-            # TODO: Is this really the correct behavior? If I push an agent that says ignore=True,
-            #       then later push one with no specification of ignore, based on the logic that more recent
-            #       agents take precedence I would expect the second one (with the default behavior of
-            #       not ignoring) to win
-            if ignore_result is None:
-                agent_ignore = agent.ignore(kwargs)
-                if agent_ignore is not None:
-                    if agent_ignore:
-                        # This agent says "ignore", don't even bother anymore
-                        return AGENT_RESULT_NONE
-                    else:
-                        # This agent says "do not ignore", don't ask others
-                        ignore_result = False
+            active_agent = agent
+            break
 
         observation = copy.deepcopy(kwargs)
         observation['__spy_point_name'] = spy_point_name  # Use a key that should come first alphabetically
-        # TODO: Why are we including this in the observation dictionary?
+        # TODO: Why are we including this in the observation dictionary? GN: makes it easier to read the observations
 
-        formatted = self._format_observation(observation,
-                                             agents=applicable_agents)
+        def save_observation():
+            # We postpone applying the formatter until we have run the "doer" and the "result"
+            formatted = self._format_observation(observation,
+                                                 active_agent=active_agent)
+            print("Observing: " + formatted + "\n")
+            self.observations.append(formatted)
 
-        # TODO: This is not nice in general, we need a way to control this from settings
-        print("Observing: " + formatted + "\n")
-        self.observations.append(formatted)
+        # Apply the doer if present
+        try:
+            res = AGENT_RESULT_NONE
 
-        # Now process the agents
-        for agent in applicable_agents:
-            agent.do(observation)
-            res = agent.result(observation)  # This may throw an exception
-            if res != AGENT_RESULT_NONE:
-                # If an agent says return, we have our return
-                # TODO: should we try the "doers" of the other agents?
-                # ERIK: Excellent question - I think we should discuss the exact behavior here
-                print("   Returned "+repr(res))
-                return res
+            if active_agent is not None:
+                active_agent.do(observation)
+
+                res = active_agent.result(observation)  # This may throw an exception
+        finally:
+            save_observation()
+
+        if res != AGENT_RESULT_NONE:
+            print("   Returned "+repr(res))
+            return res
 
         return AGENT_RESULT_NONE
 
@@ -397,11 +374,10 @@ class Bond:
 
     def _format_observation(self,
                             observation,
-                            agents=None):
+                            active_agent=None):
         # TODO: I do not quite like how formatters work. See issue #1
-        if agents:
-            for agent in agents:
-                agent.formatter(observation)
+        if active_agent:
+            active_agent.formatter(observation)
 
         return json.dumps(observation,
                           sort_keys=True,
@@ -501,7 +477,6 @@ class SpyAgent:
     """
     def __init__(self, spy_point_name, **kwargs):
         self.spy_point_name = spy_point_name
-        self.ignore_spec = None
         self.result_spec = None
         self.exception_spec = None
         self.formatter_spec = None
@@ -516,8 +491,6 @@ class SpyAgent:
                 self.exception_spec = kwargs['exception']
             elif k == 'formatter':
                 self.formatter_spec = kwargs['formatter']
-            elif k == 'ignore':
-                self.ignore_spec = kwargs['ignore']
             elif k == 'do':
                 doers = kwargs[k]
                 if isinstance(doers, list):
@@ -541,18 +514,6 @@ class SpyAgent:
                 return False
         return True
 
-    def ignore(self, observation):
-        """
-        See if we need to ignore
-        @return None for 'don't care', True/False otherwise
-        """
-        if self.ignore_spec is not None:
-            if hasattr(self.ignore_spec, '__call__'):
-                return self.ignore_spec(observation)
-            else:
-                return self.ignore_spec
-        else:
-            return None
 
     def formatter(self, observation):
         """Apply the formatter to modify the observation in place"""
@@ -568,7 +529,7 @@ class SpyAgent:
         es = self.exception_spec
         if es is not None:
             if hasattr(es, '__call__'):
-                raise es()
+                raise es(observation)
             else:
                 raise es
 
