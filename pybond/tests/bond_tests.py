@@ -127,3 +127,16 @@ class BondTest(unittest.TestCase):
                           result=1,
                           exception=lambda : Exception("some exception"))
         self.assertRaises(Exception, lambda :  bond.spy('fun1', cmd="myfun2"))
+
+    def test_no_spy_groups(self):
+        # For this test use a separate instance of Bond
+        my_bond = bond.Bond()
+        my_bond.settings(observation_directory='/tmp/bondObs')
+        my_bond.start_test(self)  # Start the test without spy_groups
+
+    def test_no_observation_directory(self):
+        # For this test use a separate instance of Bond
+        my_bond = bond.Bond()
+        my_bond.settings()  # Call the settings but no parameters
+        my_bond.start_test(self)  # Start the test without spy_groups
+

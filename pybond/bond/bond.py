@@ -299,13 +299,15 @@ class Bond:
         self.test_name = (kwargs.get('test_name') or
                           current_python_test.__class__.__name__ + "." + current_python_test._testMethodName)
         spy_groups = kwargs.get('spy_groups')
-        if isinstance(spy_groups, basestring):
-            spy_groups = (spy_groups,)
-        else:
-            assert isinstance(spy_groups, (list, tuple))
         self.spy_groups = {}
-        for sg in spy_groups:
-            self.spy_groups[sg] = True
+        if spy_groups is not None:
+            if isinstance(spy_groups, basestring):
+                spy_groups = (spy_groups,)
+            else:
+                assert isinstance(spy_groups, (list, tuple))
+
+            for sg in spy_groups:
+                self.spy_groups[sg] = True
 
 
         # TODO: the rest is specific to unittest. We need to factor it out to allow other frameworks. See issue #2

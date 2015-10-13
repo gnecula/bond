@@ -25,7 +25,7 @@ class MergeTool:
     """
 
     @staticmethod
-    def select(merge_tool='console'):
+    def select(merge_tool=None):
 
         if merge_tool == 'accept':
             return MergeToolAccept()
@@ -41,7 +41,7 @@ class MergeTool:
 
         if merge_tool is None:
             # Look at the environment variable BOND_MERGE
-            merge_tool = os.environ.get('BOND_MERGE')
+            merge_tool = os.environ.get('BOND_MERGE', 'abort')
             if merge_tool is not None:
                 return MergeTool.select(merge_tool)
 

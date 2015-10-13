@@ -1,0 +1,9 @@
+[
+{
+    "__spy_point_name": "AnnotationTests.annotated_with_mocking_mandatory"
+},
+{
+    "__spy_point_name": "AnnotationTests.annotated_with_mocking_mandatory.return", 
+    "result": "mocked value"
+}
+]
