@@ -86,7 +86,7 @@ class MergeTool:
         Return True if there are no diffs
         """
         # TODO: implicit dependency on a 'diff' command line tool with the same usage syntax that you're expecting
-        return (0 == MergeTool._invoke_command('diff -u -w "{0}" "{1}" >"{2}"'.format(reference_file,
+        return (0 == MergeTool._invoke_command('diff -u -b "{0}" "{1}" >"{2}"'.format(reference_file,
                                                                                       current_file,
                                                                                       diff_file)))
 

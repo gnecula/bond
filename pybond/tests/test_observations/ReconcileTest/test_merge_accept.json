@@ -1,7 +1,7 @@
 [
 {
     "__spy_point_name": "bond_reconcile._invoke_command", 
-    "cmd": "diff -u -w \"/tmp/bondObservationsDir/reference.json\" \"/tmp/bondObservationsDir/reference_now.json\" >\"/tmp/bondObservationsDir/reference_now.json.diff\""
+    "cmd": "diff -u -b \"/tmp/bondObservationsDir/reference.json\" \"/tmp/bondObservationsDir/reference_now.json\" >\"/tmp/bondObservationsDir/reference_now.json.diff\""
 },
 {
     "__spy_point_name": "bond_reconcile._print", 
