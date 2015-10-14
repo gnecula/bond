@@ -37,17 +37,17 @@ class AnnotationTests(unittest.TestCase):
 
     def test_with_groups_enabled(self):     
         "Test annotations enabled for specific groups, when the group is enabled, as a tuple"
-        bond.set_spy_groups(('group_other', 'group2'))
+        bond.settings(spy_groups=('group_other', 'group2'))
         self.annotated_standard_method_enabled_for_groups(arg1=1, arg2=2)
 
     def test_with_groups_enabled2(self):
         "Test annotations enabled for specific groups, when the group is enabled, as a string"
-        bond.set_spy_groups(('group_other', 'group2'))
+        bond.settings(spy_groups=('group_other', 'group2'))
         self.annotated_standard_method_enabled_for_single_group(arg1=1, arg2=2)
 
     def test_with_groups_disabled(self):
         "Test annotations enabled for specific groups, when the group is NOT enabled"
-        bond.set_spy_groups('group_other')
+        bond.settings(spy_groups='group_other')
         self.annotated_standard_method_enabled_for_groups(arg1=1, arg2=2)
 
     def test_with_mocking(self):

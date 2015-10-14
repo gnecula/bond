@@ -19,12 +19,12 @@ class BondTest(unittest.TestCase):
                                              'tests',
                                              'test_observations')
 
-        # By default we abort the test if it fails. No user-interface
-        bond.settings(observation_directory=bond_observations_dir,
-                      merge=os.environ.get('BOND_MERGE', 'abort'))
         spy_groups = 'bond_self_test' if spy_groups is None else spy_groups
         bond.start_test(test_instance,
-                        spy_groups=spy_groups)
+                        spy_groups=spy_groups,
+                        observation_directory=bond_observations_dir,
+                        merge=os.environ.get('BOND_MERGE', 'abort'))
+        # By default we abort the test if it fails. No user-interface
 
     def setUp(self):
         BondTest.setup_bond_self_tests(self)
@@ -141,16 +141,33 @@ class BondTest(unittest.TestCase):
         self.assertRaises(Exception, lambda :  bond.spy('fun1', cmd="myfun2"))
 
 
-
     def test_no_spy_groups(self):
         # For this test use a separate instance of Bond
         my_bond = bond.Bond()
-        my_bond.settings(observation_directory='/tmp/bondObs')
-        my_bond.start_test(self)  # Start the test without spy_groups
+        my_bond.start_test(self, observation_directory='/tmp/bondObs')  # Start the test without spy_groups
 
     def test_no_observation_directory(self):
         # For this test use a separate instance of Bond
         my_bond = bond.Bond()
-        my_bond.settings()  # Call the settings but no parameters
-        my_bond.start_test(self)  # Start the test without spy_groups
+        my_bond.start_test(self)  # Start the test without spy_groups or observation dir
 
+    @bond.spy_point(enabled_for_groups='group2')
+    def annotated_method_group_enabled(self):
+        return 'return value'
+
+    @bond.spy_point()
+    def annotated_method_no_group(self):
+        return 'return value'
+
+    def test_reset_spy_groups(self):
+        self.annotated_method_group_enabled()
+        self.annotated_method_no_group()
+        bond.settings(spy_groups='group2')
+        bond.spy('spy groups set')
+        self.annotated_method_group_enabled()
+        self.annotated_method_no_group()
+        bond.settings(spy_groups=())
+        bond.spy('spy groups reset',
+                 obs_dir=os.path.basename(os.path.normpath(bond.Bond.instance()._observation_directory())))
+        self.annotated_method_group_enabled()
+        self.annotated_method_no_group()

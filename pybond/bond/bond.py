@@ -18,20 +18,25 @@ AGENT_RESULT_NONE = '_bond_agent_result_none'
 AGENT_RESULT_CONTINUE = '_bond_agent_result_continue'
 
 # We export some function to module-level for more convenient use
-def settings(observation_directory=None,
-             merge=None):
+def settings(**kwargs):
     """
-    Initialize Bond settings.
-    @param observation_directory: the directory where the observation files are stored.
-    @param merge: the method used to merge the observations
+    Override settings that were set in start_test. Only apply for the duration
+    of a test, so this should be called after start_test. Takes all of the same
+    parameters as start_test, except for test_name (which can't be changed). This
+    is useful if you set general test parameters with start_test in a setUp() block,
+    but want to override them for some specific tests. To override spy_groups
+    back to its default, pass in an empty list or tuple.
+
+    If any parameter is not present here, the previous value will still apply
     @return:
     """
-    Bond.instance().settings(observation_directory=observation_directory,
-                             merge=merge)
+    Bond.instance().settings(**kwargs)
 
 
 def start_test(current_python_test,
                test_name=None,
+               observation_directory=None,
+               merge=None,
                spy_groups=None):
     """
     This function should be called in a unittest.TestCase before any
@@ -41,26 +46,17 @@ def start_test(current_python_test,
 
     @param current_python_test: the instance of TestCase that is running
     @param test_name: the name of the test. By default, it is TestCase.testName.
+    @param observation_directory: the directory where the observation files are stored.
+    @param merge: the method used to merge the observations
     @param spy_groups: the list of spy point groups that are enabled. By default,
                       enable all spy points that do not have an enable_for_groups
                       attribute.
     @return:
     """
-    Bond.instance().start_test(current_python_test,
-                               test_name=test_name,
-                               spy_groups=spy_groups)
+    Bond.instance().start_test(current_python_test, test_name=test_name,
+                               observation_directory=observation_directory,
+                               merge=merge, spy_groups=spy_groups)
 
-def set_spy_groups(spy_groups):
-    """
-    Change the spy groups that are currently enabled. This is useful if you call bond.start_test
-    in a generic way for many tests (e.g. in a setUp() method) but want to override the spy
-    group rules for certain tests. It will completely replace the current spy_groups, so
-    calling this with an empty list or None will revert to the default spy group (i.e. everything enabled)
-    :param spy_groups: The list of spy point groups to enable. By default, enabled all spy points
-                       that do not have an enable_for_groups attribute
-    :return:
-    """
-    Bond.instance().set_spy_groups(spy_groups)
 
 def spy(spy_point_name, **kwargs):
     """
@@ -281,6 +277,8 @@ class Bond:
         # Get the not-None keys
         for k, v in kwargs.iteritems():
             self._settings[k] = v
+        if 'spy_groups' in self._settings:
+            self._set_spy_groups(self._settings['spy_groups'])
 
     def start_test(self,
                    current_python_test,
@@ -296,12 +294,14 @@ class Bond:
 
         self.observations = []
         self.spy_agents = {}
+        self.spy_groups = {}
         self.current_python_test = current_python_test
-        self.test_name = (kwargs.get('test_name') or
+
+        self._settings = {}  # Clear settings before each test
+        self.settings(**kwargs)
+
+        self.test_name = (self._settings.get('test_name') or
                           current_python_test.__class__.__name__ + "." + current_python_test._testMethodName)
-        spy_groups = kwargs.get('spy_groups')
-        if spy_groups is not None:
-            self.set_spy_groups(spy_groups)
 
         # TODO: the rest is specific to unittest. We need to factor it out to allow other frameworks. See issue #2
         #       (the use of current_python_test._testMethodName above is unittest specific as well)
@@ -316,14 +316,6 @@ class Bond:
             print('WARNING: you should set the settings(observation_directory). Observations saved to {}'.format(
                 Bond.DEFAULT_OBSERVATION_DIRECTORY
             ))
-
-    def set_spy_groups(self, spy_groups):
-        self.spy_groups = {}
-        if isinstance(spy_groups, basestring):
-            spy_groups = (spy_groups,)
-        for sg in spy_groups:
-            assert isinstance(sg, basestring)
-            self.spy_groups[sg] = True
 
     def spy(self, spy_point_name, **kwargs):
         assert self.current_python_test, "Should not call spy unless you have called start_test first"
@@ -384,6 +376,16 @@ class Bond:
             self.spy_agents[spy_point_name] = spy_agent_list
         # add the agent at the start of the list
         spy_agent_list.insert(0, agent)
+
+    def _set_spy_groups(self, spy_groups):
+        if isinstance(spy_groups, basestring):
+            self.spy_groups = {spy_groups: True}
+        else:
+            assert isinstance(spy_groups, (list, tuple))
+            self.spy_groups = {}
+            for sg in spy_groups:
+                assert isinstance(sg, basestring)
+                self.spy_groups[sg] = True
 
     def _format_observation(self,
                             observation,
