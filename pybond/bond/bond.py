@@ -18,20 +18,6 @@ AGENT_RESULT_NONE = '_bond_agent_result_none'
 AGENT_RESULT_CONTINUE = '_bond_agent_result_continue'
 
 # We export some function to module-level for more convenient use
-def settings(**kwargs):
-    """
-    Override settings that were set in start_test. Only apply for the duration
-    of a test, so this should be called after start_test. Takes all of the same
-    parameters as start_test, except for test_name (which can't be changed). This
-    is useful if you set general test parameters with start_test in a setUp() block,
-    but want to override them for some specific tests. To override spy_groups
-    back to its default, pass in an empty list or tuple.
-
-    If any parameter is not present here, the previous value will still apply
-    @return:
-    """
-    Bond.instance().settings(**kwargs)
-
 
 def start_test(current_python_test,
                test_name=None,
@@ -39,43 +25,56 @@ def start_test(current_python_test,
                merge=None,
                spy_groups=None):
     """
-    This function should be called in a unittest.TestCase before any
+    This function should be called in a ``unittest.TestCase`` before any
     of the other Bond functions can be used. This will initialize the Bond
     module for the current test, and will ensure proper cleanup of Bond
     state when the test ends.
 
-    @param current_python_test: the instance of TestCase that is running
-    @param test_name: the name of the test. By default, it is TestCase.testName.
-    @param observation_directory: the directory where the observation files are stored.
-    @param merge: the method used to merge the observations
-    @param spy_groups: the list of spy point groups that are enabled. By default,
+    :param current_python_test: the instance of ``unittest.TestCase`` that is running
+    :param test_name: the name of the test. By default, it is ``TestCase.testName``.
+    :param observation_directory: the directory where the observation files are stored.
+    :param merge: the method used to merge the observations
+    :param spy_groups: the list of spy point groups that are enabled. By default,
                       enable all spy points that do not have an enable_for_groups
                       attribute.
-    @return:
     """
     Bond.instance().start_test(current_python_test, test_name=test_name,
                                observation_directory=observation_directory,
                                merge=merge, spy_groups=spy_groups)
+
+def settings(**kwargs):
+    """
+    Override settings that were set in :py:func:`start_test`. Only apply for the duration
+    of a test, so this should be called after :py:func:`start_test`. Takes all of the same
+    parameters as :py:func:`start_test`, except for ``test_name`` (which can't be changed). This
+    is useful if you set general test parameters with start_test in a ``setUp()`` block,
+    but want to override them for some specific tests. To override spy_groups
+    back to its default, pass in an empty list or tuple.
+
+    If any parameter is not present here, the previous value will still apply
+    """
+    Bond.instance().settings(**kwargs)
 
 
 def spy(spy_point_name, **kwargs):
     """
     This is the most frequently used Bond function. It will collect the key-value pairs passed
     in the argument list and will emit them to the spy observation log.
-    If there is an observer registered for the current spy point (see Bond.PushObserver), it will process the observer.
+    If there is an agent registered for the current spy point (see :py:func:`deploy_agent`),
+    it will process the agent.
 
     The values are formatted to JSON using the json module, with sorted keys, and indentation, with
     one value per line, to streamline the observation comparison.
     For user-defined classes, the method toJSON is called on the instance before it is formatted.
     This method should return a JSON-serializable data structure.
 
-    If the special key "format" is present, its value must be a function that is used on a copy of
+    If the special key "formatter" is present, its value must be a function that is used on a copy of
     the arguments to produce a formatted dictionary.
 
-    @param spyPointName: the spy point name, useful to distinguish among different observations
-    @param kwargs: key-value pairs to be observed. There is a special key name:
+    :param spyPointName: the spy point name, useful to distinguish among different observations
+    :param kwargs: key-value pairs to be observed. There is a special key name:
 
-    @return: the result from the agent, if any (see bond.deploy_agent)
+    :return: the result from the agent, if any (see :py:func:`deploy_agent`)
     """
     return Bond.instance().spy(spy_point_name, **kwargs)
 
@@ -85,43 +84,47 @@ def deploy_agent(spy_point_name, **kwargs):
     Create a new agent for the named spy point. When a spy point is encountered, the agents are searched
     in reverse order of their deployment, and the first agent that matches is used.
 
+    :param spy_point_name: the point for which to create the observer. This observer will only be executed
+      for invocations of Bond.Observe with the the same spyPointName.
+    :param kwargs: key-value pairs that control the execution of the observer. The following keys are
+      recognized:
 
-    @param spy_point_name: the point for which to create the observer. This observer will only be executed
-        for invocations of Bond.Observe with the the same spyPointName.
-    @param kwargs: key-value pairs that control the execution of the observer. The following keys are
-        recognized:
         * Keys that restrict for which invocations of bond.spy this agent is active. All of these conditions
           must be true for the agent to be the active one:
-             * key=val : only when the observation dictionary contains the 'key' with the given value
-             * key__contains=substr : only when the observation dictionary contains the 'key' with a string value
-                      that contains the given substr
-             * key__startswith=substr : only when the observation dictionary contains the 'key' with a
-                      string value that starts with the given substr
-             * key__endswith=substr : only when the observation dictionary contains the 'key' with a string value
-                      that ends with the given substr
-             * filter=func : only when the given func returns true when passed observation dictionary.
-                      Uses the observation before formatting.
+
+          * key=val : only when the observation dictionary contains the 'key' with the given value
+          * key__contains=substr : only when the observation dictionary contains the 'key' with a string value
+            that contains the given substr
+          * key__startswith=substr : only when the observation dictionary contains the 'key' with a
+            string value that starts with the given substr
+          * key__endswith=substr : only when the observation dictionary contains the 'key' with a string value
+            that ends with the given substr
+          * filter=func : only when the given func returns true when passed observation dictionary.
+            Uses the observation before formatting.
 
         * Keys that control what the observer does when processed:
-             * do=func : executes the given function with the observed argument dictionary.
-                         func can also be a list of functions, executed in order.
-                         Uses the observation before formatting.
 
-        * Keys that control what the corresponding spy returns (by default AGENT_RESULT_NONE):
-             * exception=x : the call to bond.spy throws the given exception. If 'x' is a function
-                             it is invoked on the observe argument dictionary to compute the exception to throw.
-                             Uses the observation before formatting.
-             * result=x : the call to bond.spy returns the given value. If 'x' is a function
-                             it is invoked on the observe argument dictionary to compute the value to return.
-                             Uses the observation before formatting.
+          * do=func : executes the given function with the observed argument dictionary.
+            func can also be a list of functions, executed in order.
+            Uses the observation before formatting.
+
+        * Keys that control what the corresponding spy returns (by default ``AGENT_RESULT_NONE``):
+
+          * exception=x : the call to bond.spy throws the given exception. If 'x' is a function
+            it is invoked on the observe argument dictionary to compute the exception to throw.
+            Uses the observation before formatting.
+          * result=x : the call to bond.spy returns the given value. If 'x' is a function
+            it is invoked on the observe argument dictionary to compute the value to return.
+            Uses the observation before formatting.
 
         * Keys that control how the observation is logged. This is processed after all the above functions.
-             * formatter : if specified, a function that is given the observation and can update it in place.
-                           The formatted observation is what gets saved.
 
+          * formatter : if specified, a function that is given the observation and can update it in place.
+            The formatted observation is what gets saved.
 
-    @return: either AGENT_RESULT_NONE if not agent matches or contains a "result", or the result from
-             the first agent that matches.
+    :return: either ``AGENT_RESULT_NONE`` if not agent matches or contains a "result", or the result from
+      the first agent that matches.
+
     """
     Bond.instance().deploy_agent(spy_point_name, **kwargs)
 
@@ -143,11 +146,11 @@ def spy_point(spy_point_name=None,
                            If missing then it is enabled for all groups.
     :param require_agent_result: if True, and if this spy point is enabled, then there must be an
                            agent that provides a result, or else the invocation of the function aborts.
-                           The agent may still provide AGENT_RESULT_CONTINUE to tell the spy point
+                           The agent may still provide ``AGENT_RESULT_CONTINUE`` to tell the spy point
                            to continue the invocation of the underlying function.
     :param excluded_keys:
-    :param spy_return: if True, then the return value is spied also
-    :return:
+    :param spy_return: if True, then the return value is spied also, using a spy_point name of
+                       `spy_point_name.result`.
     """
     # TODO: Should we also have an excluded_from_groups parameter?
 
@@ -171,7 +174,7 @@ def spy_point(spy_point_name=None,
             enabled_for_groups_local = enabled_for_groups
 
         @wraps(fn)
-        def fnWrapper(*args, **kwargs):
+        def fn_wrapper(*args, **kwargs):
             # Bypass spying if we are not TESTING
             if not TESTING:
                 return fn(*args, **kwargs)
@@ -232,7 +235,7 @@ def spy_point(spy_point_name=None,
                 the_bond.spy(spy_point_name_local+'.return', result=return_val)
             return return_val
 
-        return fnWrapper
+        return fn_wrapper
 
     return wrap
 

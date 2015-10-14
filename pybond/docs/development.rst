@@ -1,3 +1,19 @@
+===========================
+Bond Development
+===========================
+
+
+Generating documentation
+---------------------------
+
+You must install Sphinx (``pip install -U Sphinx``) and then
+
+.. code::
+
+    cd docs
+    make html
+
+
 Running tests
 -----------------
 

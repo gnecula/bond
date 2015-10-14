@@ -1,0 +1,15 @@
+# Python
+*.pyc
+
+build
+docs/_build
+
+# Emacs:
+*~
+
+
+# JetBrains IDEs:
+*.iml
+
+## Directory-based project format:
+.idea/
