@@ -10,7 +10,9 @@ shared_context :bond do |**settings|
   end
 
   after :each do
-    bond.finish_test
+    if bond.finish_test == :fail
+      fail('BOND_FAIL. Pass BOND_MERGE=[kdiff3|console|accept] environment variable to merge the observations.')
+    end
   end
 end
 

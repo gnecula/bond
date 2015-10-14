@@ -23,8 +23,10 @@ class Bond
           # TODO
         when :observation_directory
           @observation_directory = v
+        when :merge
+          @merge_type = v
         else
-          raise ArgumentError, 'Reached an unrecognized setting: %s = %s' % [k, v]
+          raise ArgumentError, "Reached an unrecognized setting: #{k} = #{v}"
       end
     end
   end
@@ -54,7 +56,7 @@ class Bond
     if @observation_directory.nil?
       @observation_directory = DEFAULT_OBSERVATION_DIRECTORY
       puts 'WARNING: You should set the settings(observation_directory).' +
-               'Observations saved to %s' % DEFAULT_OBSERVATION_DIRECTORY
+               "Observations saved to #{DEFAULT_OBSERVATION_DIRECTORY}"
     end
 
     # TODO get the test information and stuff
@@ -73,7 +75,7 @@ class Bond
     @observations <<= formatted
 
     # TODO
-    puts 'Observing: ' + formatted
+    puts "Observing: #{formatted}"
 
     applicable_agents.each do |agent|
       agent.do(observation)
@@ -91,40 +93,55 @@ class Bond
   end
 
   def finish_test
-    begin
-      # TODO Collect errors
+    # TODO Collect errors, deal with failures
 
-      fname = observation_file_name
-      fdir = File.dirname(fname)
-      unless File.directory?(fdir)
-        FileUtils.mkdir_p(fdir)
-        top_git_ignore = File.join(@observation_directory, '.gitignore')
-        puts top_git_ignore
-        unless File.file?(top_git_ignore)
-          # TODO make this configurable in case you don't use git?
-          File.open(top_git_ignore, 'w') do |outfile|
-            outfile.print("*_now.json\n*.diff\n")
-          end
+    fname = observation_file_name
+    fdir = File.dirname(fname)
+    unless File.directory?(fdir)
+      FileUtils.mkdir_p(fdir)
+      top_git_ignore = File.join(@observation_directory, '.gitignore')
+      puts top_git_ignore
+      unless File.file?(top_git_ignore)
+        # TODO make this configurable in case you don't use git?
+        File.open(top_git_ignore, 'w') do |outfile|
+          outfile.print("*_now.json\n*.diff\n")
         end
       end
-
-      ref_file = fname + '.json'
-      cur_file = fname + '_now.json'
-      if File.file?(ref_file)
-        if File.file?(cur_file)
-          File.delete(cur_file)
-        end
-        save_observations(cur_file)
-        # TODO need to reconcile between new cur_file and ref_file
-      else
-        # TODO printing
-        puts 'Saved observations in file %s' % ref_file
-        save_observations(cur_file)
-      end
-    rescue
-      @current_test = false
-      @testing = false
     end
+
+    ref_file = fname + '.json'
+    cur_file = fname + '_now.json'
+    if File.exists?(ref_file)
+      if File.exists?(cur_file)
+        File.delete(cur_file)
+      end
+
+      save_observations(cur_file)
+      # TRANSITION CODE: Run the external command to reconcile
+      # TODO right now using bond_reconcile from the python module, but really there should be
+      #      a local copy (in rbond/bin). Also less frailness in terms of finding the script -
+      #      it probably shouldn't be based on the location of the @observation_directory
+      bond_reconcile_script = File.absolute_path(@observation_directory + '/../../../pybond/bond/bond_reconcile.py')
+      unless File.exists?(bond_reconcile_script)
+        raise "Cannot find the bond_reconcile script: #{bond_reconcile_script}"
+      end
+
+      unless @merge_type.nil?
+        ENV['BOND_MERGE'] = @merge_type
+      end
+
+      cmd = "#{bond_reconcile_script} --reference #{ref_file} --current #{cur_file} --test #{@test_name}"
+      puts "Running: #{cmd}"
+      code = system(cmd)
+      return code ? :pass : :fail
+    else
+      # TODO printing
+      puts "Saved observations in file #{ref_file}"
+      save_observations(cur_file)
+    end
+  ensure
+    @current_test = false
+    @testing = false
   end
 
   private
@@ -249,10 +266,10 @@ class SpyAgentFilter
         when 'contains'
           @filter_func = lambda { |val| val.include?(filter_value) }
         else
-          raise 'Unknown operator: %s' % key_parts[1]
+          raise "Unknown operator: #{key_parts[1]}"
       end
     else
-      raise 'Invalid key passed in: %s' % filter_key
+      raise "Invalid key passed in: #{filter_key}"
     end
   end
 
