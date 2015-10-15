@@ -32,6 +32,10 @@
     "prompt": "Do you want to accept the changes (test 1) ? ( [y]es | [k]diff3 | *): "
 },
 {
+    "__spy_point_name": "bond_reconcile._read_console.return", 
+    "result": "k"
+},
+{
     "__spy_point_name": "bond_reconcile._invoke_command", 
     "cmd": "kdiff3 -m \"/tmp/bondObservationsDir/reference.json\" --L1 \"test 1_REFERENCE\" \"/tmp/bondObservationsDir/reference_now.json\" --L2 \"test 1_CURRENT\"  -o \"/tmp/bondObservationsDir/reference_now.json.merged\""
 },

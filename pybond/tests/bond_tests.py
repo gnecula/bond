@@ -45,7 +45,8 @@ class BondTest(unittest.TestCase):
     def test_spy_create_dir(self):
         "Test the creation of the observation directory"
         test_dir = '/tmp/bondTestOther'
-        bond.settings(observation_directory=test_dir)
+        bond.settings(observation_directory=test_dir,
+                      merge='accept')
         if os.path.isdir(test_dir):
             shutil.rmtree(test_dir)
 
@@ -55,12 +56,12 @@ class BondTest(unittest.TestCase):
         # Now spy the contents of the observation directory itself
         bond_instance = bond.Bond.instance()
         bond_instance._finish_test()  # We reach into the internal API
-        bond_instance.current_python_test = self # Hask to allow the test to continue
+        bond_instance.current_python_test = self # Has to allow the test to continue
 
         bond.spy('collect_spy_observation_dirs',
                  directory=bond_helpers.collect_directory_contents(test_dir,
                                                                    collect_file_contents=True))
-        # Now we delete the observation director, which we already collected above.
+        # Now we delete the observation directory, which we already collected above.
         # Otherwise, the test will try to reconcile with it
         shutil.rmtree(test_dir)
 

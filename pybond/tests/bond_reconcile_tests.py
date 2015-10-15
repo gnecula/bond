@@ -109,6 +109,7 @@ class ReconcileTest(unittest.TestCase):
 
     def test_no_reference(self):
         "Test with no reference file"
+        self.console_reply = 'y'  # Do accept
         self.prepare_observations(reference_file_content=None,
                                   current_file_content=self.reference_file_content)
         self.invoke_top_reconcile(merge='console')
@@ -132,11 +133,11 @@ class ReconcileTest(unittest.TestCase):
         self.helper_test_merge(merge='abort')
 
     def test_merge_console0(self):
-        self.console_reply = 'y'  # Do not accept
+        self.console_reply = 'y'  # Do accept
         self.helper_test_merge(merge='console')
 
     def test_merge_console1(self):
-        self.console_reply = 'n'  # Do accept
+        self.console_reply = 'n'  # Do not accept
         self.helper_test_merge(merge='console')
 
 

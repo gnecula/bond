@@ -61,7 +61,8 @@ class MergeTool:
 
     @staticmethod
     @spy_point(enabled_for_groups='bond_self_test',
-               require_agent_result=True)
+               require_agent_result=True,
+               spy_return=True)
     def _read_console(prompt):
         """
         A function to read from the console
@@ -113,10 +114,12 @@ class MergeTool:
         """
 
         if not os.path.isfile(reference_file):
-            # if we do not have the reference file
-            MergeTool._print('Creating reference observation file for {}: {}'.format(test_name, reference_file))
-            shutil.move(current_file, reference_file)
-            return True
+            # if we do not have the reference file, pretend we have an empty one
+            MergeTool._print('WARNING: No reference observation file found for {}: {}'.format(test_name, reference_file))
+
+            with open(reference_file, 'w') as f:
+                pass
+            # We continue
 
         # Compute a quick difference
         diff_file = self._aux_file_name(current_file, "diff")

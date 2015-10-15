@@ -32,6 +32,10 @@
     "prompt": "Do you want to accept the changes (test 1) ? ( [y]es | [k]diff3 | *): "
 },
 {
+    "__spy_point_name": "bond_reconcile._read_console.return", 
+    "result": "n"
+},
+{
     "__spy_point_name": "bond_reconcile._print", 
     "what": "Rejecting differences for test test 1"
 },

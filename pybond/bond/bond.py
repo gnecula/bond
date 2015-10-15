@@ -469,16 +469,13 @@ class Bond:
 
                 reference_file = fname + '.json'
                 current_file = fname + '_now.json'
-                if not os.path.isfile(reference_file):
-                    print("Saved observations in file " + reference_file)
-                    self._save_observations(reference_file)
-                else:
-                    if os.path.isfile(current_file):
-                        os.unlink(current_file)
-                    self._save_observations(current_file)
-                    # WE have to reconcile them
-                    assert self._reconcile_observations(reference_file, current_file), \
-                        'Reconciling observations for {}'.format(self.test_name)
+
+                if os.path.isfile(current_file):
+                    os.unlink(current_file)
+                self._save_observations(current_file)
+                # WE have to reconcile them
+                assert self._reconcile_observations(reference_file, current_file), \
+                    'Reconciling observations for {}'.format(self.test_name)
         finally:
             # Mark that we are outside of a test
             self.current_python_test = None
