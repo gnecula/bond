@@ -2,56 +2,40 @@ require 'singleton'
 require 'json'
 require 'fileutils'
 
+# TODO still needs lots more documentation here...
 class Bond
   include Singleton
 
   DEFAULT_OBSERVATION_DIRECTORY = '/tmp/bond_observations'
   @testing = false
 
-  def initialize
-    @spy_agents = Hash.new { |hash, key|
-      hash[key] = []
-    }
-    @observations = []
-    @current_test = nil
-  end
-
-  def update_settings(**opt)
-    opt.each do |k, v|
-      case k
-        when :spy_groups
-          # TODO ETK
-        when :observation_directory
-          @observation_directory = v
-        when :merge
-          @merge_type = v
-        else
-          raise ArgumentError, "Reached an unrecognized setting: #{k} = #{v}"
-      end
-    end
+  def settings(spy_groups: nil, observation_directory: nil, merge: nil)
+    raise 'not yet implemented' unless spy_groups.nil? # TODO spy_groups
+    @observation_directory = observation_directory unless observation_directory.nil?
+    @merge = merge unless @merge.nil?
   end
 
   # TODO ETK make this able to use other test frameworks as well
-  def start_test(rspec_test, **settings)
+  def start_test(rspec_test, test_name: nil, spy_groups: nil,
+                 observation_directory: nil, merge: nil)
     @testing = true
     @observations = []
     @spy_agents = Hash.new { |hash, key|
       hash[key] = []
     }
-
+    @observation_directory = nil
     @current_test = rspec_test
-    if settings.include?(:test_name)
-      @test_name = settings[:test_name]
-      settings.delete(:test_name)
-    else
+
+    if test_name.nil?
       test_file = @current_test.metadata[:file_path]
       # TODO ETK decide exactly what characters to allow?
       @test_name = File.basename(test_file, File.extname(test_file)) + '.' +
           @current_test.metadata[:full_description].gsub(/[^A-z0-9.()]/, '_')
+    else
+      @test_name = test_name
     end
 
-    @observation_directory = nil
-    update_settings(**settings)
+    settings(spy_groups: spy_groups, observation_directory: observation_directory, merge: merge)
 
     if @observation_directory.nil?
       @observation_directory = DEFAULT_OBSERVATION_DIRECTORY
@@ -69,32 +53,35 @@ class Bond
 
     observation[:__spy_point__] = spy_point_name
     observation = deep_clone_sort_hashes(observation)
-    applicable_agents = @spy_agents[spy_point_name].select { |agent| agent.process?(observation) }
+    active_agent = @spy_agents[spy_point_name].find { |agent| agent.process?(observation) }
 
-    # TODO ETK checking for 'ignore' and such
-
-    formatted = format_observation(observation, applicable_agents)
-    @observations <<= formatted
-
-    # TODO ETK
-    puts "Observing: #{formatted}"
-
-    applicable_agents.each do |agent|
-      agent.do(observation)
-      res = agent.result(observation)
-      return res unless res == :agent_result_none
+    res = :agent_result_none
+    begin
+      unless active_agent.nil?
+        active_agent.do(observation)
+        res = active_agent.result(observation)
+      end
+    ensure
+      formatted = format_observation(observation, active_agent)
+      @observations <<= formatted
+      #TODO ETK printing
+      puts "Observing: #{formatted} #{", returning <#{res.to_s}>" if res != :agent_result_none}"
     end
 
-    :agent_result_none
+    res
   end
 
+  # Deploy an agent to watch a specific spy point (corresponding to +spy_point_name+).
+  # Any keyword arguments specified as +opts+ will be passed to SpyAgent#new
+  # The most recently deployed agent will always take precedence over any previous
+  # agents for a given spy point.
   def deploy_agent(spy_point_name, **opts)
     raise 'You must enable testing before using deploy_agent' unless @testing
     spy_point_name = spy_point_name.to_s
     @spy_agents[spy_point_name] = @spy_agents[spy_point_name].unshift(SpyAgent.new(**opts))
   end
 
-  def finish_test
+  def _finish_test
     # TODO ETK Collect errors, deal with failures
 
     fname = observation_file_name
@@ -144,22 +131,24 @@ class Bond
 
   private
 
+  # Save all current observations to a file located at fname. Assumes that
+  # +@observations+ has already been JSON-serialized and outputs them all
+  # as a JSON array.
   def save_observations(fname)
     File.open(fname, 'w') do |f|
-      f.print("[\n")
-      @observations.each_with_index do |obs, idx|
-        f.print(obs)
-        f.print(idx == @observations.length-1 ? "\n" : ",\n")
-      end
-      f.print("]\n")
+      f.print("[\n#{@observations.join(",\n")}\n]\n")
     end
   end
 
+  # Return the file name where observations for the current test should be
+  # stored. Any hierarchy (as specified by .) in the test name becomes
+  # a directory hierarchy, e.g. a test name of 'bond.my_tests.test_name'
+  # would be stored at '{+base_directory+}/bond/my_tests/test_name.json'
   def observation_file_name
     File.join(@observation_directory, @test_name.split('.'))
   end
 
-  def format_observation(observation, agents = [])
+  def format_observation(observation, agent = nil)
     # TODO ETK actually have formatters
     # custom serialization options for the json serializer...?
     # way to sort the keys...?
@@ -193,10 +182,10 @@ class Bond
 
 end
 
+# TODO needs more documentation
 class SpyAgent
 # TODO ETK needs formatters
   def initialize(**opts)
-    # TODO ETK why not use actual keyed arguments here?
     @result_spec = nil
     @exception_spec = nil
     @doers = []
@@ -209,7 +198,7 @@ class SpyAgent
         when 'exception'
           @exception_spec = v
         when 'do'
-          @doers += [*v]
+          @doers = [*v]
         else # Must be a filter
           @filters <<= SpyAgentFilter.new(k.to_s, v)
       end
@@ -228,11 +217,7 @@ class SpyAgent
 
   def result(observation)
     unless @exception_spec.nil?
-      if @exception_spec.respond_to?(:call)
-        raise @exception_spec.call
-      else
-        raise @exception_spec
-      end
+      raise @exception_spec.respond_to?(:call) ? @exception_spec.call(observation) : @exception_spec
     end
 
     if @result_spec.nil?
@@ -251,6 +236,7 @@ class SpyAgentFilter
     @field_name = nil
     @filter_func = nil
 
+    filter_key = filter_key.to_s
     if filter_key == 'filter'
       # TODO ETK is this the correct check?
       raise 'When using filter, passed value must be callable' unless filter_value.respond_to?(:call)
