@@ -1,0 +1,33 @@
+[
+{
+  "__spy_point__": "TestClass#annotated_method_mixed_variable_params",
+  "arg1": "value1",
+  "arg_n1": "value_n1"
+},
+{
+  "__spy_point__": "TestClass#annotated_method_mixed_variable_params",
+  "arg1": "value1",
+  "arg_n1": "value_n1",
+  "arg_n2": "value_n2"
+},
+{
+  "__spy_point__": "TestClass#annotated_method_mixed_variable_params",
+  "anonymous_parameter0": "value3",
+  "arg1": "value1",
+  "arg_n1": "value_n1",
+  "arg_n2": "value_n2"
+},
+{
+  "__spy_point__": "TestClass#annotated_method_mixed_variable_params",
+  "anonymous_parameter0": "value3",
+  "arg1": "value1",
+  "arg_n1": "value_n1"
+},
+{
+  "__spy_point__": "TestClass#annotated_method_mixed_variable_params",
+  "anonymous_parameter0": "value3",
+  "arg1": "value1",
+  "arg_n1": "value_n1",
+  "arg_n3": "value_n3"
+}
+]

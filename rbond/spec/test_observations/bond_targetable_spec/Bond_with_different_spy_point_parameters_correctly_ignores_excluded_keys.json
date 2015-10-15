@@ -1,0 +1,10 @@
+[
+{
+  "__spy_point__": "TestClass#annotated_method_single_exclude",
+  "arg2": "value2"
+},
+{
+  "__spy_point__": "TestClass#annotated_method_multiple_exclude",
+  "arg2": "value2"
+}
+]

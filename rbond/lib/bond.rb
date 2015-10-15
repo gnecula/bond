@@ -17,10 +17,10 @@ class Bond
   end
 
   def update_settings(**opt)
-    opt.each_pair do |k, v|
+    opt.each do |k, v|
       case k
         when :spy_groups
-          # TODO
+          # TODO ETK
         when :observation_directory
           @observation_directory = v
         when :merge
@@ -31,7 +31,7 @@ class Bond
     end
   end
 
-  # TODO make this able to use other test frameworks as well
+  # TODO ETK make this able to use other test frameworks as well
   def start_test(rspec_test, **settings)
     @testing = true
     @observations = []
@@ -45,7 +45,7 @@ class Bond
       settings.delete(:test_name)
     else
       test_file = @current_test.metadata[:file_path]
-      # TODO decide exactly what characters to allow?
+      # TODO ETK decide exactly what characters to allow?
       @test_name = File.basename(test_file, File.extname(test_file)) + '.' +
           @current_test.metadata[:full_description].gsub(/[^A-z0-9.()]/, '_')
     end
@@ -59,7 +59,7 @@ class Bond
                "Observations saved to #{DEFAULT_OBSERVATION_DIRECTORY}"
     end
 
-    # TODO get the test information and stuff
+    # TODO ETK get the test information and stuff
     # spy groups
   end
 
@@ -67,14 +67,16 @@ class Bond
     raise 'You must enable testing before using spy' unless @testing
     spy_point_name = spy_point_name.to_s
 
-    applicable_agents = @spy_agents[spy_point_name].select { |agent| agent.accept?(observation) }
+    observation[:__spy_point__] = spy_point_name
+    observation = deep_clone_sort_hashes(observation)
+    applicable_agents = @spy_agents[spy_point_name].select { |agent| agent.process?(observation) }
 
-    # TODO checking for 'ignore' and such
+    # TODO ETK checking for 'ignore' and such
 
-    formatted = format_observation(deep_clone(observation), applicable_agents)
+    formatted = format_observation(observation, applicable_agents)
     @observations <<= formatted
 
-    # TODO
+    # TODO ETK
     puts "Observing: #{formatted}"
 
     applicable_agents.each do |agent|
@@ -93,7 +95,7 @@ class Bond
   end
 
   def finish_test
-    # TODO Collect errors, deal with failures
+    # TODO ETK Collect errors, deal with failures
 
     fname = observation_file_name
     fdir = File.dirname(fname)
@@ -102,7 +104,7 @@ class Bond
       top_git_ignore = File.join(@observation_directory, '.gitignore')
       puts top_git_ignore
       unless File.file?(top_git_ignore)
-        # TODO make this configurable in case you don't use git?
+        # TODO ETK make this configurable in case you don't use git?
         File.open(top_git_ignore, 'w') do |outfile|
           outfile.print("*_now.json\n*.diff\n")
         end
@@ -112,32 +114,28 @@ class Bond
     ref_file = fname + '.json'
     cur_file = fname + '_now.json'
     if File.exists?(ref_file)
-      if File.exists?(cur_file)
-        File.delete(cur_file)
-      end
+      File.delete(cur_file) if File.exists?(cur_file)
 
       save_observations(cur_file)
       # TRANSITION CODE: Run the external command to reconcile
-      # TODO right now using bond_reconcile from the python module, but really there should be
-      #      a local copy (in rbond/bin). Also less frailness in terms of finding the script -
+      # TODO ETK right now using bond_reconcile from the python module, but really there should be
+      #      a local copy (in rbond/bin?). Also less frailness in terms of finding the script -
       #      it probably shouldn't be based on the location of the @observation_directory
       bond_reconcile_script = File.absolute_path(@observation_directory + '/../../../pybond/bond/bond_reconcile.py')
       unless File.exists?(bond_reconcile_script)
         raise "Cannot find the bond_reconcile script: #{bond_reconcile_script}"
       end
 
-      unless @merge_type.nil?
-        ENV['BOND_MERGE'] = @merge_type
-      end
+      ENV['BOND_MERGE'] = @merge_type unless @merge_type.nil?
 
       cmd = "#{bond_reconcile_script} --reference #{ref_file} --current #{cur_file} --test #{@test_name}"
       puts "Running: #{cmd}"
       code = system(cmd)
       return code ? :pass : :fail
     else
-      # TODO printing
+      # TODO ETK printing
       puts "Saved observations in file #{ref_file}"
-      save_observations(cur_file)
+      save_observations(ref_file)
     end
   ensure
     @current_test = false
@@ -162,17 +160,28 @@ class Bond
   end
 
   def format_observation(observation, agents = [])
-    # TODO actually have formatters
+    # TODO ETK actually have formatters
     # custom serialization options for the json serializer...?
     # way to sort the keys...?
     JSON.pretty_generate(observation, ident: ' '*4)
   end
 
-  def deep_clone(obj)
-    if obj.is_a?(Array)
-      obj.map { |item| deep_clone(item) }
-    elsif obj.is_a?(Hash)
-      Hash[obj.map { |k,v| [deep_clone(k), deep_clone(v)] }]
+  # Deep-clones an object while sorting any Hashes at any depth:
+  #  #Hash::  Creates a new hash containing all of the old key-value
+  #           pairs sorted by key
+  #  #Array:: Creates a new array with the old contents *not* sorted
+  #  Other::  Attempts to call Object#clone. If this fails (results in #TypeError)
+  #           then the object is returned as-is (assumes that non-cloneable objects
+  #           are immutable and thus don't need cloning)
+  def deep_clone_sort_hashes(obj)
+    if obj.is_a?(Hash)
+      {}.tap do |new|
+        obj.sort.each do |k, v|
+          new[k] = deep_clone_sort_hashes(v)
+        end
+      end
+    elsif obj.is_a?(Array) # Don't sort arrays, just clone
+      obj.map { |x| deep_clone_sort_hashes(x) }
     else
       begin
         obj.clone
@@ -185,15 +194,16 @@ class Bond
 end
 
 class SpyAgent
-# TODO needs formatters
+# TODO ETK needs formatters
   def initialize(**opts)
+    # TODO ETK why not use actual keyed arguments here?
     @result_spec = nil
     @exception_spec = nil
     @doers = []
     @filters = []
 
-    opts.each_pair do |k,v|
-      case k
+    opts.each do |k, v|
+      case k.to_s # Convert to string in case it was passed as a symbol
         when 'result'
           @result_spec = v
         when 'exception'
@@ -201,13 +211,13 @@ class SpyAgent
         when 'do'
           @doers += [*v]
         else # Must be a filter
-          @filters <<= SpyAgentFilter.new(k, v)
+          @filters <<= SpyAgentFilter.new(k.to_s, v)
       end
     end
   end
 
   def process?(observation)
-    @filters.any? do |filter|
+    @filters.empty? || @filters.any? do |filter|
       !filter.accept?(observation)
     end
   end
@@ -242,10 +252,8 @@ class SpyAgentFilter
     @filter_func = nil
 
     if filter_key == 'filter'
-      # TODO is this the correct check?
-      unless filter_value.respond_to?(:call)
-        raise 'When using filter, passed value must be callable'
-      end
+      # TODO ETK is this the correct check?
+      raise 'When using filter, passed value must be callable' unless filter_value.respond_to?(:call)
       @filter_func = filter_value
       return
     end
@@ -281,80 +289,3 @@ class SpyAgentFilter
     end
   end
 end
-
-module BondTargetable
-
-  @__last_annotation__ = nil
-
-  def method_added(name)
-    super
-    return if @__last_annotation__.nil?
-
-    orig_method = instance_method(name)
-
-    if private_method_defined?(name)
-      visibility = :private
-    elsif protected_method_defined?(name)
-      visibility = :protected
-    else
-      visibility = :public
-    end
-
-    this = self
-    define_method(name) do |*args, &blk|
-      this._bond_interceptor(orig_method.bind(self), *args, &blk)
-    end
-
-    case visibility
-      when :protected
-        protected name
-      when :private
-        private name
-    end
-
-    @__last_annotation__ = nil
-  end
-
-  def singleton_method_added(name)
-    super
-    return if @__last_annotation__.nil?
-
-    orig_method = method(name)
-
-    this = self
-    this.define_singleton_method(name) do |*args, &blk|
-      this._bond_interceptor(orig_method, *args, &blk)
-    end
-
-    @__last_annotation__ = nil
-  end
-
-  def _bond_interceptor(method, *args, &blk)
-    Bond.instance.spy()
-    method.call(*args, &blk)
-    # TODO
-  end
-
-  def spy_point(spy_point_name = nil, require_agent_result = false, excluded_keys = [])
-    @__last_annotation__ = {
-        :spy_point_name => spy_point_name,
-        :require_agent_result => require_agent_result,
-        :excluded_keys => excluded_keys
-    }
-  end
-end
-
-
-# class Test
-#   @inst = 4
-#
-#   def to_json(arg)
-#     # puts arg
-#     {inst: "4"}.to_json
-#   end
-# end
-#
-# bond = Bond.instance
-# bond.start_test(nil)
-# bond.spy('obsPoint1', my_test: Test.new, my_value: 'blah', my_array: ['blah', 'blah2'], my_hash: {blah_key: 'blah_value', 4 => 'my4'})
-

@@ -1,0 +1,17 @@
+[
+{
+  "__spy_point__": "TestClass#annotated_method_kw_params_mixed",
+  "arg1": "value"
+},
+{
+  "__spy_point__": "TestClass#annotated_method_kw_params_mixed",
+  "arg1": "value",
+  "arg3": "new value"
+},
+{
+  "__spy_point__": "TestClass#annotated_method_kw_params_mixed",
+  "arg1": "value",
+  "arg2": "new value2",
+  "arg3": "new value3"
+}
+]

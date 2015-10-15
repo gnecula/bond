@@ -1,0 +1,20 @@
+[
+{
+  "__spy_point__": "TestClass#annotated_method_mixed_params",
+  "arg1": "foo",
+  "arg2": "bar"
+},
+{
+  "__spy_point__": "TestClass#annotated_method_mixed_params",
+  "arg1": "foo",
+  "arg2": "bar",
+  "arg4": "new value4"
+},
+{
+  "__spy_point__": "TestClass#annotated_method_mixed_params",
+  "arg1": "foo",
+  "arg2": "bar",
+  "arg3": "new value3",
+  "arg4": "new value4"
+}
+]
