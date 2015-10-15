@@ -4,7 +4,7 @@
     "arg1": 1
 },
 {
-    "__spy_point_name": "bond_annotation_tests.annotated_module_method.return", 
+    "__spy_point_name": "bond_annotation_tests.annotated_module_method.result", 
     "result": "something"
 }
 ]

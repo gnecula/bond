@@ -62,7 +62,7 @@ class MergeTool:
     @staticmethod
     @spy_point(enabled_for_groups='bond_self_test',
                require_agent_result=True,
-               spy_return=True)
+               spy_result=True)
     def _read_console(prompt):
         """
         A function to read from the console

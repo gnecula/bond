@@ -79,7 +79,7 @@ class AnnotationTests(unittest.TestCase):
     def test_with_exclusion(self):
         self.annotated_with_exclusion('foo', 'bar', newArg='disappears', newArg2='baz')
 
-    @bond.spy_point(require_agent_result=True, spy_return=True)
+    @bond.spy_point(require_agent_result=True, spy_result=True)
     def annotated_with_mocking_mandatory(self, arg1=None):
         return 'return value'
 
@@ -108,7 +108,7 @@ class AnnotationTests(unittest.TestCase):
         annotated_module_method(1)
 
 
-@bond.spy_point(spy_return=True)
+@bond.spy_point(spy_result=True)
 def annotated_module_method(arg1, arg2='2'):
     return 'something'
 

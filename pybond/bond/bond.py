@@ -166,7 +166,7 @@ def spy_point(spy_point_name=None,
               enabled_for_groups=None,
               require_agent_result=False,
               excluded_keys=('self',),
-              spy_return=False):
+              spy_result=False):
     """
     Decorator for marking Bond spy points.
     Must be applied directly to a method or a function, not to another decorator.
@@ -180,8 +180,9 @@ def spy_point(spy_point_name=None,
                            The agent may still provide ``AGENT_RESULT_CONTINUE`` to tell the spy point
                            to continue the invocation of the underlying function.
     :param excluded_keys: a tuple or list of parameter key names to skip when saving the observations.
-    :param spy_return: if True, then the return value is spied also, using a spy_point name of
-                       `spy_point_name.result`.
+    :param spy_result: if True, then the resuly value is spied also, using a spy_point name of
+                       `spy_point_name.result`. If there is an agent providing a result for
+                       this spy point, then the agent result is saved as the observation.
     """
     # TODO: Should we also have an excluded_from_groups parameter?
 
@@ -262,8 +263,8 @@ def spy_point(spy_point_name=None,
             else:
                 return_val = response
 
-            if spy_return:
-                the_bond.spy(spy_point_name_local + '.return', result=return_val)
+            if spy_result:
+                the_bond.spy(spy_point_name_local + '.result', result=return_val)
             return return_val
 
         return fn_wrapper

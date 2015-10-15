@@ -32,7 +32,7 @@
     "prompt": "Do you want to accept the changes (test 1) ? ( [y]es | [k]diff3 | *): "
 },
 {
-    "__spy_point_name": "bond_reconcile._read_console.return", 
+    "__spy_point_name": "bond_reconcile._read_console.result", 
     "result": "y"
 },
 {
