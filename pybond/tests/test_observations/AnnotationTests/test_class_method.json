@@ -1,6 +1,6 @@
 [
 {
-    "__spy_point_name": "AnnotationTests.annotated_class_method", 
+    "__spy_point__": "AnnotationTests.annotated_class_method", 
     "arg1": "foobar"
 }
 ]

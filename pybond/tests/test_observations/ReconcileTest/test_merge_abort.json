@@ -1,14 +1,14 @@
 [
 {
-    "__spy_point_name": "bond_reconcile._invoke_command", 
+    "__spy_point__": "bond_reconcile._invoke_command", 
     "cmd": "diff -u -b \"/tmp/bondObservationsDir/reference.json\" \"/tmp/bondObservationsDir/reference_now.json\" >\"/tmp/bondObservationsDir/reference_now.json.diff\""
 },
 {
-    "__spy_point_name": "bond_reconcile._print", 
+    "__spy_point__": "bond_reconcile._print", 
     "what": "There were differences in observations for test 1: "
 },
 {
-    "__spy_point_name": "bond_reconcile._print", 
+    "__spy_point__": "bond_reconcile._print", 
     "what": [
         "--- /tmp/bondObservationsDir/reference.json\tdate", 
         "+++ /tmp/bondObservationsDir/reference_now.json\tdate", 
@@ -24,15 +24,15 @@
     ]
 },
 {
-    "__spy_point_name": "bond_reconcile._print", 
+    "__spy_point__": "bond_reconcile._print", 
     "what": "There were differences in observations for test 1: "
 },
 {
-    "__spy_point_name": "bond_reconcile._print", 
+    "__spy_point__": "bond_reconcile._print", 
     "what": "Aborting (merge=abort) due to differences for test test 1"
 },
 {
-    "__spy_point_name": "invoke_top_reconcile_results", 
+    "__spy_point__": "invoke_top_reconcile_results", 
     "obsevation_dir": {
         "reference.json": [
             "", 

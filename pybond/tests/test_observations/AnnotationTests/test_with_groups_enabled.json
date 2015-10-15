@@ -1,6 +1,6 @@
 [
 {
-    "__spy_point_name": "AnnotationTests.annotated_standard_method_enabled_for_groups", 
+    "__spy_point__": "AnnotationTests.annotated_standard_method_enabled_for_groups", 
     "arg1": 1, 
     "arg2": 2
 }

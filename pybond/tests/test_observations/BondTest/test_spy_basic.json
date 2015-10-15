@@ -1,6 +1,6 @@
 [
 {
-    "__spy_point_name": "here", 
+    "__spy_point__": "here", 
     "array_arg": [
         1, 
         2, 
@@ -16,7 +16,7 @@
     "string_arg": "a string"
 },
 {
-    "__spy_point_name": "there", 
+    "__spy_point__": "there", 
     "val": 10
 }
 ]

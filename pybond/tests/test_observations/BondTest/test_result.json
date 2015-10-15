@@ -1,14 +1,14 @@
 [
 {
-    "__spy_point_name": "fun1", 
+    "__spy_point__": "fun1", 
     "cmd": "a ton of fun : formatted"
 },
 {
-    "__spy_point_name": "nofun", 
+    "__spy_point__": "nofun", 
     "cmd": "myfun2"
 },
 {
-    "__spy_point_name": "fun1", 
+    "__spy_point__": "fun1", 
     "cmd": "myfun3"
 }
 ]

@@ -1,12 +1,12 @@
 [
 {
-    "__spy_point_name": "fun1", 
+    "__spy_point__": "fun1", 
     "cmd": "myfun3"
 },
 {
-    "__spy_point_name": "spy result", 
+    "__spy_point__": "spy result", 
     "res": {
-        "__spy_point_name": "fun1", 
+        "__spy_point__": "fun1", 
         "cmd": "myfun3"
     }
 }

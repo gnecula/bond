@@ -363,7 +363,7 @@ class Bond:
             break
 
         observation = copy.deepcopy(kwargs)
-        observation['__spy_point_name'] = spy_point_name  # Use a key that should come first alphabetically
+        observation['__spy_point__'] = spy_point_name  # Use a key that should come first alphabetically
         # TODO: Why are we including this in the observation dictionary? GN: makes it easier to read the observations
 
         def save_observation():
@@ -385,7 +385,7 @@ class Bond:
             save_observation()
 
         if res != AGENT_RESULT_NONE:
-            print("   Returned " + repr(res))
+            print("   Result " + repr(res))
             return res
 
         return AGENT_RESULT_NONE

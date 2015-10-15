@@ -1,21 +1,21 @@
 [
 {
-    "__spy_point_name": "BondTest.annotated_method_no_group"
+    "__spy_point__": "BondTest.annotated_method_no_group"
 },
 {
-    "__spy_point_name": "spy groups set"
+    "__spy_point__": "spy groups set"
 },
 {
-    "__spy_point_name": "BondTest.annotated_method_group_enabled"
+    "__spy_point__": "BondTest.annotated_method_group_enabled"
 },
 {
-    "__spy_point_name": "BondTest.annotated_method_no_group"
+    "__spy_point__": "BondTest.annotated_method_no_group"
 },
 {
-    "__spy_point_name": "spy groups reset", 
+    "__spy_point__": "spy groups reset", 
     "obs_dir": "test_observations"
 },
 {
-    "__spy_point_name": "BondTest.annotated_method_no_group"
+    "__spy_point__": "BondTest.annotated_method_no_group"
 }
 ]
