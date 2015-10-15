@@ -17,6 +17,7 @@ AGENT_RESULT_NONE = '_bond_agent_result_none'
 # to continue. This is useful for spy points that require an agent result
 AGENT_RESULT_CONTINUE = '_bond_agent_result_continue'
 
+
 # We export some function to module-level for more convenient use
 
 def start_test(current_python_test,
@@ -28,12 +29,23 @@ def start_test(current_python_test,
     This function should be called in a ``unittest.TestCase`` before any
     of the other Bond functions can be used. This will initialize the Bond
     module for the current test, and will ensure proper cleanup of Bond
-    state when the test ends.
+    state when the test ends, including the comparison with the
+    reference observations.
 
     :param current_python_test: the instance of ``unittest.TestCase`` that is running
     :param test_name: the name of the test. By default, it is ``TestCase.testName``.
     :param observation_directory: the directory where the observation files are stored.
-    :param merge: the method used to merge the observations
+           By default this is the ``test_observations`` subdirectory in the
+           directory containing the test file.
+    :param merge: the method used to merge the current observations with the
+           saved reference observations. Possible values are
+
+           * ``abort`` (aborts the test when there are differences)
+           * ``accept`` (accepts the differences as the new reference)
+           * ``console`` (show ``diff`` results and prompt at the console
+             whether to accept them or not, or possibly start visual merging tools)
+           * ``kdiff3`` (use kdiff3, if installed, to merge observations)
+
     :param spy_groups: the list of spy point groups that are enabled. By default,
                       enable all spy points that do not have an enable_for_groups
                       attribute.
@@ -42,18 +54,37 @@ def start_test(current_python_test,
                                observation_directory=observation_directory,
                                merge=merge, spy_groups=spy_groups)
 
-def settings(**kwargs):
+
+def settings(observation_directory=None,
+             merge=None,
+             spy_groups=None):
     """
     Override settings that were set in :py:func:`start_test`. Only apply for the duration
-    of a test, so this should be called after :py:func:`start_test`. Takes all of the same
-    parameters as :py:func:`start_test`, except for ``test_name`` (which can't be changed). This
-    is useful if you set general test parameters with start_test in a ``setUp()`` block,
-    but want to override them for some specific tests. To override spy_groups
-    back to its default, pass in an empty list or tuple.
+    of a test, so this should be called after :py:func:`start_test`. This
+    is useful if you set general test parameters with :py:func:`start_test` in a ``setUp()`` block,
+    but want to override them for some specific tests.
+
+    :param observation_directory: the directory where the observation files are stored.
+           By default this is the ``test_observations`` subdirectory in the
+           directory containing the test file.
+    :param merge: the method used to merge the current observations with the
+           saved reference observations. Possible values are
+
+           * ``abort`` (aborts the test when there are differences)
+           * ``accept`` (accepts the differences as the new reference)
+           * ``console`` (show ``diff`` results and prompt at the console
+             whether to accept them or not, or possibly start visual merging tools)
+           * ``kdiff3`` (use kdiff3, if installed, to merge observations)
+
+    :param spy_groups: the list of spy point groups that are enabled. By default,
+                      enable all spy points that do not have an enable_for_groups
+                      attribute.
 
     If any parameter is not present here, the previous value will still apply
     """
-    Bond.instance().settings(**kwargs)
+    Bond.instance().settings(observation_directory=observation_directory,
+                             merge=merge,
+                             spy_groups=spy_groups)
 
 
 def spy(spy_point_name, **kwargs):
@@ -122,7 +153,7 @@ def deploy_agent(spy_point_name, **kwargs):
           * formatter : if specified, a function that is given the observation and can update it in place.
             The formatted observation is what gets saved.
 
-    :return: either ``AGENT_RESULT_NONE`` if not agent matches or contains a "result", or the result from
+    :return: either ``AGENT_RESULT_NONE`` if no agent matches or contains a "result", or the result from
       the first agent that matches.
 
     """
@@ -134,7 +165,7 @@ def deploy_agent(spy_point_name, **kwargs):
 def spy_point(spy_point_name=None,
               enabled_for_groups=None,
               require_agent_result=False,
-              excluded_keys=('self'),
+              excluded_keys=('self',),
               spy_return=False):
     """
     Decorator for marking Bond spy points.
@@ -148,7 +179,7 @@ def spy_point(spy_point_name=None,
                            agent that provides a result, or else the invocation of the function aborts.
                            The agent may still provide ``AGENT_RESULT_CONTINUE`` to tell the spy point
                            to continue the invocation of the underlying function.
-    :param excluded_keys:
+    :param excluded_keys: a tuple or list of parameter key names to skip when saving the observations.
     :param spy_return: if True, then the return value is spied also, using a spy_point name of
                        `spy_point_name.result`.
     """
@@ -196,10 +227,10 @@ def spy_point(spy_point_name=None,
                 spy_point_name_local = None
                 if arginfo and arginfo[0]:
                     if arginfo[0][0] == 'self':
-                        spy_point_name_local = args[0].__class__.__name__+'.'+fn.__name__
+                        spy_point_name_local = args[0].__class__.__name__ + '.' + fn.__name__
                     elif arginfo[0][0] == 'cls':
                         # A class method
-                        spy_point_name_local = args[0].__name__+'.'+fn.__name__
+                        spy_point_name_local = args[0].__name__ + '.' + fn.__name__
                 if spy_point_name_local is None:
                     # TODO We get here both for staticmethod and for module-level functions
                     # If we had the spy_point wrapper outside the @staticmethod we could tell
@@ -209,7 +240,7 @@ def spy_point(spy_point_name=None,
                         module_name = os.path.splitext(os.path.basename(inspect.getmodule(fn).__file__))[0]
                     # Keep only the last component of the name
                     module_name = module_name.split('.')[-1]
-                    spy_point_name_local = module_name+'.'+fn.__name__
+                    spy_point_name_local = module_name + '.' + fn.__name__
             else:
                 spy_point_name_local = spy_point_name
 
@@ -232,7 +263,7 @@ def spy_point(spy_point_name=None,
                 return_val = response
 
             if spy_return:
-                the_bond.spy(spy_point_name_local+'.return', result=return_val)
+                the_bond.spy(spy_point_name_local + '.return', result=return_val)
             return return_val
 
         return fn_wrapper
@@ -240,9 +271,7 @@ def spy_point(spy_point_name=None,
     return wrap
 
 
-
 class Bond:
-
     DEFAULT_OBSERVATION_DIRECTORY = '/tmp/bond_observations'
 
     _instance = None
@@ -261,7 +290,7 @@ class Bond:
         # TODO: maybe we do not need a singleton, and we can create a Bond
         # instance for each test ?
         # ERIK: That might make more sense, especially if you bond being used in e.g. a parallel
-        #       test runner. Though it's slightly less convenient since module-level functions won't work
+        # test runner. Though it's slightly less convenient since module-level functions won't work
         self.current_python_test = None
         self.start_count_failures = None
         self.start_count_errors = None
@@ -305,9 +334,8 @@ class Bond:
 
         self.test_name = (self._settings.get('test_name') or
                           current_python_test.__class__.__name__ + "." + current_python_test._testMethodName)
-
         # TODO: the rest is specific to unittest. We need to factor it out to allow other frameworks. See issue #2
-        #       (the use of current_python_test._testMethodName above is unittest specific as well)
+        # (the use of current_python_test._testMethodName above is unittest specific as well)
         # Register us on test exit
         current_python_test.addCleanup(self._finish_test)
         # We remember the start counter for failures and errors
@@ -356,7 +384,7 @@ class Bond:
             save_observation()
 
         if res != AGENT_RESULT_NONE:
-            print("   Returned "+repr(res))
+            print("   Returned " + repr(res))
             return res
 
         return AGENT_RESULT_NONE
@@ -381,14 +409,16 @@ class Bond:
         spy_agent_list.insert(0, agent)
 
     def _set_spy_groups(self, spy_groups):
-        if isinstance(spy_groups, basestring):
-            self.spy_groups = {spy_groups: True}
-        else:
-            assert isinstance(spy_groups, (list, tuple))
-            self.spy_groups = {}
-            for sg in spy_groups:
-                assert isinstance(sg, basestring)
-                self.spy_groups[sg] = True
+        self.spy_groups = {}
+        if spy_groups is not None:
+            if isinstance(spy_groups, basestring):
+                self.spy_groups = {spy_groups: True}
+            else:
+                assert isinstance(spy_groups, (list, tuple))
+
+                for sg in spy_groups:
+                    assert isinstance(sg, basestring)
+                    self.spy_groups[sg] = True
 
     def _format_observation(self,
                             observation,
@@ -460,7 +490,18 @@ class Bond:
         return fname
 
     def _observation_directory(self):
-        return self._settings.get('observation_directory', Bond.DEFAULT_OBSERVATION_DIRECTORY)
+        obs_dir = self._settings.get('observation_directory')
+        if obs_dir is not None:
+            return obs_dir
+
+        # We build the observation directory based on the path of the current test file
+        test_file = inspect.getfile(self.current_python_test.__class__)
+        if test_file:
+            return os.path.join(os.path.dirname(test_file),
+                                'test_observations')
+        print("WARNING: Using temporary directory for Bond test observations. "
+              "Use observation_directory parameter to start_test or settings")
+        return Bond.DEFAULT_OBSERVATION_DIRECTORY
 
     def _save_observations(self, file_name):
         remaining = len(self.observations)
@@ -485,7 +526,6 @@ class Bond:
                                                      current_file=current_file)
 
 
-
 class SpyAgent:
     """
     A spy agent applies to a particular spy_point_name, has
@@ -493,6 +533,7 @@ class SpyAgent:
     and has optional mocking parameters.
     See documentation for the deploy_agent top-level function.
     """
+
     def __init__(self, spy_point_name, **kwargs):
         self.spy_point_name = spy_point_name
         self.result_spec = None
@@ -520,7 +561,6 @@ class SpyAgent:
                 fo = SpyAgentFilter(k, kwargs[k])
                 self.filters.append(fo)
 
-
     def filter(self, observation):
         """
         Run the filter on an observation to see if the SpyAgent applies
@@ -531,7 +571,6 @@ class SpyAgent:
             if not f.filter(observation):
                 return False
         return True
-
 
     def formatter(self, observation):
         """Apply the formatter to modify the observation in place"""
@@ -566,8 +605,9 @@ class SpyAgentFilter:
     Each SpyAgent can have multiple filters.
     See documentation for deploy_agent function.
     """
+
     def __init__(self, filter_key, filter_value):
-        self.field_name = None   # The observation field name the filter applies to
+        self.field_name = None  # The observation field name the filter applies to
         self.filter_func = None  # A filter function (applies to the field value)
         if filter_key == 'filter':
             assert isinstance(filter_value, type(lambda: 0))
@@ -593,7 +633,7 @@ class SpyAgentFilter:
             elif cmp_spec == 'contains':
                 self.filter_func = (lambda f: filter_value in f)
             else:
-                assert False, "Unknown operator: "+cmp_spec
+                assert False, "Unknown operator: " + cmp_spec
         else:
             assert False
 
@@ -602,7 +642,6 @@ class SpyAgentFilter:
             return self.field_name in observation and self.filter_func(observation[self.field_name])
         else:
             return self.filter_func(observation)
-
 
 
 # Import bond_reconcile at the end, because we import bond from bond_reconcile, and

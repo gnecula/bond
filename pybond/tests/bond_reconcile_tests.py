@@ -16,8 +16,7 @@ class ReconcileTest(unittest.TestCase):
     def setUp(self):
         self.testing_observation_dir = '/tmp/bondObservationsDir'
         self.reference_file = os.path.join(self.testing_observation_dir, 'reference.json')
-        self.current_file = self.reference_file.replace('reference', 'reference_now')
-        # TODO This will break if 'reference' appears elsewhere in the path name?
+        self.current_file = os.path.join(self.testing_observation_dir, 'reference_now.json')
 
         self.reference_file_content = """
 [
