@@ -19,7 +19,8 @@ import shlex
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-pybond_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+pybond_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                          "pybond")
 bond_dir = pybond_dir+"/bond"
 if bond_dir not in sys.path:
     sys.path.append(bond_dir)

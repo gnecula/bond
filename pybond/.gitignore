@@ -2,11 +2,6 @@
 *.pyc
 
 build
-docs/_build
-
-# Emacs:
-*~
-
 
 # JetBrains IDEs:
 *.iml

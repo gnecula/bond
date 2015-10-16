@@ -10,9 +10,7 @@ You must install Sphinx (``pip install -U Sphinx``) and then
 
 .. code::
 
-    cd docs
-    make html
-
+    make docs
 
 Running tests
 -----------------
@@ -23,7 +21,7 @@ To run all the tests from the command line:
 
 .. code::
 
-   pybond> [BOND_MERGE=...] make run_tests
+   bond> [BOND_MERGE=...] make run_tests
 
    
  
