@@ -131,6 +131,8 @@ html_theme = 'alabaster'
 # "<project> v<release> documentation".
 #html_title = None
 
+html_style = "bond_doc.css"
+
 # A shorter title for the navigation bar.  Default is the same as html_title.
 #html_short_title = None
 

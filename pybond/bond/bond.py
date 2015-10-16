@@ -30,15 +30,27 @@ def start_test(current_python_test,
     of the other Bond functions can be used. This will initialize the Bond
     module for the current test, and will ensure proper cleanup of Bond
     state when the test ends, including the comparison with the
-    reference observations.
+    reference observations. For example,
 
-    :param current_python_test: the instance of ``unittest.TestCase`` that is running
-    :param test_name: the name of the test. By default, it is ``TestCase.testName``.
-    :param observation_directory: the directory where the observation files are stored.
+    .. code::
+
+         def test_something(self):
+            bond.start_test(self)
+            ...
+
+    :param current_python_test: the instance of ``unittest.TestCase`` that is running. This is the
+           only mandatory parameter. Bond uses this parameter to obtain good values for
+           the other optional parameters, and also to know when the test ends,
+           to activate the observation comparison.
+    :param test_name: (optional) the name of the test. By default, it is ``TestCase.testName``.
+    :param observation_directory: (optional) the directory where the observation files are stored.
            By default this is the ``test_observations`` subdirectory in the
-           directory containing the test file.
-    :param merge: the method used to merge the current observations with the
-           saved reference observations. Possible values are
+           directory containing the test file. You should plan to commit the
+           test observations to your repository, as reference for future test runs.
+    :param merge: (optional) the method used to merge the current observations with the
+           saved reference observations. By default the value of the
+           environment variable ``BOND_MERGE`` is used, or if missing, the
+           default is ``abort``.
 
            * ``abort`` (aborts the test when there are differences)
            * ``accept`` (accepts the differences as the new reference)
@@ -46,9 +58,11 @@ def start_test(current_python_test,
              whether to accept them or not, or possibly start visual merging tools)
            * ``kdiff3`` (use kdiff3, if installed, to merge observations)
 
-    :param spy_groups: the list of spy point groups that are enabled. By default,
-                      enable all spy points that do not have an enable_for_groups
+    :param spy_groups: (optional) the list, or tuple, of spy point groups that are enabled. By default,
+                      enable all spy points that do not have an ``enable_for_groups``
                       attribute.
+
+
     """
     Bond.instance().start_test(current_python_test, test_name=test_name,
                                observation_directory=observation_directory,
@@ -64,11 +78,14 @@ def settings(observation_directory=None,
     is useful if you set general test parameters with :py:func:`start_test` in a ``setUp()`` block,
     but want to override them for some specific tests.
 
-    :param observation_directory: the directory where the observation files are stored.
+    :param observation_directory: (optional) the directory where the observation files are stored.
            By default this is the ``test_observations`` subdirectory in the
-           directory containing the test file.
-    :param merge: the method used to merge the current observations with the
-           saved reference observations. Possible values are
+           directory containing the test file. You should plan to commit the
+           test observations to your repository, as reference for future test runs.
+    :param merge: (optional) the method used to merge the current observations with the
+           saved reference observations. By default the value of the
+           environment variable ``BOND_MERGE`` is used, or if missing, the
+           default is ``abort``.
 
            * ``abort`` (aborts the test when there are differences)
            * ``accept`` (accepts the differences as the new reference)
@@ -76,11 +93,10 @@ def settings(observation_directory=None,
              whether to accept them or not, or possibly start visual merging tools)
            * ``kdiff3`` (use kdiff3, if installed, to merge observations)
 
-    :param spy_groups: the list of spy point groups that are enabled. By default,
-                      enable all spy points that do not have an enable_for_groups
+    :param spy_groups: (optional) the list, or tuple, of spy point groups that are enabled. By default,
+                      enable all spy points that do not have an ``enable_for_groups``
                       attribute.
 
-    If any parameter is not present here, the previous value will still apply
     """
     Bond.instance().settings(observation_directory=observation_directory,
                              merge=merge,
@@ -94,30 +110,47 @@ def spy(spy_point_name, **kwargs):
     If there is an agent registered for the current spy point (see :py:func:`deploy_agent`),
     it will process the agent.
 
+    .. code::
+
+         bond.spy("my file", file_name=file_name, content=data)
+         bond.spy("other spy", input=input, output=output)
+
     The values are formatted to JSON using the json module, with sorted keys, and indentation, with
     one value per line, to streamline the observation comparison.
-    For user-defined classes, the method toJSON is called on the instance before it is formatted.
+    For user-defined classes, the method ``to_json`` is called on the instance before it is formatted.
     This method should return a JSON-serializable data structure.
 
-    If the special key "formatter" is present, its value must be a function that is used on a copy of
-    the arguments to produce a formatted dictionary.
+    If you have deployed agents (see :py:func:`deploy_agent`) that are applicable to this spy point,
+    the agents can specify a
+    ``formatter`` that can intervene to modify the observation dictionary before it is
+    serialized to JSON.
 
-    :param spyPointName: the spy point name, useful to distinguish among different observations
-    :param kwargs: key-value pairs to be observed. There is a special key name:
 
-    :return: the result from the agent, if any (see :py:func:`deploy_agent`)
+    :param spy_point_name: the spy point name, useful to distinguish among different observations, and to
+           select the agents that are applicable to this spy point. There is no need for this value to
+           be unique in your test.
+    :param kwargs: key-value pairs to be observed. This forms the observation dictionary that is
+           serialized as the current observation. By default, Bond will add the special
+           key ``__spy_point__`` to the dictionary to map the given `spy_point_name`.
+
+    :return: the result from the agent, if any (see :py:func:`deploy_agent`).
     """
     return Bond.instance().spy(spy_point_name, **kwargs)
 
 
 def deploy_agent(spy_point_name, **kwargs):
     """
-    Create a new agent for the named spy point. When a spy point is encountered, the agents are searched
+    Create and deploy a new agent for the named spy point. When a spy point is encountered, the agents are searched
     in reverse order of their deployment, and the first agent that matches is used.
 
-    :param spy_point_name: the point for which to create the observer. This observer will only be executed
-      for invocations of Bond.Observe with the the same spyPointName.
-    :param kwargs: key-value pairs that control the execution of the observer. The following keys are
+    .. code::
+
+        bond.deploy_agent("my file", file_name__contains='passwd',
+                          result="mock result")
+
+
+    :param spy_point_name: the spy point where the agent is deployed.
+    :param kwargs: key-value pairs that control whether the agent is active and what it does. The following keys are
       recognized:
 
         * Keys that restrict for which invocations of bond.spy this agent is active. All of these conditions
@@ -125,11 +158,11 @@ def deploy_agent(spy_point_name, **kwargs):
 
           * key=val : only when the observation dictionary contains the 'key' with the given value
           * key__contains=substr : only when the observation dictionary contains the 'key' with a string value
-            that contains the given substr
+            that contains the given substr.
           * key__startswith=substr : only when the observation dictionary contains the 'key' with a
-            string value that starts with the given substr
+            string value that starts with the given substr.
           * key__endswith=substr : only when the observation dictionary contains the 'key' with a string value
-            that ends with the given substr
+            that ends with the given substr.
           * filter=func : only when the given func returns true when passed observation dictionary.
             Uses the observation before formatting.
 
@@ -160,16 +193,21 @@ def deploy_agent(spy_point_name, **kwargs):
     Bond.instance().deploy_agent(spy_point_name, **kwargs)
 
 
-# Dependency injection for mocking out bond for testing?
-# TODO right now excluding 'self' using excludedKeys, should attempt to find a better way?
+
 def spy_point(spy_point_name=None,
               enabled_for_groups=None,
               require_agent_result=False,
               excluded_keys=('self',),
               spy_result=False):
     """
-    Decorator for marking Bond spy points.
+    Function and method decorator for spying arguments and results of methods. This decorator is safe
+    to use on production code. It will not have any effect if the function :py:func:`start_test` has
+    not been called to initialize the Bond module.
+
     Must be applied directly to a method or a function, not to another decorator.
+
+    .. code::
+
 
     :param spy_point_name: An optional name to use for this spy point. Default is obtained from the name
                            of the decorated function.
@@ -185,7 +223,7 @@ def spy_point(spy_point_name=None,
                        this spy point, then the agent result is saved as the observation.
     """
     # TODO: Should we also have an excluded_from_groups parameter?
-
+    # TODO right now excluding 'self' using excludedKeys, should attempt to find a better way?
     def wrap(fn):
         # TODO: we get an error here if we do not specify spy_point_name and this is a staticmethod
         # TODO: This is if we have @spy_point() @staticmethod

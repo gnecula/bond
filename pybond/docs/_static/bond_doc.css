@@ -1,3 +1,11 @@
+@import 'alabaster.css';
+
+/* The code language selector */
 .container .code-language-selector-group {
     background-color: #9AF3F3;
+}
+
+/* Color code in a distinctive color */
+dl.function {
+    background-color: #faeee0;
 }
