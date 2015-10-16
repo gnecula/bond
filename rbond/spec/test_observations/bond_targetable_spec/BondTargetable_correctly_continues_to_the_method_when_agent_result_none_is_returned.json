@@ -1,0 +1,14 @@
+[
+{
+  "__spy_point__": "spy_return",
+  "arg1": "value"
+},
+{
+  "__spy_point__": "spy_return.result",
+  "result": "return"
+},
+{
+  "__spy_point__": "return value",
+  "ret": "return"
+}
+]

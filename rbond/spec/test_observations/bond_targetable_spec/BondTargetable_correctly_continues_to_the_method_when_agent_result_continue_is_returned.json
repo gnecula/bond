@@ -1,0 +1,10 @@
+[
+{
+  "__spy_point__": "mock_required",
+  "arg1": "value1"
+},
+{
+  "__spy_point__": "return value",
+  "ret": "return"
+}
+]
