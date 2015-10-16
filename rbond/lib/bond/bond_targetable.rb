@@ -26,16 +26,16 @@ module BondTargetable
   # excluded_keys:: An array of key/argument names to exclude from the spy.
   #                 Can be useful if you don't care about the value of some argument.
   #                 Can be symbols or strings.
-  # spy_return:: If true, spy on the return value. The spy point name will be
-  #              +{spy_point_name}.return+ and the key name will be +return+.
+  # spy_result:: If true, spy on the return value. The spy point name will be
+  #              +{spy_point_name}.result+ and the key name will be +result+.
   def spy_point(spy_point_name: nil, require_agent_result: false, excluded_keys: [],
-                spy_return: false)
+                spy_result: false)
     @__last_annotation_args = {
         spy_point_name: spy_point_name,
         require_agent_result: require_agent_result,
         # Allow for a single key or an array of them, and map to_s in case they were passed as symbols
         excluded_keys: [*excluded_keys].map(&:to_s),
-        spy_return: spy_return
+        spy_result: spy_result
     }
   end
 
@@ -127,7 +127,7 @@ module BondTargetable
         ret = method.call(*args, **kwargs, &blk)
       end
     end
-    Bond.instance.spy("#{spy_point_name}.return", return: ret) if options[:spy_return]
+    Bond.instance.spy("#{spy_point_name}.result", result: ret) if options[:spy_result]
     ret
   end
 

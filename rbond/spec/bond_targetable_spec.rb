@@ -44,7 +44,7 @@ describe BondTargetable do
     spy_point(spy_point_name: 'mock_required', require_agent_result: true)
     def annotated_method_mocking_required(arg1) 'return' end
 
-    spy_point(spy_point_name: 'spy_return', spy_return: true)
+    spy_point(spy_point_name: 'spy_return', spy_result: true)
     def annotated_method_spy_return(arg1) 'return' end
 
     def method_calling_protected; annotated_protected_method('value') end

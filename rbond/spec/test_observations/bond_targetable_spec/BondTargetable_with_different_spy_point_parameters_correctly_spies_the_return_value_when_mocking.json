@@ -4,7 +4,7 @@
   "arg1": "arg_value"
 },
 {
-  "__spy_point__": "spy_return.return",
-  "return": "new return"
+  "__spy_point__": "spy_return.result",
+  "result": "new return"
 }
 ]
