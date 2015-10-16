@@ -38,12 +38,6 @@ class Bond
 
     settings(spy_groups: spy_groups, observation_directory: observation_directory, merge_type: merge_type)
 
-    if @observation_directory.nil?
-      @observation_directory = DEFAULT_OBSERVATION_DIRECTORY
-      puts 'WARNING: You should set the settings(observation_directory).' +
-               "Observations saved to #{DEFAULT_OBSERVATION_DIRECTORY}"
-    end
-
     # TODO ETK get the test information and stuff
     # spy groups
   end
@@ -89,7 +83,7 @@ class Bond
     fdir = File.dirname(fname)
     unless File.directory?(fdir)
       FileUtils.mkdir_p(fdir)
-      top_git_ignore = File.join(@observation_directory, '.gitignore')
+      top_git_ignore = File.join(observation_directory, '.gitignore')
       puts top_git_ignore
       unless File.file?(top_git_ignore)
         # TODO ETK make this configurable in case you don't use git?
@@ -121,7 +115,7 @@ class Bond
   # If ref_file does not exist, it will be treated as an empty file.
   # Returns +:pass+ if the reconciliation succeeds, else +:fail+
   def reconcile_observations(ref_file, cur_file)
-    bond_reconcile_script = File.absolute_path(@observation_directory + '/../../../pybond/bond/bond_reconcile.py')
+    bond_reconcile_script = File.absolute_path(observation_directory + '/../../../pybond/bond/bond_reconcile.py')
     unless File.exists?(bond_reconcile_script)
       raise "Cannot find the bond_reconcile script: #{bond_reconcile_script}"
     end
@@ -148,7 +142,18 @@ class Bond
   # a directory hierarchy, e.g. a test name of 'bond.my_tests.test_name'
   # would be stored at '{+base_directory+}/bond/my_tests/test_name.json'
   def observation_file_name
-    File.join(@observation_directory, @test_name.split('.'))
+    File.join(observation_directory, @test_name.split('.'))
+  end
+
+  # Return the directory where observations should be stored
+  # This can be specified with the :observation_directory setting
+  # If not set, it will be a 'test_observations' directory located
+  # in the same directory as the file containing the current test. 
+  def observation_directory
+    return @observation_directory unless @observation_directory.nil?
+    test_file = @current_test.metadata[:file_path]
+    File.join(File.dirname(File.basename(test_file, File.extname(test_file))),
+        'test_observations')
   end
 
   def format_observation(observation, agent = nil)
