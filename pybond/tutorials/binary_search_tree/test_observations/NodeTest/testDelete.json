@@ -1,6 +1,6 @@
 [
 {
-    "__spy_point_name": "testDelete1", 
+    "__spy_point__": "testDelete1", 
     "tree": {
         "data": 8, 
         "left": {
@@ -15,7 +15,7 @@
     }
 },
 {
-    "__spy_point_name": "testDelete2", 
+    "__spy_point__": "testDelete2", 
     "tree": {
         "data": 12, 
         "left": {

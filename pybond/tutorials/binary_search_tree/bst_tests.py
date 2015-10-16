@@ -18,18 +18,28 @@ class NodeTest(unittest.TestCase):
         return res
 
     def setUp(self):
+        # Change this variant to 2 to simulate a change
         self.variant = 1
-        bond.settings(observation_directory=os.path.dirname(__file__)+'/test_observations')
         bond.start_test(self)
 
 
-    def testAdd1(self):
+    def create_tree_1(self):
         tree = Node(8)
         tree.insert(12)
         tree.insert(3)
-        tree.insert(4)
+        if self.variant == 1:
+            tree.insert(4)
+        else:
+            tree.insert(7)
         tree.insert(6)
+        return tree
 
+    def testAdd1(self):
+        """
+        Test adding nodes to the BST. No Bond.
+        :return:
+        """
+        tree = self.create_tree_1()
 
         # Add self.assertEquals here to verify the position in the tree
         # of all the data points, in the order in which they were inserted
@@ -38,6 +48,14 @@ class NodeTest(unittest.TestCase):
         self.assertEquals(3, tree.left.data)
         self.assertEquals(4, tree.left.right.data)
         self.assertEquals(6, tree.left.right.right.data)
+
+
+    def testAdd1_bond(self):
+        """
+        Test adding nodes to the BST. With Bond.
+        :return:
+        """
+        tree = self.create_tree_1()
 
         # Add here a call to bond.spy to spy the tree
         bond.spy('testAdd1', tree=NodeTest.dumpTree(tree))
