@@ -30,7 +30,6 @@ module BondTargetable
   #              +{spy_point_name}.return+ and the key name will be +return+.
   def spy_point(spy_point_name: nil, require_agent_result: false, excluded_keys: [],
                 spy_return: false)
-    # TODO eventually want spy_groups here as well
     @__last_annotation_args = {
         spy_point_name: spy_point_name,
         require_agent_result: require_agent_result,
@@ -42,7 +41,7 @@ module BondTargetable
 
   public
 
-  # Hook into method addition, if it was preceeded by a call to #spy_point then spy on it.
+  # Hook into method addition, if it was preceded by a call to #spy_point then spy on it.
   def method_added(name)
     super
     return if @__last_annotation_args.nil?
@@ -134,7 +133,7 @@ module BondTargetable
 
   private
 
-  # Extract the default point name from the method object: +Class.method_name+
+  # Extract the default point name from the method object, which is +Class.method_name+
   # for class methods and +Class#method_name+ for other methods.
   def point_name_from_method(method)
     method.inspect.to_s.sub(/#<[^:]+: ([^>]+)>/, '\1')

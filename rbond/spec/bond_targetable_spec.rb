@@ -151,4 +151,15 @@ describe BondTargetable do
     tc.method_calling_private
   end
 
+  it 'correctly continues to the method when agent_result_continue is returned' do
+    bond.deploy_agent('mock_required', result: :agent_result_continue)
+    ret = tc.annotated_method_mocking_required('value1')
+    bond.spy('return value', ret: ret)
+  end
+
+  it 'correctly continues to the method when agent_result_none is returned' do
+    bond.deploy_agent('spy_return', result: :agent_result_none)
+    ret = tc.annotated_method_spy_return('value')
+    bond.spy('return value', ret: ret)
+  end
 end
