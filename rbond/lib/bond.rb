@@ -9,15 +9,15 @@ class Bond
   DEFAULT_OBSERVATION_DIRECTORY = '/tmp/bond_observations'
   @testing = false
 
-  def settings(spy_groups: nil, observation_directory: nil, merge: nil)
+  def settings(spy_groups: nil, observation_directory: nil, merge_type: nil)
     raise 'not yet implemented' unless spy_groups.nil? # TODO spy_groups
     @observation_directory = observation_directory unless observation_directory.nil?
-    @merge = merge unless @merge.nil?
+    @merge_type = merge_type unless @merge_type.nil?
   end
 
   # TODO ETK make this able to use other test frameworks as well
   def start_test(rspec_test, test_name: nil, spy_groups: nil,
-                 observation_directory: nil, merge: nil)
+                 observation_directory: nil, merge_type: nil)
     @testing = true
     @observations = []
     @spy_agents = Hash.new { |hash, key|
@@ -25,6 +25,7 @@ class Bond
     }
     @observation_directory = nil
     @current_test = rspec_test
+    @merge_type = merge_type
 
     if test_name.nil?
       test_file = @current_test.metadata[:file_path]
@@ -35,7 +36,7 @@ class Bond
       @test_name = test_name
     end
 
-    settings(spy_groups: spy_groups, observation_directory: observation_directory, merge: merge)
+    settings(spy_groups: spy_groups, observation_directory: observation_directory, merge_type: merge_type)
 
     if @observation_directory.nil?
       @observation_directory = DEFAULT_OBSERVATION_DIRECTORY
@@ -100,36 +101,38 @@ class Bond
 
     ref_file = fname + '.json'
     cur_file = fname + '_now.json'
-    if File.exists?(ref_file)
-      File.delete(cur_file) if File.exists?(cur_file)
+    File.delete(cur_file) if File.exists?(cur_file)
+    save_observations(cur_file)
 
-      save_observations(cur_file)
-      # TRANSITION CODE: Run the external command to reconcile
-      # TODO ETK right now using bond_reconcile from the python module, but really there should be
-      #      a local copy (in rbond/bin?). Also less frailness in terms of finding the script -
-      #      it probably shouldn't be based on the location of the @observation_directory
-      bond_reconcile_script = File.absolute_path(@observation_directory + '/../../../pybond/bond/bond_reconcile.py')
-      unless File.exists?(bond_reconcile_script)
-        raise "Cannot find the bond_reconcile script: #{bond_reconcile_script}"
-      end
-
-      ENV['BOND_MERGE'] = @merge_type unless @merge_type.nil?
-
-      cmd = "#{bond_reconcile_script} --reference #{ref_file} --current #{cur_file} --test #{@test_name}"
-      puts "Running: #{cmd}"
-      code = system(cmd)
-      return code ? :pass : :fail
-    else
-      # TODO ETK printing
-      puts "Saved observations in file #{ref_file}"
-      save_observations(ref_file)
-    end
+    # TRANSITION CODE: Run the external command to reconcile
+    # TODO ETK right now using bond_reconcile from the python module, but really there should be
+    #      a local copy (in rbond/bin?). Also less frailness in terms of finding the script -
+    #      it probably shouldn't be based on the location of the @observation_directory
+    return reconcile_observations(ref_file, cur_file)
   ensure
     @current_test = false
     @testing = false
   end
 
   private
+
+  # Reconcile observations, for now using an external python script.
+  # Takes ref_file to be the correct test output, and compares cur_file against it.
+  # If ref_file does not exist, it will be treated as an empty file.
+  # Returns +:pass+ if the reconciliation succeeds, else +:fail+
+  def reconcile_observations(ref_file, cur_file)
+    bond_reconcile_script = File.absolute_path(@observation_directory + '/../../../pybond/bond/bond_reconcile.py')
+    unless File.exists?(bond_reconcile_script)
+      raise "Cannot find the bond_reconcile script: #{bond_reconcile_script}"
+    end
+
+    ENV['BOND_MERGE'] = @merge_type unless @merge_type.nil?
+
+    cmd = "#{bond_reconcile_script} --reference #{ref_file} --current #{cur_file} --test #{@test_name}"
+    puts "Running: #{cmd}"
+    code = system(cmd)
+    code ? :pass : :fail
+  end
 
   # Save all current observations to a file located at fname. Assumes that
   # +@observations+ has already been JSON-serialized and outputs them all

@@ -298,8 +298,7 @@ if __name__ == '__main__':
                          help='The name of the test (for UI). Default is to extract from --current')
 
     (opts, args) = optParser.parse_args()
-    if opts.reference is None or not os.path.isfile(opts.reference):
-        print('The reference file does not exist: {}'.format(opts.reference), file=sys.stderr)
+    if opts.reference is None:
         sys.exit(1)
 
     if opts.current is None or not os.path.isfile(opts.current):
