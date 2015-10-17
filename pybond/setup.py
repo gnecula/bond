@@ -3,9 +3,9 @@ from distutils.core import setup
 setup(
     name = 'bond',
     packages = ['bond'],
-    version = '2.0.0',
-    description = 'Spy-based testing library',
+    version = '2.0.1',
+    description = 'Testing with Spies and Mocks',
     author = 'George Necula, Erik Krogen',
-    author_email = 'setup_mailing_list@us.com',
-    url = 'http://pypi.python.org/pypi/bond'
+    author_email = 'necula@cs.berkeley.edu',
+    url = 'http://necula01.github.io/bond/'
     )
