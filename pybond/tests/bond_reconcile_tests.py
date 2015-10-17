@@ -90,13 +90,13 @@ class ReconcileTest(unittest.TestCase):
             with open(self.current_file, 'w') as f:
                 f.write(current_file_content)
 
-    def invoke_top_reconcile(self, merge=None):
+    def invoke_top_reconcile(self, reconcile=None):
         """
         Helper function to invoke the top-level reconcile
-        :param merge:
+        :param reconcile:
         :return:
         """
-        result = bond_reconcile.reconcile_observations(dict(merge=merge),
+        result = bond_reconcile.reconcile_observations(dict(reconcile=reconcile),
                                                        'test 1',
                                                        self.reference_file,
                                                        self.current_file)
@@ -112,49 +112,49 @@ class ReconcileTest(unittest.TestCase):
         self.console_reply = 'y'  # Do accept
         self.prepare_observations(reference_file_content=None,
                                   current_file_content=self.reference_file_content)
-        self.invoke_top_reconcile(merge='console')
+        self.invoke_top_reconcile(reconcile='console')
 
     def test_same(self):
         "Test with reference and current the same"
         self.prepare_observations(reference_file_content=self.reference_file_content,
                                   current_file_content=self.reference_file_content)
-        self.invoke_top_reconcile(merge='console')
+        self.invoke_top_reconcile(reconcile='console')
 
-    def helper_test_merge(self, merge=''):
+    def helper_test_reconcile(self, reconcile=''):
         "Test with reference and current the same"
         self.prepare_observations(reference_file_content=self.reference_file_content,
                                   current_file_content=self.reference_file_content.replace('12345', 'abcde'))
-        self.invoke_top_reconcile(merge=merge)
+        self.invoke_top_reconcile(reconcile=reconcile)
 
-    def test_merge_accept(self):
-        self.helper_test_merge(merge='accept')
+    def test_reconcile_accept(self):
+        self.helper_test_reconcile(reconcile='accept')
 
-    def test_merge_abort(self):
-        self.helper_test_merge(merge='abort')
+    def test_reconcile_abort(self):
+        self.helper_test_reconcile(reconcile='abort')
 
-    def test_merge_console0(self):
+    def test_reconcile_console0(self):
         self.console_reply = 'y'  # Do accept
-        self.helper_test_merge(merge='console')
+        self.helper_test_reconcile(reconcile='console')
 
-    def test_merge_console1(self):
+    def test_reconcile_console1(self):
         self.console_reply = 'n'  # Do not accept
-        self.helper_test_merge(merge='console')
+        self.helper_test_reconcile(reconcile='console')
 
 
-    def test_merge_console_k0(self):
+    def test_reconcile_console_k0(self):
         self.console_reply = 'k'  # Switch to kdiff3
         self.kdiff3_result = 0    # Kdiff3 is happy
-        self.helper_test_merge(merge='console')
+        self.helper_test_reconcile(reconcile='console')
 
-    def test_merge_console_k1(self):
+    def test_reconcile_console_k1(self):
         self.console_reply = 'k'  # Switch to kdiff3
         self.kdiff3_result = 1    # Kdiff3 is NOT happy
-        self.helper_test_merge(merge='console')
+        self.helper_test_reconcile(reconcile='console')
 
-    def test_merge_kdiff3_0(self):
+    def test_reconcile_kdiff3_0(self):
         self.kdiff3_result = 0    # Kdiff3 is happy
-        self.helper_test_merge(merge='kdiff3')
+        self.helper_test_reconcile(reconcile='kdiff3')
 
-    def test_merge_kdiff3_1(self):
+    def test_reconcile_kdiff3_1(self):
         self.kdiff3_result = 1    # Kdiff3 is NOT happy
-        self.helper_test_merge(merge='kdiff3')
+        self.helper_test_reconcile(reconcile='kdiff3')

@@ -23,7 +23,7 @@ AGENT_RESULT_CONTINUE = '_bond_agent_result_continue'
 def start_test(current_python_test,
                test_name=None,
                observation_directory=None,
-               merge=None,
+               reconcile=None,
                spy_groups=None):
     """
     This function should be called in a ``unittest.TestCase`` before any
@@ -48,9 +48,9 @@ def start_test(current_python_test,
            directory containing the test file. The directory will be created if not present.
            You should plan to commit the
            test observations to your repository, as reference for future test runs.
-    :param merge: (optional) the method used to reconcile the current observations with the
+    :param reconcile: (optional) the method used to reconcile the current observations with the
            saved reference observations. By default the value of the
-           environment variable ``BOND_MERGE`` is used, or if missing, the
+           environment variable ``BOND_RECONCILE`` is used, or if missing, the
            default is ``abort``.
 
            * ``abort`` (aborts the test when there are differences)
@@ -67,11 +67,11 @@ def start_test(current_python_test,
     """
     Bond.instance().start_test(current_python_test, test_name=test_name,
                                observation_directory=observation_directory,
-                               merge=merge, spy_groups=spy_groups)
+                               reconcile=reconcile, spy_groups=spy_groups)
 
 
 def settings(observation_directory=None,
-             merge=None,
+             reconcile=None,
              spy_groups=None):
     """
     Override settings that were set in :py:func:`start_test`. Only apply for the duration
@@ -84,9 +84,9 @@ def settings(observation_directory=None,
            directory containing the test file. The directory will be created if not present.
            You should plan to commit the
            test observations to your repository, as reference for future test runs.
-    :param merge: (optional) the method used to merge the current observations with the
+    :param reconcile: (optional) the method used to reconcile the current observations with the
            saved reference observations. By default the value of the
-           environment variable ``BOND_MERGE`` is used, or if missing, the
+           environment variable ``BOND_RECONCILE`` is used, or if missing, the
            default is ``abort``.
 
            * ``abort`` (aborts the test when there are differences)
@@ -101,7 +101,7 @@ def settings(observation_directory=None,
 
     """
     Bond.instance().settings(observation_directory=observation_directory,
-                             merge=merge,
+                             reconcile=reconcile,
                              spy_groups=spy_groups)
 
 
@@ -570,7 +570,7 @@ class Bond:
     def _reconcile_observations(self,
                                 reference_file,
                                 current_file):
-        settings = dict(merge=self._settings.get('merge'))
+        settings = dict(reconcile=self._settings.get('reconcile'))
         return bond_reconcile.reconcile_observations(settings,
                                                      test_name=self.test_name,
                                                      reference_file=reference_file,

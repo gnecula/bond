@@ -21,7 +21,7 @@ To run all the tests from the command line:
 
 .. code::
 
-   bond> [BOND_MERGE=...] make run_tests
+   bond> [BOND_RECONCILE=...] make run_tests
 
    
  

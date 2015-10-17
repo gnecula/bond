@@ -19,33 +19,33 @@ Reconcile the reference observations with the current ones
 """
 
 
-class MergeTool:
+class ReconcileTool:
     """
-    Base class for merge tools
+    Base class for reconcile tools
     """
 
     @staticmethod
-    def select(merge_tool=None):
+    def select(reconcile_tool=None):
 
-        if merge_tool == 'accept':
-            return MergeToolAccept()
+        if reconcile_tool == 'accept':
+            return ReconcileToolAccept()
 
-        if merge_tool == 'abort':
-            return MergeToolAbort()
+        if reconcile_tool == 'abort':
+            return ReconcileToolAbort()
 
-        if merge_tool == 'console':
-            return MergeToolConsole()
+        if reconcile_tool == 'console':
+            return ReconcileToolConsole()
 
-        if merge_tool == 'kdiff3':
-            return MergeToolKdiff3()
+        if reconcile_tool == 'kdiff3':
+            return ReconcileToolKdiff3()
 
-        if merge_tool is None:
-            # Look at the environment variable BOND_MERGE
-            merge_tool = os.environ.get('BOND_MERGE', 'abort')
-            if merge_tool is not None:
-                return MergeTool.select(merge_tool)
+        if reconcile_tool is None:
+            # Look at the environment variable BOND_RECONCILE
+            reconcile_tool = os.environ.get('BOND_RECONCILE', 'abort')
+            if reconcile_tool is not None:
+                return ReconcileTool.select(reconcile_tool)
 
-        assert False, 'Unrecognized bond_reconcile tool name: {}'.format(merge_tool)
+        assert False, 'Unrecognized bond_reconcile tool name: {}'.format(reconcile_tool)
 
 
     @staticmethod
@@ -87,7 +87,7 @@ class MergeTool:
         Return True if there are no diffs
         """
         # TODO: implicit dependency on a 'diff' command line tool with the same usage syntax that you're expecting
-        return (0 == MergeTool._invoke_command('diff -u -b "{0}" "{1}" >"{2}"'.format(reference_file,
+        return (0 == ReconcileTool._invoke_command('diff -u -b "{0}" "{1}" >"{2}"'.format(reference_file,
                                                                                       current_file,
                                                                                       diff_file)))
 
@@ -115,7 +115,7 @@ class MergeTool:
 
         if not os.path.isfile(reference_file):
             # if we do not have the reference file, pretend we have an empty one
-            MergeTool._print('WARNING: No reference observation file found for {}: {}'.format(test_name, reference_file))
+            ReconcileTool._print('WARNING: No reference observation file found for {}: {}'.format(test_name, reference_file))
 
             with open(reference_file, 'w') as f:
                 pass
@@ -135,7 +135,7 @@ class MergeTool:
                                            diff_file)
             if merged_file is not None:
                 # Accepted differences
-                MergeTool._print('Saving updated reference observation file for {}'.format(test_name))
+                ReconcileTool._print('Saving updated reference observation file for {}'.format(test_name))
                 shutil.move(merged_file, reference_file)
                 return True
             else:
@@ -158,12 +158,12 @@ class MergeTool:
         with open(diff_file, 'r') as f:
             diffs = f.read()
         if diffs:
-            MergeTool._print('There were differences in observations for {}: '.format(test_name))
-            MergeTool._print(diffs)
+            ReconcileTool._print('There were differences in observations for {}: '.format(test_name))
+            ReconcileTool._print(diffs)
             # Print it again at the end; makes it easy to see in the console what test just failed
-            MergeTool._print('There were differences in observations for {}: '.format(test_name))
+            ReconcileTool._print('There were differences in observations for {}: '.format(test_name))
         else:
-            MergeTool._print('No differences in observations for {}: '.format(test_name))
+            ReconcileTool._print('No differences in observations for {}: '.format(test_name))
         return diffs
 
     def invoke_tool(self, test_name,
@@ -178,7 +178,7 @@ class MergeTool:
         assert False, 'Must override'
 
 
-class MergeToolAbort(MergeTool):
+class ReconcileToolAbort(ReconcileTool):
     """
     Abort all merges
     """
@@ -189,11 +189,11 @@ class MergeToolAbort(MergeTool):
                     current_file,
                     diff_file):
         self.show_diff(test_name, diff_file)
-        MergeTool._print('Aborting (merge=abort) due to differences for test {}'.format(test_name))
+        ReconcileTool._print('Aborting (reconcile=abort) due to differences for test {}'.format(test_name))
         return None
 
 
-class MergeToolAccept(MergeTool):
+class ReconcileToolAccept(ReconcileTool):
     """
     Accept all changes
     """
@@ -204,11 +204,11 @@ class MergeToolAccept(MergeTool):
                     current_file,
                     diff_file):
         diffs = self.show_diff(test_name, diff_file)
-        MergeTool._print('Accepting (merge=accept) differences for test {}'.format(test_name))
+        ReconcileTool._print('Accepting (reconcile=accept) differences for test {}'.format(test_name))
         return current_file
 
 
-class MergeToolConsole(MergeTool):
+class ReconcileToolConsole(ReconcileTool):
     """
     Uses diff and console prompts to accept the changes
     """
@@ -223,20 +223,20 @@ class MergeToolConsole(MergeTool):
         self.show_diff(test_name, diff_file)
 
         prompt = 'Do you want to accept the changes ({}) ? ( [y]es | [k]diff3 | *): '.format(test_name)
-        response = MergeTool._read_console(prompt)
+        response = ReconcileTool._read_console(prompt)
         if response == 'y':
-            MergeTool._print('Accepting differences for test {}'.format(test_name))
+            ReconcileTool._print('Accepting differences for test {}'.format(test_name))
             return current_file
 
         if response == 'k':
-            return MergeToolKdiff3().invoke_tool(test_name, reference_file, current_file, diff_file)
+            return ReconcileToolKdiff3().invoke_tool(test_name, reference_file, current_file, diff_file)
 
-        MergeTool._print('Rejecting differences for test {}'.format(test_name))
+        ReconcileTool._print('Rejecting differences for test {}'.format(test_name))
         return None
 
 
 
-class MergeToolKdiff3(MergeTool):
+class ReconcileToolKdiff3(ReconcileTool):
     """
     Merge with kdiff3
     """
@@ -255,7 +255,7 @@ class MergeToolKdiff3(MergeTool):
                                              merged_file=merged_file,
                                              test_name=test_name)
 
-        if 0 == MergeTool._invoke_command(cmd):
+        if 0 == ReconcileTool._invoke_command(cmd):
             # Merged ok
             return merged_file
         else:
@@ -276,10 +276,10 @@ def reconcile_observations(settings,
     :return:
     """
 
-    merge_tool = MergeTool.select(settings.get('merge'))
-    return merge_tool.reconcile(test_name,
-                                reference_file,
-                                current_file)
+    reconcile_tool = ReconcileTool.select(settings.get('reconcile'))
+    return reconcile_tool.reconcile(test_name,
+                                    reference_file,
+                                    current_file)
 
 
 if __name__ == '__main__':
@@ -288,8 +288,8 @@ if __name__ == '__main__':
     optParser = optparse.OptionParser(usage=os.path.basename(__file__),
                                       description='Compare and reconciles differences in Bond observation files')
 
-    optParser.add_option('--merge', dest='merge', action='store', default=None,
-                         help='The merge tool to use. Available: ')
+    optParser.add_option('--reconcile', dest='reconcile', action='store', default=None,
+                         help='The reconcile tool to use. Available: accept, abort, console, kdiff3.')
     optParser.add_option('--reference', dest='reference', action='store', default=None,
                          help='The reference observation file')
     optParser.add_option('--current', dest='current', action='store', default=None,
@@ -312,12 +312,12 @@ if __name__ == '__main__':
     else:
         main_test_name = os.path.splitext(os.path.basename(opts.current))[0]
 
-    if opts.merge:
-        main_merge = opts.merge
+    if opts.reconcile:
+        main_reconcile = opts.reconcile
     else:
-        main_merge = os.environ.get('BOND_MERGE', 'console')
+        main_reconcile = os.environ.get('BOND_RECONCILE', 'console')
 
-    main_settings = dict(merge=main_merge)
+    main_settings = dict(reconcile=main_reconcile)
 
     if reconcile_observations(main_settings,
                               main_test_name,

@@ -23,7 +23,7 @@ class BondTest(unittest.TestCase):
         bond.start_test(test_instance,
                         spy_groups=spy_groups,
                         observation_directory=bond_observations_dir,
-                        merge=os.environ.get('BOND_MERGE', 'abort'))
+                        reconcile=os.environ.get('BOND_RECONCILE', 'abort'))
         # By default we abort the test if it fails. No user-interface
 
     def setUp(self):
@@ -46,7 +46,7 @@ class BondTest(unittest.TestCase):
         "Test the creation of the observation directory"
         test_dir = '/tmp/bondTestOther'
         bond.settings(observation_directory=test_dir,
-                      merge='accept')
+                      reconcile='accept')
         if os.path.isdir(test_dir):
             shutil.rmtree(test_dir)
 
