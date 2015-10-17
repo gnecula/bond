@@ -12,6 +12,7 @@ You must install Sphinx (``pip install -U Sphinx``) and then
 
     make docs
 
+
 Running tests
 -----------------
 

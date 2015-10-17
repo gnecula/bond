@@ -120,7 +120,7 @@ insert 7 in the tree. If you run the traditional test, you will see the familiar
 
     .. we use the hightlight python to allow the code example selector to pick it
 
-    .. container:: highlight-python
+    .. container:: code-language-python
 
         .. code-block:: diff
 
@@ -132,7 +132,7 @@ insert 7 in the tree. If you run the traditional test, you will see the familiar
                 self.assertEquals(4, tree.left.right.data)
             AssertionError: 4 != 7
 
-    .. container:: highlight-ruby
+    .. container:: code-language-ruby
 
         .. code-block:: diff
 
@@ -197,6 +197,8 @@ variable ``BOND_RECONCILE``, with possible values
 * ``console`` : show the above console interaction menu
 * ``kdiff3``: invoke the ``kdiff3`` merging tool.
 
+If the test fails, then you will still be shown the differences in the observations, but you will not have
+the choice to accept them as the new reference observations.
 
 Spying inside your production code while testing
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
