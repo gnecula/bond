@@ -109,6 +109,10 @@ def spy(spy_point_name, **kwargs):
     """
     This is the most frequently used Bond function. It will collect the key-value pairs passed
     in the argument list and will emit them to the spy observation log.
+
+    If you are not during testing (:py:func:`start_test` has not been called) then
+    this function does not do anything.
+
     If there is an agent deployed for the current spy point (see :py:func:`deploy_agent`),
     it will process the agent.
 
@@ -403,7 +407,10 @@ class Bond:
             ))
 
     def spy(self, spy_point_name, **kwargs):
-        assert self.current_python_test, "Should not call spy unless you have called start_test first"
+        if not self.current_python_test:
+            # Don't do anything if we are not testing
+            return None
+
         assert isinstance(spy_point_name, basestring), "spy_point_name must be a string"
 
         # Find the agent to apply. We process the agents in order, because they are deployed at the start of the list

@@ -66,6 +66,19 @@ class BondTest(unittest.TestCase):
         shutil.rmtree(test_dir)
 
 
+    def test_spy_not_testing(self):
+        "Trying to spy when not in testing"
+
+        # Pretend the test ended
+        bond_instance = bond.Bond.instance()
+        bond_instance._finish_test()  # We reach into the internal API
+
+        bond.spy('first_observation', val=1)
+        bond.spy('second_observation', val=2)
+
+        # Just before the test ends, we restore current_python_test
+        bond_instance.current_python_test = self # Has to allow the test to continue
+
     def test_formatter(self):
         "Apply the formatter"
 

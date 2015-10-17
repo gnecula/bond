@@ -203,11 +203,47 @@ Spying inside your production code while testing
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Sometimes you want to validate the behavior of your code during testing, beyond just
-checking the state at the end of the test. This can be achieved if you place the
-``bond.spy_point`` annotation on a function or a method. Assume that you have a
+checking the state at the end of the test. For this purpose you
+can use ``bond.spy`` in your production code. This function has effect only if you
+called ``bond.start_test`` first.
+
+In the next section we will see another Bond function for spying, and mocking, inside
+your production code.
+
+If you put spy point annotations in your production code, you will have to either distribute
+Bond with your code, which is safe as long as you do not call ``bond.start_test``,
+or else fake the Bond API functions using something like this in your file:
+
+.. container:: code-examples
+
+    .. code-block:: python
+        :emphasize-lines: 1, 3-6
+
+        try:
+           import bond
+        except ImportError:
+            # Define inactive versions of the Bond functions
+            spy_point = lambda **kw: lambda f:f
+            spy = lambda **kw: None
+
+    .. code-block:: ruby
+
+        some ruby code
+
+
+
+Part 2: Mocking with Bond
+--------------------------------
+
+Sometimes you want not only to spy values from your production code, but also to
+replace some of those values. Spying and mocking together can be achieved if you place the
+``bond.spy_point`` annotation on a function or a method in your production code.
+Assume that you have a
 method called ``make_request`` in your code, whose purpose is to make HTTP requests
-to other services. You may want to know how many times this method is called in your tests,
-and with what arguments, and possibly what it returns each for each call. This can be achieved with
+to other services. You may want to spy how many times this method is called in your tests,
+and with what arguments, and possibly what it returns each for each call. You also want
+your tests to be able to bypass the actual HTTP request and provide mock results for this function.
+This can be achieved with
 the ``bond.spy_point`` function annotation, as shown below:
 
 .. container:: code-examples
@@ -216,9 +252,9 @@ the ``bond.spy_point`` function annotation, as shown below:
         :emphasize-lines: 1
 
         @bond.spy_point()
-        # Has the effect of injecting a call to
+        # Among other things, has the effect of injecting a call to
         #
-        #         bond.spy('make_request', url=url, data=data)
+        #         bond.spy(spy_point_name='make_request', url=url, data=data)
         #
         def make_request(url, data=None):
             "HTTP request (GET, or POST if the data is provided)"
@@ -230,7 +266,7 @@ the ``bond.spy_point`` function annotation, as shown below:
 
         some ruby code
 
-This annotation has effect only if ``bond.start_test`` has been called, meaning that
+Just like ``bond.spy``, this annotation has effect only if ``bond.start_test`` has been called, meaning that
 this is a test run. One of the effects of this annotation is to inject a call to ``bond.spy`` with
 the method name as the spy point and the arguments as the observation, as shown in the code
 example above.
@@ -238,27 +274,7 @@ example above.
 You can read more about ``bond.spy_point`` in the :ref:`API documentation <api_spy_point>`.
 Read on to find out what else you can do with spy point annotations.
 
-If you put spy point annotations in your production code, you will have to either distribute
-Bond with your code, or else fake the ``bond.spy_point`` annotation using something like this in your file:
-
-.. container:: code-examples
-
-    .. code-block:: python
-        :emphasize-lines: 1
-
-        try:
-           import bond
-        except ImportError:
-            def spy_point(**kwargs): return lambda f:f
-
-    .. code-block:: ruby
-
-        some ruby code
-
-Part 2: Mocking with Bond
---------------------------------
-
-A spy point annotation on a method is able to inject code to execute on every call to the
+A spy point annotation on a method is also able to inject code to execute on every call to the
 method. This code can do multiple things, and can be controlled from the test code:
 
 * further decide on which invocations of the spy point they activate, based on various filters on the function arguments.
