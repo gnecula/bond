@@ -130,7 +130,7 @@ html_theme = 'alabaster'
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
-#html_title = None
+html_title = "Bond - Testing with Spies and Mocks"
 
 html_style = "bond_doc.css"
 

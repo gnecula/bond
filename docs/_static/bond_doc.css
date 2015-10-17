@@ -2,9 +2,13 @@
 
 /* The code language selector */
 .container .code-language-selector-group {
-    background-color: #9AF3F3;
+   width: 100%;
 }
 
+.container .code-language-selector-inner {
+   margin: 0 auto;
+   width: 200px;
+}
 /* Color code in a distinctive color */
 dl.function {
     background-color: #faeee0;

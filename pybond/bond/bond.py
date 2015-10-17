@@ -45,9 +45,10 @@ def start_test(current_python_test,
     :param test_name: (optional) the name of the test. By default, it is ``TestCase.testName``.
     :param observation_directory: (optional) the directory where the observation files are stored.
            By default this is the ``test_observations`` subdirectory in the
-           directory containing the test file. You should plan to commit the
+           directory containing the test file. The directory will be created if not present.
+           You should plan to commit the
            test observations to your repository, as reference for future test runs.
-    :param merge: (optional) the method used to merge the current observations with the
+    :param merge: (optional) the method used to reconcile the current observations with the
            saved reference observations. By default the value of the
            environment variable ``BOND_MERGE`` is used, or if missing, the
            default is ``abort``.
@@ -80,7 +81,8 @@ def settings(observation_directory=None,
 
     :param observation_directory: (optional) the directory where the observation files are stored.
            By default this is the ``test_observations`` subdirectory in the
-           directory containing the test file. You should plan to commit the
+           directory containing the test file. The directory will be created if not present.
+           You should plan to commit the
            test observations to your repository, as reference for future test runs.
     :param merge: (optional) the method used to merge the current observations with the
            saved reference observations. By default the value of the
@@ -107,13 +109,13 @@ def spy(spy_point_name, **kwargs):
     """
     This is the most frequently used Bond function. It will collect the key-value pairs passed
     in the argument list and will emit them to the spy observation log.
-    If there is an agent registered for the current spy point (see :py:func:`deploy_agent`),
+    If there is an agent deployed for the current spy point (see :py:func:`deploy_agent`),
     it will process the agent.
 
     .. code::
 
          bond.spy("my file", file_name=file_name, content=data)
-         bond.spy("other spy", input=input, output=output)
+         bond.spy("other spy", args=args, output=output)
 
     The values are formatted to JSON using the json module, with sorted keys, and indentation, with
     one value per line, to streamline the observation comparison.
@@ -125,7 +127,6 @@ def spy(spy_point_name, **kwargs):
     ``formatter`` that can intervene to modify the observation dictionary before it is
     serialized to JSON.
 
-
     :param spy_point_name: the spy point name, useful to distinguish among different observations, and to
            select the agents that are applicable to this spy point. There is no need for this value to
            be unique in your test.
@@ -133,7 +134,7 @@ def spy(spy_point_name, **kwargs):
            serialized as the current observation. By default, Bond will add the special
            key ``__spy_point__`` to the dictionary to map the given `spy_point_name`.
 
-    :return: the result from the agent, if any (see :py:func:`deploy_agent`).
+    :return: the result from the agent, if any (see :py:func:`deploy_agent`), or ``bond.AGENT_RESULT_NONE``.
     """
     return Bond.instance().spy(spy_point_name, **kwargs)
 
@@ -149,9 +150,9 @@ def deploy_agent(spy_point_name, **kwargs):
                           result="mock result")
 
 
-    :param spy_point_name: the spy point where the agent is deployed.
-    :param kwargs: key-value pairs that control whether the agent is active and what it does. The following keys are
-      recognized:
+    :param spy_point_name: (mandatory) the spy point where the agent is deployed.
+    :param kwargs: (optional) key-value pairs that control whether the agent is active and what it does.
+         The following keys are recognized:
 
         * Keys that restrict for which invocations of bond.spy this agent is active. All of these conditions
           must be true for the agent to be the active one:
@@ -164,31 +165,34 @@ def deploy_agent(spy_point_name, **kwargs):
           * key__endswith=substr : only when the observation dictionary contains the 'key' with a string value
             that ends with the given substr.
           * filter=func : only when the given func returns true when passed observation dictionary.
+            The function should not make changes to the observation dictionary.
             Uses the observation before formatting.
 
         * Keys that control what the observer does when processed:
 
-          * do=func : executes the given function with the observed argument dictionary.
+          * do=func : executes the given function with the observation dictionary.
             func can also be a list of functions, executed in order.
+            The function should not make changes to the observation dictionary.
             Uses the observation before formatting.
 
         * Keys that control what the corresponding spy returns (by default ``AGENT_RESULT_NONE``):
 
           * exception=x : the call to bond.spy throws the given exception. If 'x' is a function
-            it is invoked on the observe argument dictionary to compute the exception to throw.
+            it is invoked on the observation dictionary to compute the exception to throw.
+            The function should not make changes to the observation dictionary.
             Uses the observation before formatting.
           * result=x : the call to bond.spy returns the given value. If 'x' is a function
             it is invoked on the observe argument dictionary to compute the value to return.
+            If the function throws an exception then the spied function thrown an exception.
+            The function should not make changes to the observation dictionary.
             Uses the observation before formatting.
 
-        * Keys that control how the observation is logged. This is processed after all the above functions.
+        * Keys that control how the observation is saved. This is processed after all the above functions.
 
           * formatter : if specified, a function that is given the observation and can update it in place.
-            The formatted observation is what gets saved.
+            The formatted observation is what gets serialized and saved.
 
-    :return: either ``AGENT_RESULT_NONE`` if no agent matches or contains a "result", or the result from
-      the first agent that matches.
-
+    :return: nothing
     """
     Bond.instance().deploy_agent(spy_point_name, **kwargs)
 
@@ -201,24 +205,35 @@ def spy_point(spy_point_name=None,
               spy_result=False):
     """
     Function and method decorator for spying arguments and results of methods. This decorator is safe
-    to use on production code. It will not have any effect if the function :py:func:`start_test` has
-    not been called to initialize the Bond module.
+    to use on production code. It will have effects only if the function :py:func:`start_test` has
+    been called to initialize the Bond module.
 
     Must be applied directly to a method or a function, not to another decorator.
 
     .. code::
 
+        @staticmethod
+        @bond.spy_point()
+        def my_sneaky_function(arg1='', arg2=None):
+            # does something
 
-    :param spy_point_name: An optional name to use for this spy point. Default is obtained from the name
+    :param spy_point_name: (optional) A name to use for this spy point. Default is obtained from the name
                            of the decorated function.
-    :param enabled_for_groups: An optional list or tuple of spy point groups to which this spy point belongs.
-                           If missing then it is enabled for all groups.
-    :param require_agent_result: if True, and if this spy point is enabled, then there must be an
+    :param enabled_for_groups: (optional) A list or tuple of spy point groups to which this spy point belongs.
+                           If missing then it is enabled for all groups. These names are arbitrary labels
+                           that :py:func:`start_test` can use to turn off groups of spy points.
+                           If you are writing a library that others are using, you should use a distinctive
+                           spy group for your spy points, to avoid your library starting to spy if embedded
+                           in some other test using Bond.
+    :param require_agent_result: (optional) if True, and if this spy point is enabled, then there must be an
                            agent that provides a result, or else the invocation of the function aborts.
                            The agent may still provide ``AGENT_RESULT_CONTINUE`` to tell the spy point
-                           to continue the invocation of the underlying function.
-    :param excluded_keys: a tuple or list of parameter key names to skip when saving the observations.
-    :param spy_result: if True, then the resuly value is spied also, using a spy_point name of
+                           to continue the invocation of the underlying function. This parameter is
+                           used to mark functions that should not be invoked normally during testing, e.g.,
+                           invoking shell commands, or requesting user input.
+    :param excluded_keys: (optional) a tuple or list of parameter key names to skip when saving the observations.
+                         Further manipulation of what gets observed can be done from agents.
+    :param spy_result: (optional) if True, then the result value is spied also, using a spy_point name of
                        `spy_point_name.result`. If there is an agent providing a result for
                        this spy point, then the agent result is saved as the observation.
     """

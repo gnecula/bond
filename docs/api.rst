@@ -9,11 +9,10 @@ Python
 Python Spying API
 ^^^^^^^^^^^^^^^^^^^^^^^
 
+.. _api_start_test:
+
 For spying you need at the very minimum to call :py:func:`bond.start_test` (typically in your ``setUp`` code)
 and then :py:func:`bond.spy` to actually spy values.
-
-At the very minimum, you need to call ``start_test`` with a single argument referencing the current TestCase.
-
 
 ----
 
@@ -21,6 +20,8 @@ At the very minimum, you need to call ``start_test`` with a single argument refe
   :members: start_test
 
 ----
+
+.. _api_spy:
 
 To actually collect observations (spy) you need to call :py:func:`bond.spy`, with a name of a spy point, and
 your choice of values to spy. The values to spy are named with key parameters and are saved in a JSON format
@@ -34,7 +35,8 @@ to the observation file.
 ----
 
 One more API function that comes handy occasionally is :py:func:`bond.settings` that you can use in the body of
-your test to override some Bond parameters that were set by :py:func:`bond.start_test`:
+your test to override some Bond parameters that were set by :py:func:`bond.start_test`. It takes
+similar arguments as :py:func:`bond.start_test`.
 
 ----
 
@@ -42,6 +44,8 @@ your test to override some Bond parameters that were set by :py:func:`bond.start
   :members: settings
 
 ----
+
+.. _api_spy_point:
 
 You can place spy points in your production code as well, if you want to be able to spy on intermediate computations
 in your code. Bond provides the :py:func:`bond.spy_point` function and method decorator that you can use to spy
@@ -54,10 +58,21 @@ the arguments and the result of a function or a method.
 
 ----
 
+
+
 Python Mocking API
 ^^^^^^^^^^^^^^^^^^^^^^^
 
+.. _api_deploy_agent:
 
+Once you have deployed spy point annotations in your production code it is possible to use the same points for
+mocking the result of those functions by deploying agents for specific spy points. An agent can:
+
+* further decide on which invocations of the spy point they activate, based on various filters on the function arguments.
+* spy the values of the arguments, and optionally the result also.
+* control which arguments are spied and how are the observations formatted.
+* execute additional test code on each call.
+* bypass the actual body of the method and return a result prepared by the testing code, or throw an exception when the call is reached.
 
 .. automodule:: bond
   :members: deploy_agent
