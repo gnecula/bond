@@ -32,7 +32,18 @@ class BondTest(unittest.TestCase):
 
     def test_spy_basic(self):
         "A basic spy test"
-        bond.spy('here',
+        bond.spy(int_arg=1,
+                 string_arg="a string",
+                 bool_arg=False,
+                 array_arg=[1, 2, 3, 'a string at the end'],
+                 dict_arg=dict(foo=1, bar=2))
+
+        bond.spy('there', val=10)
+
+
+    def test_spy_named(self):
+        "A basic spy test"
+        bond.spy(spy_point_name='here',
                  int_arg=1,
                  string_arg="a string",
                  bool_arg=False,
@@ -50,8 +61,8 @@ class BondTest(unittest.TestCase):
         if os.path.isdir(test_dir):
             shutil.rmtree(test_dir)
 
-        bond.spy('first_observation', val=1)
-        bond.spy('second_observation', val=2)
+        bond.spy(spy_point_name='first_observation', val=1)
+        bond.spy(spy_point_name='second_observation', val=2)
 
         # Now spy the contents of the observation directory itself
         bond_instance = bond.Bond.instance()
@@ -108,8 +119,8 @@ class BondTest(unittest.TestCase):
                           cmd__startswith="myfun",
                           result=123)
         # Now the spying
-        self.assertEquals('a ton of fun here', bond.spy('fun1', cmd="a ton of fun"))
-        self.assertEquals(bond.AGENT_RESULT_NONE, bond.spy('nofun', cmd="myfun2"))
+        self.assertEquals('a ton of fun here', bond.spy(spy_point_name='fun1', cmd="a ton of fun"))
+        self.assertEquals(bond.AGENT_RESULT_NONE, bond.spy(spy_point_name='nofun', cmd="myfun2"))
         self.assertEquals(123, bond.spy('fun1', cmd="myfun3"))
 
 
@@ -127,9 +138,9 @@ class BondTest(unittest.TestCase):
                           cmd__contains="fun1",
                           do=(lambda args: results.append("2: " + args['cmd'])))
         # Now the spying
-        bond.spy('fun1', cmd="myfun1")   # agent 2: only
-        bond.spy('nofun', cmd="myfun2")  # no agent
-        bond.spy('fun1', cmd="myfun3")   # agent 1: only
+        bond.spy(spy_point_name='fun1', cmd="myfun1")   # agent 2: only
+        bond.spy(spy_point_name='nofun', cmd="myfun2")  # no agent
+        bond.spy(spy_point_name='fun1', cmd="myfun3")   # agent 1: only
 
         self.assertSequenceEqual(['2: myfun1',
                                   '1: myfun3'], results)
@@ -152,7 +163,7 @@ class BondTest(unittest.TestCase):
                           result=1,
                           formatter=my_formatter,
                           exception=lambda obs: Exception("some exception: "+obs['cmd']))
-        self.assertRaises(Exception, lambda :  bond.spy('fun1', cmd="myfun2"))
+        self.assertRaises(Exception, lambda :  bond.spy(spy_point_name='fun1', cmd="myfun2"))
 
 
     def test_no_spy_groups(self):
@@ -177,11 +188,11 @@ class BondTest(unittest.TestCase):
         self.annotated_method_group_enabled()
         self.annotated_method_no_group()
         bond.settings(spy_groups='group2')
-        bond.spy('spy groups set')
+        bond.spy(msg='spy groups set')
         self.annotated_method_group_enabled()
         self.annotated_method_no_group()
         bond.settings(spy_groups=())
-        bond.spy('spy groups reset',
+        bond.spy(msg='spy groups reset',
                  obs_dir=os.path.basename(os.path.normpath(bond.Bond.instance()._observation_directory())))
         self.annotated_method_group_enabled()
         self.annotated_method_no_group()

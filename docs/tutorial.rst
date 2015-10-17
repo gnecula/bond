@@ -70,7 +70,7 @@ The alternative with Bond is as follows:
 
             # WITH BOND: record the value of the tree variable, and compare it
             # with previous recordings.
-            bond.spy('first test', tree=tree)  # Spy the whole tree
+            bond.spy(tree=tree)  # Spy the whole tree
 
 What is happening there is that we call the ``bond.spy`` function to tell Bond to record the value of the
 ``tree`` variable. There could be multiple calls to ``bond.spy`` during a test.
@@ -86,7 +86,6 @@ Here is the test observation spied by the test case we wrote above:
 
     [
     {
-        "__spy_point__": "first test",
         "tree": {
             "data": 8,
             "left": {

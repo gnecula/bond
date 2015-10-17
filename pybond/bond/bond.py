@@ -105,7 +105,7 @@ def settings(observation_directory=None,
                              spy_groups=spy_groups)
 
 
-def spy(spy_point_name, **kwargs):
+def spy(spy_point_name=None, **kwargs):
     """
     This is the most frequently used Bond function. It will collect the key-value pairs passed
     in the argument list and will emit them to the spy observation log.
@@ -118,8 +118,8 @@ def spy(spy_point_name, **kwargs):
 
     .. code::
 
-         bond.spy("my file", file_name=file_name, content=data)
-         bond.spy("other spy", args=args, output=output)
+         bond.spy(file_name=file_name, content=data)
+         bond.spy(spy_point_name="other spy", args=args, output=output)
 
     The values are formatted to JSON using the json module, with sorted keys, and indentation, with
     one value per line, to streamline the observation comparison.
@@ -131,16 +131,18 @@ def spy(spy_point_name, **kwargs):
     ``formatter`` that can intervene to modify the observation dictionary before it is
     serialized to JSON.
 
-    :param spy_point_name: the spy point name, useful to distinguish among different observations, and to
+    :param spy_point_name: (optional) the spy point name, useful to distinguish among different observations, and to
            select the agents that are applicable to this spy point. There is no need for this value to
-           be unique in your test.
+           be unique in your test. You only need to have this value if you want to :py:func:`deploy_agent` for
+           this spy point later in your test. If you do use this parameter, then it will be observed
+           with the key ``__spy_point__`` to ensure that it appears first in the sorted observation.
+
     :param kwargs: key-value pairs to be observed. This forms the observation dictionary that is
-           serialized as the current observation. By default, Bond will add the special
-           key ``__spy_point__`` to the dictionary to map the given `spy_point_name`.
+           serialized as the current observation.
 
     :return: the result from the agent, if any (see :py:func:`deploy_agent`), or ``bond.AGENT_RESULT_NONE``.
     """
-    return Bond.instance().spy(spy_point_name, **kwargs)
+    return Bond.instance().spy(spy_point_name=spy_point_name, **kwargs)
 
 
 def deploy_agent(spy_point_name, **kwargs):
@@ -199,7 +201,6 @@ def deploy_agent(spy_point_name, **kwargs):
     :return: nothing
     """
     Bond.instance().deploy_agent(spy_point_name, **kwargs)
-
 
 
 def spy_point(spy_point_name=None,
@@ -406,25 +407,28 @@ class Bond:
                 Bond.DEFAULT_OBSERVATION_DIRECTORY
             ))
 
-    def spy(self, spy_point_name, **kwargs):
+    def spy(self, spy_point_name=None, **kwargs):
         if not self.current_python_test:
             # Don't do anything if we are not testing
             return None
 
-        assert isinstance(spy_point_name, basestring), "spy_point_name must be a string"
+        if spy_point_name is not None:
+            assert isinstance(spy_point_name, basestring), "spy_point_name must be a string"
 
-        # Find the agent to apply. We process the agents in order, because they are deployed at the start of the list
-        active_agent = None
+            # Find the agent to apply. We process the agents in order, because they are deployed at the start of the list
+            active_agent = None
 
-        for agent in self.spy_agents.get(spy_point_name, []):
-            if not agent.filter(kwargs):
-                continue
-            active_agent = agent
-            break
+            for agent in self.spy_agents.get(spy_point_name, []):
+                if not agent.filter(kwargs):
+                    continue
+                active_agent = agent
+                break
+        else:
+            active_agent = None
 
         observation = copy.deepcopy(kwargs)
-        observation['__spy_point__'] = spy_point_name  # Use a key that should come first alphabetically
-        # TODO: Why are we including this in the observation dictionary? GN: makes it easier to read the observations
+        if spy_point_name is not None:
+            observation['__spy_point__'] = spy_point_name  # Use a key that should come first alphabetically
 
         def save_observation():
             # We postpone applying the formatter until we have run the "doer" and the "result"
