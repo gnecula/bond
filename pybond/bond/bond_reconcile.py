@@ -105,12 +105,15 @@ class ReconcileTool:
     def reconcile(self,
                   test_name,
                   reference_file,
-                  current_file):
+                  current_file,
+                  no_save=None):
         """
         Reconcile the differences
         @param test_name: the name of the test (for messages)
         @param reference_file: the name of the reference observation file
         @param current_file: the name of the current observation file
+        :param no_save: if present, then disallows saving a new reference file.
+               This parameter should be a string explaining why saving is disallowed.
         """
 
         if not os.path.isfile(reference_file):
@@ -132,11 +135,16 @@ class ReconcileTool:
             merged_file = self.invoke_tool(test_name,
                                            reference_file,
                                            current_file,
-                                           diff_file)
+                                           diff_file,
+                                           no_save=no_save)
             if merged_file is not None:
                 # Accepted differences
-                ReconcileTool._print('Saving updated reference observation file for {}'.format(test_name))
-                shutil.move(merged_file, reference_file)
+                if no_save:
+                    ReconcileTool._print("Not saving reference observation file for {}: {}".format(test_name,
+                                                                                                   no_save))
+                else:
+                    ReconcileTool._print('Saving updated reference observation file for {}'.format(test_name))
+                    shutil.move(merged_file, reference_file)
                 return True
             else:
                 return False
@@ -169,7 +177,8 @@ class ReconcileTool:
     def invoke_tool(self, test_name,
                     reference_file,
                     current_file,
-                    diff_file):
+                    diff_file,
+                    no_save=None):
         """
         Invoke the actual tool
         @param
@@ -187,7 +196,8 @@ class ReconcileToolAbort(ReconcileTool):
                     test_name,
                     reference_file,
                     current_file,
-                    diff_file):
+                    diff_file,
+                    no_save=None):
         self.show_diff(test_name, diff_file)
         ReconcileTool._print('Aborting (reconcile=abort) due to differences for test {}'.format(test_name))
         return None
@@ -202,9 +212,11 @@ class ReconcileToolAccept(ReconcileTool):
                     test_name,
                     reference_file,
                     current_file,
-                    diff_file):
+                    diff_file,
+                    no_save=None):
         diffs = self.show_diff(test_name, diff_file)
-        ReconcileTool._print('Accepting (reconcile=accept) differences for test {}'.format(test_name))
+        if not no_save:
+            ReconcileTool._print('Accepting (reconcile=accept) differences for test {}'.format(test_name))
         return current_file
 
 
@@ -217,21 +229,32 @@ class ReconcileToolConsole(ReconcileTool):
                     test_name,
                     reference_file,
                     current_file,
-                    diff_file):
+                    diff_file,
+                    no_save=None):
 
         # Show the diff
         self.show_diff(test_name, diff_file)
 
-        prompt = 'Do you want to accept the changes ({}) ? ( [y]es | [k]diff3 | *): '.format(test_name)
+        if no_save:
+            prompt = 'These are the differences for {}. Saving them not allowed: {}. ([k]diff3 | *): '.format(
+                test_name,
+                no_save
+            )
+        else:
+            prompt = 'Do you want to accept the changes ({}) ? ( [y]es | [k]diff3 | *): '.format(test_name)
+
         response = ReconcileTool._read_console(prompt)
-        if response == 'y':
+
+        if response == 'k':
+            return ReconcileToolKdiff3().invoke_tool(test_name, reference_file, current_file, diff_file,
+                                                     no_save=no_save)
+
+        if response == 'y' and not no_save:
             ReconcileTool._print('Accepting differences for test {}'.format(test_name))
             return current_file
 
-        if response == 'k':
-            return ReconcileToolKdiff3().invoke_tool(test_name, reference_file, current_file, diff_file)
-
-        ReconcileTool._print('Rejecting differences for test {}'.format(test_name))
+        if not no_save:
+            ReconcileTool._print('Rejecting differences for test {}'.format(test_name))
         return None
 
 
@@ -245,41 +268,59 @@ class ReconcileToolKdiff3(ReconcileTool):
                     test_name,
                     reference_file,
                     current_file,
-                    diff_file):
-        merged_file = self._aux_file_name(current_file, 'merged')
+                    diff_file,
+                    no_save=None):
 
-        cmd = ('kdiff3 -m "{reference_file}" --L1 "{test_name}_REFERENCE" '
-               '"{current_file}" --L2 "{test_name}_CURRENT" '
-               ' -o "{merged_file}"').format(reference_file=reference_file,
-                                             current_file=current_file,
-                                             merged_file=merged_file,
-                                             test_name=test_name)
-
-        if 0 == ReconcileTool._invoke_command(cmd):
-            # Merged ok
-            return merged_file
+        if no_save:
+            cmd = ('kdiff3 "{reference_file}" --L1 "{test_name}_REFERENCE" '
+                   '"{current_file}" --L2 "{test_name}_CURRENT" ').format(
+                reference_file=reference_file,
+                current_file=current_file,
+                test_name=test_name)
         else:
-            if os.path.isfile(merged_file):
-                os.unlink(merged_file)
+            merged_file = self._aux_file_name(current_file, 'merged')
+
+            cmd = ('kdiff3 -m "{reference_file}" --L1 "{test_name}_REFERENCE" '
+                   '"{current_file}" --L2 "{test_name}_CURRENT" '
+                   ' -o "{merged_file}"').format(reference_file=reference_file,
+                                                 current_file=current_file,
+                                                 merged_file=merged_file,
+                                                 test_name=test_name)
+
+        print(cmd)
+        code = ReconcileTool._invoke_command(cmd)
+        if no_save:
             return None
+        else:
+            if code == 0 :
+                # Merged ok
+                return merged_file
+            else:
+                if os.path.isfile(merged_file):
+                    os.unlink(merged_file)
+                return None
 
 
 def reconcile_observations(settings,
                            test_name,
                            reference_file,
-                           current_file):
+                           current_file,
+                           no_save=None):
     """
     Reconcile the observations
     :param settings: a settings object
     :param reference_file: the reference file
     :param current_file: the current file with observations
+    :param no_save: If present, then saving of new references is not allowed. This parameter
+            should be a short string explaining why saving is not allowed.
     :return:
     """
 
     reconcile_tool = ReconcileTool.select(settings.get('reconcile'))
     return reconcile_tool.reconcile(test_name,
                                     reference_file,
-                                    current_file)
+                                    current_file,
+                                    no_save=no_save)
 
 
 if __name__ == '__main__':
@@ -296,7 +337,8 @@ if __name__ == '__main__':
                          help='The current observation file')
     optParser.add_option('--test', dest='test', action='store', default=None,
                          help='The name of the test (for UI). Default is to extract from --current')
-
+    optParser.add_option('--no-save', dest='no_save', action='store', default=None,
+                         help='If given, the reason why saving of new references is not allowed')
     (opts, args) = optParser.parse_args()
     if opts.reference is None:
         sys.exit(1)
@@ -322,7 +364,8 @@ if __name__ == '__main__':
     if reconcile_observations(main_settings,
                               main_test_name,
                               opts.reference,
-                              opts.current):
+                              opts.current,
+                              no_save=opts.no_save):
         sys.exit(0)
     else:
         sys.exit(1)

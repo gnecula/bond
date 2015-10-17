@@ -21,7 +21,7 @@ class ReconcileTest(unittest.TestCase):
         self.reference_file_content = """
 [
 {
-   "__spy_point_name" : "point 1",
+   "__spy_point__" : "point 1",
    val" : 12345
 }
 ]
@@ -90,7 +90,9 @@ class ReconcileTest(unittest.TestCase):
             with open(self.current_file, 'w') as f:
                 f.write(current_file_content)
 
-    def invoke_top_reconcile(self, reconcile=None):
+    def invoke_top_reconcile(self,
+                             reconcile=None,
+                             no_save=None):
         """
         Helper function to invoke the top-level reconcile
         :param reconcile:
@@ -99,7 +101,8 @@ class ReconcileTest(unittest.TestCase):
         result = bond_reconcile.reconcile_observations(dict(reconcile=reconcile),
                                                        'test 1',
                                                        self.reference_file,
-                                                       self.current_file)
+                                                       self.current_file,
+                                                       no_save=no_save)
         # Observe the directory
         bond.spy('invoke_top_reconcile_results',
                  result=result,
@@ -107,12 +110,19 @@ class ReconcileTest(unittest.TestCase):
                                                            collect_file_contents=True))
 
 
-    def test_no_reference(self):
+    def test_no_reference(self, no_save=None):
         "Test with no reference file"
         self.console_reply = 'y'  # Do accept
         self.prepare_observations(reference_file_content=None,
                                   current_file_content=self.reference_file_content)
-        self.invoke_top_reconcile(reconcile='console')
+        self.invoke_top_reconcile(reconcile='console',
+                                  no_save=no_save)
+
+    def test_no_reference_no_save(self):
+        "Test with no reference file, and no_save"
+        self.test_no_reference(no_save='I do not want to save')
+
+
 
     def test_same(self):
         "Test with reference and current the same"
@@ -120,41 +130,64 @@ class ReconcileTest(unittest.TestCase):
                                   current_file_content=self.reference_file_content)
         self.invoke_top_reconcile(reconcile='console')
 
-    def helper_test_reconcile(self, reconcile=''):
+    def helper_test_reconcile(self, reconcile='',
+                              no_save=None):
         "Test with reference and current the same"
         self.prepare_observations(reference_file_content=self.reference_file_content,
                                   current_file_content=self.reference_file_content.replace('12345', 'abcde'))
-        self.invoke_top_reconcile(reconcile=reconcile)
+        self.invoke_top_reconcile(reconcile=reconcile,
+                                  no_save=no_save)
 
-    def test_reconcile_accept(self):
-        self.helper_test_reconcile(reconcile='accept')
+    def test_reconcile_accept(self, no_save=None):
+        "Test with the accept tool"
+        self.helper_test_reconcile(reconcile='accept', no_save=no_save)
+
+    def test_reconcile_accept_no_save(self):
+        "Test with the accept tool and no_save"
+        self.test_reconcile_accept(no_save="Don't want to save")
 
     def test_reconcile_abort(self):
         self.helper_test_reconcile(reconcile='abort')
 
-    def test_reconcile_console0(self):
+    def test_reconcile_console0(self, no_save=None):
+        "Test with console tool, answer: y"
         self.console_reply = 'y'  # Do accept
-        self.helper_test_reconcile(reconcile='console')
+        self.helper_test_reconcile(reconcile='console',
+                                   no_save=no_save)
+
+    def test_reconcile_console0_no_save(self):
+        "Test with console tool, answer: y, but no_save"
+        self.test_reconcile_console0(no_save='No saving, period.')
 
     def test_reconcile_console1(self):
         self.console_reply = 'n'  # Do not accept
         self.helper_test_reconcile(reconcile='console')
 
 
-    def test_reconcile_console_k0(self):
+    def test_reconcile_console_k0(self, no_save=None):
+        "Test with console tool, answer=k, then Kdiff3 merges"
         self.console_reply = 'k'  # Switch to kdiff3
         self.kdiff3_result = 0    # Kdiff3 is happy
-        self.helper_test_reconcile(reconcile='console')
+        self.helper_test_reconcile(reconcile='console', no_save=no_save)
+
+    def test_reconcile_console_k0_no_save(self):
+        self.test_reconcile_console_k0(no_save='No saving, I say so')
 
     def test_reconcile_console_k1(self):
         self.console_reply = 'k'  # Switch to kdiff3
         self.kdiff3_result = 1    # Kdiff3 is NOT happy
         self.helper_test_reconcile(reconcile='console')
 
-    def test_reconcile_kdiff3_0(self):
+    def test_reconcile_kdiff3_0(self, no_save=None):
         self.kdiff3_result = 0    # Kdiff3 is happy
-        self.helper_test_reconcile(reconcile='kdiff3')
+        self.helper_test_reconcile(reconcile='kdiff3', no_save=no_save)
 
-    def test_reconcile_kdiff3_1(self):
+    def test_reconcile_kdiff3_0_no_save(self):
+        self.test_reconcile_kdiff3_0(no_save='not needed')
+
+    def test_reconcile_kdiff3_1(self, no_save=None):
         self.kdiff3_result = 1    # Kdiff3 is NOT happy
-        self.helper_test_reconcile(reconcile='kdiff3')
+        self.helper_test_reconcile(reconcile='kdiff3', no_save=no_save)
+
+    def test_reconcile_kdiff3_1_no_save(self):
+        self.test_reconcile_kdiff3_1(no_save='not needed')

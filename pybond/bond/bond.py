@@ -311,7 +311,8 @@ def spy_point(spy_point_name=None,
             observation_dictionary = {key: val for (key, val) in observation_dictionary.iteritems()
                                       if key not in excluded_keys}
 
-            response = the_bond.spy(spy_point_name_local, **observation_dictionary)
+            response = the_bond.spy(spy_point_name=spy_point_name_local,
+                                    **observation_dictionary)
             if require_agent_result:
                 assert response is not AGENT_RESULT_NONE, \
                     'You MUST mock out spy_point {}: {}'.format(spy_point_name_local,
@@ -518,29 +519,30 @@ class Bond:
                            self.current_python_test._resultForDoCleanups.errors[self.start_count_errors:]]))
             # Save the observations
             if failures_and_errors:
-                # TODO: need to configure printing
-                print("Not saving observations due to failed test")
+                no_save = 'Test had failures'
             else:
-                fname = self._observation_file_name()
-                fdir = os.path.dirname(fname)
-                if not os.path.isdir(fdir):
-                    os.makedirs(fdir)
-                    top_git_ignore = os.path.join(self._observation_directory(), '.gitignore')
-                    # TODO: This should be configurable, you may not use git
-                    if not os.path.isfile(top_git_ignore):
-                        # Add the .gitignore file
-                        with open(top_git_ignore, 'w') as f:
-                            f.write("*_now.json\n*.diff\n")
+                no_save = None
 
-                reference_file = fname + '.json'
-                current_file = fname + '_now.json'
+            fname = self._observation_file_name()
+            fdir = os.path.dirname(fname)
+            if not os.path.isdir(fdir):
+                os.makedirs(fdir)
+                top_git_ignore = os.path.join(self._observation_directory(), '.gitignore')
+                # TODO: This should be configurable, you may not use git
+                if not os.path.isfile(top_git_ignore):
+                    # Add the .gitignore file
+                    with open(top_git_ignore, 'w') as f:
+                        f.write("*_now.json\n*.diff\n")
 
-                if os.path.isfile(current_file):
-                    os.unlink(current_file)
-                self._save_observations(current_file)
-                # WE have to reconcile them
-                assert self._reconcile_observations(reference_file, current_file), \
-                    'Reconciling observations for {}'.format(self.test_name)
+            reference_file = fname + '.json'
+            current_file = fname + '_now.json'
+
+            if os.path.isfile(current_file):
+                os.unlink(current_file)
+            self._save_observations(current_file)
+            # WE have to reconcile them
+            assert self._reconcile_observations(reference_file, current_file, no_save=no_save), \
+                'Reconciling observations for {}'.format(self.test_name)
         finally:
             # Mark that we are outside of a test
             self.current_python_test = None
@@ -580,12 +582,14 @@ class Bond:
 
     def _reconcile_observations(self,
                                 reference_file,
-                                current_file):
+                                current_file,
+                                no_save=None):
         settings = dict(reconcile=self._settings.get('reconcile'))
         return bond_reconcile.reconcile_observations(settings,
                                                      test_name=self.test_name,
                                                      reference_file=reference_file,
-                                                     current_file=current_file)
+                                                     current_file=current_file,
+                                                     no_save=no_save)
 
 
 class SpyAgent:

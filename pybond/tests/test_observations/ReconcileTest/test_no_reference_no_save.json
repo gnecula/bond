@@ -1,5 +1,9 @@
 [
 {
+    "__spy_point__": "bond_reconcile._print", 
+    "what": "WARNING: No reference observation file found for test 1: /tmp/bondObservationsDir/reference.json"
+},
+{
     "__spy_point__": "bond_reconcile._invoke_command", 
     "cmd": "diff -u -b \"/tmp/bondObservationsDir/reference.json\" \"/tmp/bondObservationsDir/reference_now.json\" >\"/tmp/bondObservationsDir/reference_now.json.diff\""
 },
@@ -12,14 +16,14 @@
     "what": [
         "--- /tmp/bondObservationsDir/reference.json\tdate", 
         "+++ /tmp/bondObservationsDir/reference_now.json\tdate", 
-        "@@ -2,6 +2,6 @@", 
-        " [", 
-        " {", 
-        "    \"__spy_point__\" : \"point 1\",", 
-        "-   val\" : 12345", 
-        "+   val\" : abcde", 
-        " }", 
-        " ]", 
+        "@@ -0,0 +1,7 @@", 
+        "+", 
+        "+[", 
+        "+{", 
+        "+   \"__spy_point__\" : \"point 1\",", 
+        "+   val\" : 12345", 
+        "+}", 
+        "+]", 
         ""
     ]
 },
@@ -29,27 +33,17 @@
 },
 {
     "__spy_point__": "bond_reconcile._read_console", 
-    "prompt": "Do you want to accept the changes (test 1) ? ( [y]es | [k]diff3 | *): "
+    "prompt": "These are the differences for test 1. Saving them not allowed: I do not want to save. ([k]diff3 | *): "
 },
 {
     "__spy_point__": "bond_reconcile._read_console.result", 
-    "result": "k"
-},
-{
-    "__spy_point__": "bond_reconcile._invoke_command", 
-    "cmd": "kdiff3 -m \"/tmp/bondObservationsDir/reference.json\" --L1 \"test 1_REFERENCE\" \"/tmp/bondObservationsDir/reference_now.json\" --L2 \"test 1_CURRENT\"  -o \"/tmp/bondObservationsDir/reference_now.json.merged\""
-},
-{
-    "__spy_point__": "bond_reconcile._print", 
-    "what": "Saving updated reference observation file for test 1"
+    "result": "y"
 },
 {
     "__spy_point__": "invoke_top_reconcile_results", 
     "obsevation_dir": {
-        "reference.json": [
-            "The merge result"
-        ]
+        "reference.json": []
     }, 
-    "result": true
+    "result": false
 }
 ]

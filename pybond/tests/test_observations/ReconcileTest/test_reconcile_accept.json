@@ -15,7 +15,7 @@
         "@@ -2,6 +2,6 @@", 
         " [", 
         " {", 
-        "    \"__spy_point_name\" : \"point 1\",", 
+        "    \"__spy_point__\" : \"point 1\",", 
         "-   val\" : 12345", 
         "+   val\" : abcde", 
         " }", 
@@ -42,7 +42,7 @@
             "", 
             "[", 
             "{", 
-            "   \"__spy_point_name\" : \"point 1\",", 
+            "   \"__spy_point__\" : \"point 1\",", 
             "   val\" : abcde", 
             "}", 
             "]"

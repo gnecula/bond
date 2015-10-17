@@ -28,26 +28,20 @@
     "what": "There were differences in observations for test 1: "
 },
 {
-    "__spy_point__": "bond_reconcile._read_console", 
-    "prompt": "Do you want to accept the changes (test 1) ? ( [y]es | [k]diff3 | *): "
-},
-{
-    "__spy_point__": "bond_reconcile._read_console.result", 
-    "result": "k"
-},
-{
-    "__spy_point__": "bond_reconcile._invoke_command", 
-    "cmd": "kdiff3 -m \"/tmp/bondObservationsDir/reference.json\" --L1 \"test 1_REFERENCE\" \"/tmp/bondObservationsDir/reference_now.json\" --L2 \"test 1_CURRENT\"  -o \"/tmp/bondObservationsDir/reference_now.json.merged\""
-},
-{
     "__spy_point__": "bond_reconcile._print", 
-    "what": "Saving updated reference observation file for test 1"
+    "what": "Not saving reference observation file for test 1: Don't want to save"
 },
 {
     "__spy_point__": "invoke_top_reconcile_results", 
     "obsevation_dir": {
         "reference.json": [
-            "The merge result"
+            "", 
+            "[", 
+            "{", 
+            "   \"__spy_point__\" : \"point 1\",", 
+            "   val\" : 12345", 
+            "}", 
+            "]"
         ]
     }, 
     "result": true
