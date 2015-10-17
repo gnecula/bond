@@ -1,7 +1,3 @@
-.. raw:: html
-
-    <script type='text/javascript' src='_static/bond_doc.js'></script>
-    <link rel='stylesheet' href='_static/bond_doc.css' type='text/css'></link>
 
 ==========================
 Bond Tutorial
