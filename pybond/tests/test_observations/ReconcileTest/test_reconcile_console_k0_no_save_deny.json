@@ -5,15 +5,19 @@
 },
 {
     "__spy_point__": "bond_reconcile._read_console", 
-    "prompt": "\n!!! MERGING NOT ALLOWED for test 1: not needed. Want to start kdiff3? ([y] | *): "
+    "prompt": "These are the differences for test 1. Saving them not allowed: No saving, I say so. ([k]diff3 | [d]iff | *): "
 },
 {
     "__spy_point__": "bond_reconcile._read_console.result", 
-    "result": "y"
+    "result": "k"
 },
 {
-    "__spy_point__": "bond_reconcile._invoke_command", 
-    "cmd": "kdiff3 \"/tmp/bondObservationsDir/reference.json\" --L1 \"test 1_REFERENCE\" \"/tmp/bondObservationsDir/reference_now.json\" --L2 \"test 1_CURRENT\" "
+    "__spy_point__": "bond_reconcile._read_console", 
+    "prompt": "\n!!! MERGING NOT ALLOWED for test 1: No saving, I say so. Want to start kdiff3? ([y] | *): "
+},
+{
+    "__spy_point__": "bond_reconcile._read_console.result", 
+    "result": "n"
 },
 {
     "__spy_point__": "invoke_top_reconcile_results", 

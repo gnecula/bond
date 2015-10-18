@@ -8,32 +8,8 @@
     "cmd": "diff -u -b \"/tmp/bondObservationsDir/reference.json\" \"/tmp/bondObservationsDir/reference_now.json\" >\"/tmp/bondObservationsDir/reference_now.json.diff\""
 },
 {
-    "__spy_point__": "bond_reconcile._print", 
-    "what": "There were differences in observations for test 1: "
-},
-{
-    "__spy_point__": "bond_reconcile._print", 
-    "what": [
-        "--- /tmp/bondObservationsDir/reference.json\tdate", 
-        "+++ /tmp/bondObservationsDir/reference_now.json\tdate", 
-        "@@ -0,0 +1,7 @@", 
-        "+", 
-        "+[", 
-        "+{", 
-        "+   \"__spy_point__\" : \"point 1\",", 
-        "+   val\" : 12345", 
-        "+}", 
-        "+]", 
-        ""
-    ]
-},
-{
-    "__spy_point__": "bond_reconcile._print", 
-    "what": "There were differences in observations for test 1: "
-},
-{
     "__spy_point__": "bond_reconcile._read_console", 
-    "prompt": "These are the differences for test 1. Saving them not allowed: I do not want to save. ([k]diff3 | *): "
+    "prompt": "These are the differences for test 1. Saving them not allowed: I do not want to save. ([k]diff3 | [d]iff | *): "
 },
 {
     "__spy_point__": "bond_reconcile._read_console.result", 

@@ -198,7 +198,8 @@ class ReconcileToolAbort(ReconcileTool):
                     current_file,
                     diff_file,
                     no_save=None):
-        self.show_diff(test_name, diff_file)
+        if not no_save:
+            self.show_diff(test_name, diff_file)
         ReconcileTool._print('Aborting (reconcile=abort) due to differences for test {}'.format(test_name))
         return None
 
@@ -232,30 +233,34 @@ class ReconcileToolConsole(ReconcileTool):
                     diff_file,
                     no_save=None):
 
-        # Show the diff
-        self.show_diff(test_name, diff_file)
+        while True:
+            if no_save:
+                prompt = 'These are the differences for {}. Saving them not allowed: {}. ([k]diff3 | [d]iff | *): '.format(
+                    test_name,
+                    no_save
+                )
+            else:
+                # Show the diff
+                self.show_diff(test_name, diff_file)
+                prompt = 'Do you want to accept the changes ({}) ? ( [y]es | [k]diff3 | *): '.format(test_name)
 
-        if no_save:
-            prompt = 'These are the differences for {}. Saving them not allowed: {}. ([k]diff3 | *): '.format(
-                test_name,
-                no_save
-            )
-        else:
-            prompt = 'Do you want to accept the changes ({}) ? ( [y]es | [k]diff3 | *): '.format(test_name)
+            response = ReconcileTool._read_console(prompt)
 
-        response = ReconcileTool._read_console(prompt)
+            if response == 'k':
+                return ReconcileToolKdiff3().invoke_tool(test_name, reference_file, current_file, diff_file,
+                                                         no_save=no_save)
 
-        if response == 'k':
-            return ReconcileToolKdiff3().invoke_tool(test_name, reference_file, current_file, diff_file,
-                                                     no_save=no_save)
+            if response == 'd' and no_save:
+                self.show_diff(test_name, diff_file)
+                continue
 
-        if response == 'y' and not no_save:
-            ReconcileTool._print('Accepting differences for test {}'.format(test_name))
-            return current_file
+            if response == 'y' and not no_save:
+                ReconcileTool._print('Accepting differences for test {}'.format(test_name))
+                return current_file
 
-        if not no_save:
-            ReconcileTool._print('Rejecting differences for test {}'.format(test_name))
-        return None
+            if not no_save:
+                ReconcileTool._print('Rejecting differences for test {}'.format(test_name))
+            return None
 
 
 
@@ -272,6 +277,12 @@ class ReconcileToolKdiff3(ReconcileTool):
                     no_save=None):
 
         if no_save:
+            response = ReconcileTool._read_console(
+                "\n!!! MERGING NOT ALLOWED for {}: {}. Want to start kdiff3? ([y] | *): ".format(test_name,
+                                                                                                 no_save))
+            if response != "y":
+                return None
+
             cmd = ('kdiff3 "{reference_file}" --L1 "{test_name}_REFERENCE" '
                    '"{current_file}" --L2 "{test_name}_CURRENT" ').format(
                 reference_file=reference_file,

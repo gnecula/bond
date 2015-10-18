@@ -196,3 +196,17 @@ class BondTest(unittest.TestCase):
                  obs_dir=os.path.basename(os.path.normpath(bond.Bond.instance()._observation_directory())))
         self.annotated_method_group_enabled()
         self.annotated_method_no_group()
+
+    def test_custom_serializer(self):
+        bond.spy(obj=CustomClass(12, 87),
+                 func=lambda x: True)
+
+
+class CustomClass:
+    def __init__(self, arg1, args):
+        self.arg1 = arg1
+        self.arg2 = args
+
+    def to_json(self):
+        "Custom serializer"
+        return dict(arg12=self.arg1 + self.arg2)

@@ -500,7 +500,13 @@ class Bond:
 
     def _custom_json_serializer(self, obj):
         # TODO: figure out how to do this. Must be customizable from settings
-        return repr(obj) + " not JSON-serializable."
+        if 'to_json' in obj.__class__.__dict__:
+            return obj.__class__.to_json(obj)
+        if hasattr(obj, 'to_json'):
+            return obj.to_json()
+        if type(obj) == type(lambda : 0):
+            return "\"<lambda>\""
+
 
     def _finish_test(self):
         """
@@ -540,9 +546,13 @@ class Bond:
             if os.path.isfile(current_file):
                 os.unlink(current_file)
             self._save_observations(current_file)
+
             # WE have to reconcile them
-            assert self._reconcile_observations(reference_file, current_file, no_save=no_save), \
-                'Reconciling observations for {}'.format(self.test_name)
+            reconcile_res = self._reconcile_observations(reference_file, current_file, no_save=no_save)
+
+            if not failures_and_errors:
+                # If the test did not fail already, but it failed reconcile, fail the test
+                assert reconcile_res, 'Reconciling observations for {}'.format(self.test_name)
         finally:
             # Mark that we are outside of a test
             self.current_python_test = None
