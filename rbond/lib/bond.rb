@@ -31,7 +31,7 @@ class Bond
 
     if test_name.nil?
       test_file = @current_test.metadata[:file_path]
-      # TODO ETK decide exactly what characters to allow?
+      # TODO ETK allow other characters besides alphanumeric?
       @test_name = File.basename(test_file, File.extname(test_file)) + '.' +
           @current_test.metadata[:full_description].gsub(/[^A-z0-9.()]/, '_')
     else
@@ -39,9 +39,6 @@ class Bond
     end
 
     settings(spy_groups: spy_groups, observation_directory: observation_directory, reconcile_type: reconcile_type)
-
-    # TODO ETK get the test information and stuff
-    # spy groups
   end
 
   def spy(spy_point_name=nil, **observation)
@@ -79,8 +76,6 @@ class Bond
   end
 
   def _finish_test
-    # TODO ETK Collect errors, deal with failures
-
     fname = observation_file_name
     fdir = File.dirname(fname)
     unless File.directory?(fdir)
@@ -111,7 +106,7 @@ class Bond
     return :test_fail if test_fail
     return reconcile_result
   ensure
-    @current_test = false
+    @current_test = nil
     @testing = false
   end
 
@@ -122,7 +117,7 @@ class Bond
   # Depending on +@reconcile_type+, will take action to reconcile the differences.
   # If ref_file does not exist, it will be treated as an empty file.
   # If +no_save+ is not nil, the ref_file will *not* be overwritten and +no_save+
-  # will be displayed as the reason why saving is not allowed. 
+  # will be displayed as the reason why saving is not allowed.
   # Returns +:pass+ if the reconciliation succeeds, else +:fail+
   def reconcile_observations(ref_file, cur_file, no_save=nil)
     bond_reconcile_script = File.absolute_path(observation_directory + '/../../../pybond/bond/bond_reconcile.py')
@@ -135,7 +130,7 @@ class Bond
         (no_save.nil? ? '' : "--no-save #{Shellwords.shellescape(no_save.to_s)}")
     puts "Running: #{cmd}"
     code = system(cmd)
-    code ? :pass : :fail
+    code ? :pass : :bond_fail
   end
 
   # Save all current observations to a file located at fname. Assumes that

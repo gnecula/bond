@@ -1,0 +1,10 @@
+[
+{
+  "spy_key": 1,
+  "spy_key_2": "string value",
+  "spy_key_3": 1.4
+},
+{
+  "spy_key": "string value 2"
+}
+]

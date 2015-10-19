@@ -1,0 +1,12 @@
+[
+{
+  "__spy_point__": "my_point_name",
+  "spy_key": 1,
+  "spy_key_2": "string value",
+  "spy_key_3": 1.4
+},
+{
+  "__spy_point__": "second_point",
+  "spy_key": "string value 2"
+}
+]
