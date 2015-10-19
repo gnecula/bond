@@ -1,6 +1,7 @@
 require 'singleton'
 require 'json'
 require 'fileutils'
+require 'shellwords'
 
 # TODO still needs lots more documentation here...
 class Bond
@@ -94,6 +95,8 @@ class Bond
       end
     end
 
+    test_fail = !@current_test.exception.nil?
+
     ref_file = fname + '.json'
     cur_file = fname + '_now.json'
     File.delete(cur_file) if File.exists?(cur_file)
@@ -103,7 +106,10 @@ class Bond
     # TODO ETK right now using bond_reconcile from the python module, but really there should be
     #      a local copy (in rbond/bin?). Also less frailness in terms of finding the script -
     #      it probably shouldn't be based on the location of the @observation_directory
-    return reconcile_observations(ref_file, cur_file)
+    reconcile_result = reconcile_observations(ref_file, cur_file,
+                                              test_fail ? 'Test had failure(s)!' : nil)
+    return :test_fail if test_fail
+    return reconcile_result
   ensure
     @current_test = false
     @testing = false
@@ -113,16 +119,20 @@ class Bond
 
   # Reconcile observations, for now using an external python script.
   # Takes ref_file to be the correct test output, and compares cur_file against it.
+  # Depending on +@reconcile_type+, will take action to reconcile the differences.
   # If ref_file does not exist, it will be treated as an empty file.
+  # If +no_save+ is not nil, the ref_file will *not* be overwritten and +no_save+
+  # will be displayed as the reason why saving is not allowed. 
   # Returns +:pass+ if the reconciliation succeeds, else +:fail+
-  def reconcile_observations(ref_file, cur_file)
+  def reconcile_observations(ref_file, cur_file, no_save=nil)
     bond_reconcile_script = File.absolute_path(observation_directory + '/../../../pybond/bond/bond_reconcile.py')
     unless File.exists?(bond_reconcile_script)
       raise "Cannot find the bond_reconcile script: #{bond_reconcile_script}"
     end
 
     cmd = "#{bond_reconcile_script} --reference #{ref_file} --current #{cur_file} --test #{@test_name} " +
-        (@reconcile_type.nil? ? '' : "--reconcile #{@reconcile_type}")
+        (@reconcile_type.nil? ? '' : "--reconcile #{@reconcile_type}") +
+        (no_save.nil? ? '' : "--no-save #{Shellwords.shellescape(no_save.to_s)}")
     puts "Running: #{cmd}"
     code = system(cmd)
     code ? :pass : :fail

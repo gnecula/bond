@@ -8,7 +8,7 @@ shared_context :bond do |**settings|
   end
 
   after :each do
-    if bond._finish_test == :fail
+    if bond._finish_test == :bond_fail
       fail('BOND_FAIL. Pass BOND_RECONCILE=[kdiff3|console|accept] environment variable to reconcile the observations.')
     end
   end
