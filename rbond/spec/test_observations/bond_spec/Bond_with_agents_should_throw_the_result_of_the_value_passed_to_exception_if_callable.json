@@ -1,0 +1,10 @@
+[
+{
+  "__spy_point__": "my_point",
+  "key": "Value passed to exception"
+},
+{
+  "__spy_point__": "rescue_point",
+  "except": "Value passed to exception"
+}
+]

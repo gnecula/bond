@@ -1,0 +1,9 @@
+[
+{
+  "__spy_point__": "my_point"
+},
+{
+  "__spy_point__": "rescue_point",
+  "except": "TypeError exception!"
+}
+]

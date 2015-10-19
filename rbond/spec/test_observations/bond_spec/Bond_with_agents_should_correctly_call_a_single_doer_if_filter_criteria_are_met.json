@@ -1,0 +1,10 @@
+[
+{
+  "__spy_point__": "internal",
+  "val": "value"
+},
+{
+  "__spy_point__": "my_point",
+  "my_key": "value"
+}
+]

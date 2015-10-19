@@ -1,0 +1,121 @@
+[
+{
+  "__spy_point__": "my_point",
+  "obs_name": "value"
+},
+{
+  "result": "mocked"
+},
+{
+  "__spy_point__": "my_point",
+  "obs_name": "not value"
+},
+{
+  "result": "agent_result_none"
+},
+{
+  "__spy_point__": "my_point_eq",
+  "obs_name": "value"
+},
+{
+  "result": "mocked"
+},
+{
+  "__spy_point__": "my_point_eq",
+  "obs_name": "not value"
+},
+{
+  "result": "agent_result_none"
+},
+{
+  "__spy_point__": "my_point_exact",
+  "obs_name": "value"
+},
+{
+  "result": "mocked"
+},
+{
+  "__spy_point__": "my_point_exact",
+  "obs_name": "not value"
+},
+{
+  "result": "agent_result_none"
+},
+{
+  "__spy_point__": "my_point_startswith",
+  "obs_name": "value"
+},
+{
+  "result": "mocked"
+},
+{
+  "__spy_point__": "my_point_startswith",
+  "obs_name": "not value"
+},
+{
+  "result": "agent_result_none"
+},
+{
+  "__spy_point__": "my_point_startswith",
+  "obs_name": "value not"
+},
+{
+  "result": "mocked"
+},
+{
+  "__spy_point__": "my_point_endswith",
+  "obs_name": "value"
+},
+{
+  "result": "mocked"
+},
+{
+  "__spy_point__": "my_point_endswith",
+  "obs_name": "not value"
+},
+{
+  "result": "mocked"
+},
+{
+  "__spy_point__": "my_point_endswith",
+  "obs_name": "value not"
+},
+{
+  "result": "agent_result_none"
+},
+{
+  "__spy_point__": "my_point_contains",
+  "obs_name": "value"
+},
+{
+  "result": "mocked"
+},
+{
+  "__spy_point__": "my_point_contains",
+  "obs_name": "not value"
+},
+{
+  "result": "mocked"
+},
+{
+  "__spy_point__": "my_point_contains",
+  "obs_name": "value not"
+},
+{
+  "result": "mocked"
+},
+{
+  "__spy_point__": "my_point_contains",
+  "obs_name": "not value not"
+},
+{
+  "result": "mocked"
+},
+{
+  "__spy_point__": "my_point_contains",
+  "obs_name": "foobar"
+},
+{
+  "result": "agent_result_none"
+}
+]

@@ -1,0 +1,16 @@
+[
+{
+  "__spy_point__": "my_point",
+  "my_key": 5
+},
+{
+  "result": "agent_result_none"
+},
+{
+  "__spy_point__": "my_point",
+  "my_key": 10
+},
+{
+  "result": "mocked"
+}
+]

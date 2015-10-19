@@ -219,8 +219,8 @@ class SpyAgent
   end
 
   def process?(observation)
-    @filters.empty? || @filters.any? do |filter|
-      !filter.accept?(observation)
+    @filters.empty? || @filters.all? do |filter|
+      filter.accept?(observation)
     end
   end
 
@@ -283,8 +283,13 @@ class SpyAgentFilter
   def accept?(observation)
     if @field_name.nil?
       @filter_func.call(observation)
+    elsif observation.has_key?(@field_name)
+        @filter_func.call(observation[@field_name])
+    elsif observation.has_key?(@field_name.to_sym)
+      @filter_func.call(observation[@field_name.to_sym])
     else
-      observation.has_key?(@field_name) && @filter_func.call(observation[@field_name])
+      false
     end
   end
+
 end

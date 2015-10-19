@@ -1,0 +1,14 @@
+[
+{
+  "__spy_point__": "internal_doer"
+},
+{
+  "__spy_point__": "internal_result"
+},
+{
+  "__spy_point__": "my_point"
+},
+{
+  "result": "mocked"
+}
+]

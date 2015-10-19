@@ -1,0 +1,23 @@
+[
+{
+  "__spy_point__": "my_point_1"
+},
+{
+  "__spy_point__": "point_1_return",
+  "return_value": "mock result"
+},
+{
+  "__spy_point__": "my_point_2"
+},
+{
+  "__spy_point__": "point_2_return",
+  "return_value": "mock result 2"
+},
+{
+  "__spy_point__": "my_point_1"
+},
+{
+  "__spy_point__": "point_1_return_2",
+  "return_value": "mock result"
+}
+]
