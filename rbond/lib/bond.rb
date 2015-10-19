@@ -9,15 +9,15 @@ class Bond
   DEFAULT_OBSERVATION_DIRECTORY = '/tmp/bond_observations'
   @testing = false
 
-  def settings(spy_groups: nil, observation_directory: nil, merge_type: nil)
+  def settings(spy_groups: nil, observation_directory: nil, reconcile_type: nil)
     raise 'not yet implemented' unless spy_groups.nil? # TODO spy_groups
     @observation_directory = observation_directory unless observation_directory.nil?
-    @merge_type = merge_type unless @merge_type.nil?
+    @reconcile_type = reconcile_type unless @reconcile_type.nil?
   end
 
   # TODO ETK make this able to use other test frameworks as well
   def start_test(rspec_test, test_name: nil, spy_groups: nil,
-                 observation_directory: nil, merge_type: nil)
+                 observation_directory: nil, reconcile_type: nil)
     @testing = true
     @observations = []
     @spy_agents = Hash.new { |hash, key|
@@ -25,7 +25,7 @@ class Bond
     }
     @observation_directory = nil
     @current_test = rspec_test
-    @merge_type = merge_type
+    @reconcile_type = reconcile_type
 
     if test_name.nil?
       test_file = @current_test.metadata[:file_path]
@@ -36,7 +36,7 @@ class Bond
       @test_name = test_name
     end
 
-    settings(spy_groups: spy_groups, observation_directory: observation_directory, merge_type: merge_type)
+    settings(spy_groups: spy_groups, observation_directory: observation_directory, reconcile_type: reconcile_type)
 
     # TODO ETK get the test information and stuff
     # spy groups
@@ -120,9 +120,8 @@ class Bond
       raise "Cannot find the bond_reconcile script: #{bond_reconcile_script}"
     end
 
-    ENV['BOND_MERGE'] = @merge_type unless @merge_type.nil?
-
-    cmd = "#{bond_reconcile_script} --reference #{ref_file} --current #{cur_file} --test #{@test_name}"
+    cmd = "#{bond_reconcile_script} --reference #{ref_file} --current #{cur_file} --test #{@test_name} " +
+        (@reconcile_type.nil? ? '' : "--reconcile #{@reconcile_type}")
     puts "Running: #{cmd}"
     code = system(cmd)
     code ? :pass : :fail
