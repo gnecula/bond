@@ -2,8 +2,7 @@ require 'spec_helper'
 require 'bond/bond_targetable.rb'
 
 describe BondTargetable do
-  include_context :bond,
-                  observation_directory: File.join(File.dirname(__FILE__), 'test_observations')
+  include_context :bond
 
   class TestClass
     extend BondTargetable

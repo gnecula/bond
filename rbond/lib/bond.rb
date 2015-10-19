@@ -18,6 +18,7 @@ class Bond
   # TODO ETK make this able to use other test frameworks as well
   def start_test(rspec_test, test_name: nil, spy_groups: nil,
                  observation_directory: nil, reconcile_type: nil)
+
     @testing = true
     @observations = []
     @spy_agents = Hash.new { |hash, key|
@@ -42,13 +43,13 @@ class Bond
     # spy groups
   end
 
-  def spy(spy_point_name, **observation)
+  def spy(spy_point_name=nil, **observation)
     raise 'You must enable testing before using spy' unless @testing
-    spy_point_name = spy_point_name.to_s
+    spy_point_name = spy_point_name.nil? ? nil : spy_point_name.to_s
 
-    observation[:__spy_point__] = spy_point_name
+    observation[:__spy_point__] = spy_point_name unless spy_point_name.nil?
     observation = deep_clone_sort_hashes(observation)
-    active_agent = @spy_agents[spy_point_name].find { |agent| agent.process?(observation) }
+    active_agent = spy_point_name.nil? ? nil : @spy_agents[spy_point_name].find { |agent| agent.process?(observation) }
 
     res = :agent_result_none
     begin
@@ -151,8 +152,7 @@ class Bond
   def observation_directory
     return @observation_directory unless @observation_directory.nil?
     test_file = @current_test.metadata[:file_path]
-    File.join(File.dirname(File.basename(test_file, File.extname(test_file))),
-        'test_observations')
+    File.join(File.dirname(File.absolute_path(test_file)), 'test_observations')
   end
 
   def format_observation(observation, agent = nil)
