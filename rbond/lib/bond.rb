@@ -42,7 +42,8 @@ class Bond
   end
 
   def spy(spy_point_name=nil, **observation)
-    raise 'You must enable testing before using spy' unless @testing
+    return unless @testing && !@current_test.nil? # If we're not testing, don't do anything
+
     spy_point_name = spy_point_name.nil? ? nil : spy_point_name.to_s
 
     observation[:__spy_point__] = spy_point_name unless spy_point_name.nil?
