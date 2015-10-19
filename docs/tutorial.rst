@@ -43,7 +43,7 @@ testing code:
             self.assertEquals(4, tree.left.right.data)
             self.assertEquals(6, tree.left.right.right.data)
 
-        .. code-block:: ruby
+    .. code-block:: ruby
 
         some ruby code { here }
 
@@ -192,6 +192,7 @@ deep assertions about your test while keeping the assertion maintenance cost low
 
 You can control the reconciliation method using a parameter to ``bond.start_test`` or with the environment
 variable ``BOND_RECONCILE``, with possible values
+
 * ``accept`` : accept the new observations and change the reference
 * ``abort`` : abort the test
 * ``console`` : show the above console interaction menu
@@ -242,7 +243,7 @@ replace some of those values. Spying and mocking together can be achieved if you
 Assume that you have a
 method called ``make_request`` in your code, whose purpose is to make HTTP requests
 to other services. You may want to spy how many times this method is called in your tests,
-and with what arguments, and possibly what it returns each for each call. You also want
+and with what arguments, and possibly what it returns for each call. You also want
 your tests to be able to bypass the actual HTTP request and provide mock results for this function.
 This can be achieved with
 the ``bond.spy_point`` function annotation, as shown below:
@@ -280,7 +281,7 @@ method. This code can do multiple things, and can be controlled from the test co
 
 * further decide on which invocations of the spy point they activate, based on various filters on the function arguments.
 * spy the values of the arguments, and optionally the result also.
-* control which arguments are spied and how are the observations formatted.
+* control which arguments are spied and how the observations are formatted.
 * execute additional test code on each call.
 * bypass the actual body of the method and return a result prepared by the testing code, or throw an exception when the call is reached.
 
