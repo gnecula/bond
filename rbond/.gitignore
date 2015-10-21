@@ -1,13 +1,3 @@
-# Emacs:
-*~
-
-
-# JetBrains IDEs:
-*.iml
-
-## Directory-based project format:
-.idea/
-
 # Ruby specific
 /.bundle/
 /.yardoc

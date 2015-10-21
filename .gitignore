@@ -1,1 +1,17 @@
+# Emacs:
+*~
+\#*\#
+auto-save-list
+.\#*
+
+# Vim:
+[._]*.s[a-w][a-z]
+[._]s[a-w][a-z]
+*.un~
+Session.vim
+.netrwhist
+*~
+
+# Jetbrains IDEs
 .idea
+
