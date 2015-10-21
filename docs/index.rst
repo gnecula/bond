@@ -13,6 +13,7 @@ Contents:
 
    tutorial
    api
+   patterns
    development
 
 

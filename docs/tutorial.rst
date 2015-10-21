@@ -13,7 +13,7 @@ Part 1: Spying with Bond
 Spying inside your test code
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Spying with Bond is meant to replace writting the common ``assertEquals`` calls in your tests, i.e., the validation
+Spying with Bond is meant to replace writting the common equality assertion calls in your tests, i.e., the validation
 that some state variable has some expected value. These assertions are tedious to write, and even more tedious to
 update when your code or your test fixture change and you need to update the test. For this reason, people
 tend to write fewer assertions than they should.
@@ -157,7 +157,7 @@ to read that a sequence of equality assertions. Finally, with Bond your test cod
 of the variables you want to assert on; the values they are equal to are saved separated from your test.
 This will turn out to be crucial next.
 
-If you need to make a change in the code, or in the testing setup, it is very tedious to fix the ``assertEquals``.
+If you need to make a change in the code, or in the testing setup, it is very tedious to fix the assertions.
 Let's say that you decide that you get a better test coverage with a different tree where instead of 4 you want to
 insert 7 in the tree. If you run the traditional test, you will see the familiar test failure:
 
@@ -266,34 +266,7 @@ called ``bond.start_test`` first.
 In the next section we will see another Bond function for spying, and mocking, inside
 your production code.
 
-If you put spy point annotations in your production code, you will have to either distribute
-Bond with your code, which is safe as long as you do not call ``bond.start_test``,
-or else fake the Bond API functions using something like this in your file:
-
-.. container:: code-examples
-
-    .. code-block:: python
-        :emphasize-lines: 1, 3-6
-
-        try:
-            import bond
-        except ImportError:
-            # Define inactive versions of the Bond functions
-            spy_point = lambda **kw: lambda f:f
-            spy = lambda **kw: None
-
-    .. code-block:: ruby
-        :emphasize-lines: 1, 3-9
-
-        begin
-            require 'bond'
-        rescue LoadError
-            module BondTargetable
-                DUMMY_BOND = Class.new { def method_missing(meth, *args); end }.new
-                def self.included(base); base.extend(BondTargetable); end
-                def bond; DUMMY_BOND; end
-            end
-        end
+For a pattern to use when including Bond in production code, see :ref:`pattern_bond_import`.
 
 
 Part 2: Mocking with Bond
