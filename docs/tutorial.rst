@@ -93,7 +93,7 @@ The alternative with Bond is as follows:
             bond.spy(tree=tree)  # Spy the whole tree
 
     .. code-block:: ruby
-        :emphasize-lines: 6, 18
+        :emphasize-lines: 7, 19
 
         # Necessary to get the bond context
         require 'bond/bond_spec_helper'
