@@ -93,9 +93,11 @@ The alternative with Bond is as follows:
             bond.spy(tree=tree)  # Spy the whole tree
 
     .. code-block:: ruby
-        :emphasize-lines: 5, 17
+        :emphasize-lines: 6, 18
 
+        # Necessary to get the bond context
         require 'bond/bond_spec_helper'
+
         # Using RSpec
         describe BST do
             # Automatically initializes Bond
