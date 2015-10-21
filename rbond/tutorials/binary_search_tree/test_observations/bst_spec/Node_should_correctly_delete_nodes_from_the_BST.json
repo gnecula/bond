@@ -1,0 +1,29 @@
+[
+{
+  "__spy_point__": "test_delete_1",
+  "tree": {
+    "data": 8,
+    "left": {
+      "data": 3,
+      "right": {
+        "data": 6
+      }
+    },
+    "right": {
+      "data": 12
+    }
+  }
+},
+{
+  "__spy_point__": "test_delete_2",
+  "tree": {
+    "data": 12,
+    "left": {
+      "data": 3,
+      "right": {
+        "data": 6
+      }
+    }
+  }
+}
+]
