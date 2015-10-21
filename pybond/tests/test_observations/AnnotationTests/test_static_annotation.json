@@ -1,6 +1,6 @@
 [
 {
-    "__spy_point__": "bond_annotation_tests.annotated_static_method", 
+    "__spy_point__": "bond_annotation_test.annotated_static_method", 
     "arg2": "bar2"
 }
 ]

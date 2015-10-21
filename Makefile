@@ -4,7 +4,7 @@ PYTHON_TEST_ARGS ?= tests
 BOND_RECONCILE ?= console
 
 run_tests:
-	BOND_RECONCILE=$(BOND_RECONCILE) python -m unittest discover -s pybond -p '*_tests.py'
+	BOND_RECONCILE=$(BOND_RECONCILE) python -m unittest discover -s pybond -p '*_test.py'
 
 .PHONY: docs
 docs:

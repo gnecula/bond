@@ -6,28 +6,28 @@ import setup_paths_test
 from bond import bond, bond_helpers
 
 
+def setup_bond_self_tests(test_instance, spy_groups=None):
+    """
+    Setup Bond for self-tests
+    :param spy_groups:
+    :return:
+    """
+    bond_observations_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                                         'tests',
+                                         'test_observations')
+
+    spy_groups = 'bond_self_test' if spy_groups is None else spy_groups
+    bond.start_test(test_instance,
+                    spy_groups=spy_groups,
+                    observation_directory=bond_observations_dir,
+                    reconcile=os.environ.get('BOND_RECONCILE', 'abort'))
+    # By default we abort the test if it fails. No user-interface
+
 class BondTest(unittest.TestCase):
 
-    @staticmethod
-    def setup_bond_self_tests(test_instance, spy_groups=None):
-        """
-        Setup Bond for self-tests
-        :param spy_groups:
-        :return:
-        """
-        bond_observations_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-                                             'tests',
-                                             'test_observations')
-
-        spy_groups = 'bond_self_test' if spy_groups is None else spy_groups
-        bond.start_test(test_instance,
-                        spy_groups=spy_groups,
-                        observation_directory=bond_observations_dir,
-                        reconcile=os.environ.get('BOND_RECONCILE', 'abort'))
-        # By default we abort the test if it fails. No user-interface
 
     def setUp(self):
-        BondTest.setup_bond_self_tests(self)
+        setup_bond_self_tests(self)
         self.assertTrue(bond.TESTING)
 
     def test_spy_basic(self):
@@ -37,8 +37,8 @@ class BondTest(unittest.TestCase):
                  bool_arg=False,
                  array_arg=[1, 2, 3, 'a string at the end'],
                  dict_arg=dict(foo=1, bar=2))
-
         bond.spy('there', val=10)
+
 
 
     def test_spy_named(self):
@@ -67,7 +67,7 @@ class BondTest(unittest.TestCase):
         # Now spy the contents of the observation directory itself
         bond_instance = bond.Bond.instance()
         bond_instance._finish_test()  # We reach into the internal API
-        bond_instance.current_python_test = self # Has to allow the test to continue
+        bond_instance.test_framework_bridge = bond.TestFrameworkBridge.make_bridge(self) # Has to allow the test to continue
 
         bond.spy('collect_spy_observation_dirs',
                  directory=bond_helpers.collect_directory_contents(test_dir,
@@ -88,7 +88,7 @@ class BondTest(unittest.TestCase):
         bond.spy('second_observation', val=2)
 
         # Just before the test ends, we restore current_python_test
-        bond_instance.current_python_test = self # Has to allow the test to continue
+        bond_instance.test_framework_bridge = bond.TestFrameworkBridge.make_bridge(self) # Has to allow the test to continue
 
     def test_formatter(self):
         "Apply the formatter"

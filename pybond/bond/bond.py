@@ -344,14 +344,8 @@ class Bond:
 
     def __init__(self):
         self._settings = {}
-        self.pointReturns = {}
 
-        # The remaining parameters are per-test
-        # TODO: maybe we do not need a singleton, and we can create a Bond
-        # instance for each test ?
-        # ERIK: That might make more sense, especially if you bond being used in e.g. a parallel
-        # test runner. Though it's slightly less convenient since module-level functions won't work
-        self.current_python_test = None
+        self.test_framework_bridge = None
         self.start_count_failures = None
         self.start_count_errors = None
         self.test_name = None
@@ -387,21 +381,16 @@ class Bond:
         self.observations = []
         self.spy_agents = {}
         self.spy_groups = {}
-        self.current_python_test = current_python_test
+        self.test_framework_bridge = TestFrameworkBridge.make_bridge(current_python_test)
 
         self._settings = {}  # Clear settings before each test
         self.settings(**kwargs)
 
         self.test_name = (self._settings.get('test_name') or
-                          current_python_test.__class__.__name__ + "." + current_python_test._testMethodName)
-        # TODO: the rest is specific to unittest. We need to factor it out to allow other frameworks. See issue #2
-        # (the use of current_python_test._testMethodName above is unittest specific as well)
+                          self.test_framework_bridge.full_test_name())
+
         # Register us on test exit
-        current_python_test.addCleanup(self._finish_test)
-        # We remember the start counter for failures and errors
-        # This is the best way I know how to tell that a test has failed
-        self.start_count_failures = len(current_python_test._resultForDoCleanups.failures)
-        self.start_count_errors = len(current_python_test._resultForDoCleanups.errors)
+        self.test_framework_bridge.on_finish_test(self._finish_test)
 
         if 'observation_directory' not in self._settings:
             print('WARNING: you should set the settings(observation_directory). Observations saved to {}'.format(
@@ -409,7 +398,7 @@ class Bond:
             ))
 
     def spy(self, spy_point_name=None, **kwargs):
-        if not self.current_python_test:
+        if not self.test_framework_bridge:
             # Don't do anything if we are not testing
             return None
 
@@ -463,7 +452,7 @@ class Bond:
         :param kwargs:
         :return:
         """
-        assert self.current_python_test, "Should not call deploy_agent unless you have called start_test first"
+        assert self.test_framework_bridge, "Should not call deploy_agent unless you have called start_test first"
         assert isinstance(spy_point_name, basestring), "spy_point_name must be a string"
 
         agent = SpyAgent(spy_point_name, **kwargs)
@@ -518,13 +507,9 @@ class Bond:
             TESTING = False
 
             # Were there failures and errors in this test?
-            # TODO: this is specific to unittest. See issue #2
-            failures_and_errors = (
-                "\n".join([err for tst, err in
-                           self.current_python_test._resultForDoCleanups.failures[self.start_count_failures:] +
-                           self.current_python_test._resultForDoCleanups.errors[self.start_count_errors:]]))
+            test_failed = self.test_framework_bridge.test_failed()
             # Save the observations
-            if failures_and_errors:
+            if test_failed:
                 no_save = 'Test had failures'
             else:
                 no_save = None
@@ -550,12 +535,12 @@ class Bond:
             # WE have to reconcile them
             reconcile_res = self._reconcile_observations(reference_file, current_file, no_save=no_save)
 
-            if not failures_and_errors:
+            if not test_failed:
                 # If the test did not fail already, but it failed reconcile, fail the test
                 assert reconcile_res, 'Reconciling observations for {}'.format(self.test_name)
         finally:
             # Mark that we are outside of a test
-            self.current_python_test = None
+            self.test_framework_bridge = None
         pass
 
     def _observation_file_name(self):
@@ -569,7 +554,7 @@ class Bond:
             return obs_dir
 
         # We build the observation directory based on the path of the current test file
-        test_file = inspect.getfile(self.current_python_test.__class__)
+        test_file = self.test_framework_bridge.test_file_name()
         if test_file:
             return os.path.join(os.path.dirname(test_file),
                                 'test_observations')
@@ -719,6 +704,110 @@ class SpyAgentFilter:
         else:
             return self.filter_func(observation)
 
+
+class TestFrameworkBridge:
+    """
+    A class to abstract the interface to the host test framework
+    """
+    def __init__(self,
+                 current_python_test):
+        self.current_python_test = current_python_test
+
+    @staticmethod
+    def make_bridge(current_python_test):
+        """
+        Make the proper bridge for the current python test
+        :param current_python_test:
+        :return:
+        """
+
+        # We test for the presence of fields
+        if hasattr(current_python_test, '_resultForDoCleanups'):
+            resultForDoCleanups = current_python_test._resultForDoCleanups
+            if (hasattr(resultForDoCleanups, 'failures') and
+                hasattr(resultForDoCleanups, 'errors')):
+
+                return TestFrameworkBridgeUnittest(current_python_test)
+
+            if hasattr(resultForDoCleanups, '_fixtureinfo'):
+                return TestFrameworkBridgePyTest(current_python_test)
+
+        assert False, "Can't recognize the test framework"
+
+    def full_test_name(self):
+        """
+        The full name of the test: Class.test
+        """
+        return self.current_python_test.__class__.__name__ + "." + self.current_python_test._testMethodName
+
+    def test_file_name(self):
+        """
+        The name of the .py file where the test is defined
+        :return:
+        """
+        return inspect.getfile(self.current_python_test.__class__)
+
+    def on_finish_test(self, _callback):
+        """
+        Register a callback to be called on test end
+        """
+        self.current_python_test.addCleanup(_callback)
+
+    def test_failed(self):
+        """
+        Return true if the test has failed
+        :return:
+        """
+        assert False, "Must override"
+
+
+class TestFrameworkBridgeUnittest(TestFrameworkBridge):
+    """
+    A bridge for the standard unitest
+    """
+    def __init__(self,
+                 current_python_test):
+        TestFrameworkBridge.__init__(self, current_python_test)
+
+        # TODO: the rest is specific to unittest. We need to factor it out to allow other frameworks. See issue #2
+        # (the use of current_python_test._testMethodName above is unittest specific as well)
+
+        # We remember the start counter for failures and errors
+        # This is the best way I know how to tell that a test has failed
+        self.start_count_failures_and_errors =  self._count_failures_and_errors()
+
+
+    def test_failed(self):
+        """
+        Return true if the test has failed
+        :return:
+        """
+        return self._count_failures_and_errors() > self.start_count_failures_and_errors
+
+    def _count_failures_and_errors(self):
+        return len(self.current_python_test._resultForDoCleanups.failures) + \
+               len(self.current_python_test._resultForDoCleanups.errors)
+
+class TestFrameworkBridgePyTest(TestFrameworkBridge):
+    """
+    A bridge for py.test
+    """
+    def __init__(self,
+                 current_python_test):
+        TestFrameworkBridge.__init__(self, current_python_test)
+        self.start_count_excinfo = self._count_excinfo()
+
+    def test_failed(self):
+        """
+        Return true if the test has failed
+        :return:
+        """
+        return self._count_excinfo() > self.start_count_excinfo
+
+
+    def _count_excinfo(self):
+        return len(self.current_python_test._resultForDoCleanups._excinfo) \
+                     if self.current_python_test._resultForDoCleanups._excinfo else 0
 
 # Import bond_reconcile at the end, because we import bond from bond_reconcile, and
 # we need at least the spy_point to be defined

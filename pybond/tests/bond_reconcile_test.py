@@ -9,7 +9,7 @@ from bond import bond
 from bond import bond_reconcile
 from bond.bond_helpers import collect_directory_contents
 
-from bond_tests import BondTest
+from bond_test import setup_bond_self_tests
 
 class ReconcileTest(unittest.TestCase):
 
@@ -26,7 +26,7 @@ class ReconcileTest(unittest.TestCase):
 }
 ]
 """
-        BondTest.setup_bond_self_tests(self)
+        setup_bond_self_tests(self)
         # By default allow diffs
         bond.deploy_agent('bond_reconcile._invoke_command',
                           cmd__startswith='diff ',

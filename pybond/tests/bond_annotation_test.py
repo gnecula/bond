@@ -2,13 +2,13 @@ import unittest
 
 import setup_paths_test
 from bond import bond
-from bond_tests import BondTest
+from bond_test import setup_bond_self_tests
 
 
 class AnnotationTests(unittest.TestCase):
 
     def setUp(self):
-        BondTest.setup_bond_self_tests(self)
+        setup_bond_self_tests(self)
 
     @bond.spy_point()
     def annotated_standard_method(self, arg1, arg2):

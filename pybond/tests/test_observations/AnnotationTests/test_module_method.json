@@ -1,10 +1,10 @@
 [
 {
-    "__spy_point__": "bond_annotation_tests.annotated_module_method", 
+    "__spy_point__": "bond_annotation_test.annotated_module_method", 
     "arg1": 1
 },
 {
-    "__spy_point__": "bond_annotation_tests.annotated_module_method.result", 
+    "__spy_point__": "bond_annotation_test.annotated_module_method.result", 
     "result": "something"
 }
 ]
