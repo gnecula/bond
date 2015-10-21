@@ -1,3 +1,5 @@
+require_relative '../bond'
+
 shared_context :bond do |**settings|
 
   let(:bond) { Bond.instance }
