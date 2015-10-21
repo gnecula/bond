@@ -1,11 +1,10 @@
 require 'spec_helper'
-require 'bond/bond_targetable.rb'
 
 describe BondTargetable do
   include_context :bond
 
   class TestClass
-    extend BondTargetable
+    include BondTargetable
 
     spy_point
     def annotated_standard_method(arg1, arg2) end
@@ -160,5 +159,29 @@ describe BondTargetable do
     bond.deploy_agent('spy_return', result: :agent_result_none)
     ret = tc.annotated_method_spy_return('value')
     bond.spy('return value', ret: ret)
+  end
+
+  context 'with modules' do
+    module TestModule
+      include BondTargetable
+
+      spy_point
+      def self.annotated_class_method(arg1, arg2) end
+
+      spy_point
+      def annotated_standard_method(arg1) end
+
+    end
+
+    class TestClassWithMixin; include TestModule; end
+
+    it 'correctly spies on module methods' do
+      TestModule.annotated_class_method('value1', 'value2')
+    end
+
+    it 'correctly spies on included module methods' do
+      TestClassWithMixin.new.annotated_standard_method('value')
+    end
+
   end
 end

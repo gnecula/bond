@@ -8,7 +8,8 @@ class Bond
   include Singleton
 
   DEFAULT_OBSERVATION_DIRECTORY = '/tmp/bond_observations'
-  @testing = false
+  public
+  attr_reader :testing
 
   def settings(spy_groups: nil, observation_directory: nil, reconcile_type: nil)
     raise 'not yet implemented' unless spy_groups.nil? # TODO spy_groups
@@ -98,10 +99,6 @@ class Bond
     File.delete(cur_file) if File.exists?(cur_file)
     save_observations(cur_file)
 
-    # TRANSITION CODE: Run the external command to reconcile
-    # TODO ETK right now using bond_reconcile from the python module, but really there should be
-    #      a local copy (in rbond/bin?). Also less frailness in terms of finding the script -
-    #      it probably shouldn't be based on the location of the @observation_directory
     reconcile_result = reconcile_observations(ref_file, cur_file,
                                               test_fail ? 'Test had failure(s)!' : nil)
     return :test_fail if test_fail
@@ -119,9 +116,9 @@ class Bond
   # If ref_file does not exist, it will be treated as an empty file.
   # If +no_save+ is not nil, the ref_file will *not* be overwritten and +no_save+
   # will be displayed as the reason why saving is not allowed.
-  # Returns +:pass+ if the reconciliation succeeds, else +:fail+
+  # Returns +:pass+ if the reconciliation succeeds, else +:bond_fail+
   def reconcile_observations(ref_file, cur_file, no_save=nil)
-    bond_reconcile_script = File.absolute_path(observation_directory + '/../../../pybond/bond/bond_reconcile.py')
+    bond_reconcile_script = File.absolute_path(File.join(File.dirname(File.dirname(__FILE__)), 'bin', 'bond_reconcile.py'))
     unless File.exists?(bond_reconcile_script)
       raise "Cannot find the bond_reconcile script: #{bond_reconcile_script}"
     end
@@ -293,3 +290,5 @@ class SpyAgentFilter
   end
 
 end
+
+require_relative 'bond/bond_targetable'
