@@ -139,7 +139,7 @@ module BondTargetable
     # @param options [Hash] Hash of options, which should be any of the arguments to {#spy_point}
     #                except for `spy_point_name`
     def bond_interceptor(method, spy_point_name, options, *args, **kwargs, &blk)
-      return kwargs.empty? ? method.call(*args, &blk) : method.call(*args, **kwargs, &blk) unless Bond.instance.testing
+      return kwargs.empty? ? method.call(*args, &blk) : method.call(*args, **kwargs, &blk) unless Bond.instance.active?
       param_list = method.parameters.select { |type, _| type == :opt || type == :req }.map { |_, name| name }
 
       observation = {}

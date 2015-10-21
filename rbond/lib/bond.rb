@@ -8,9 +8,11 @@ class Bond
   include Singleton
 
   DEFAULT_OBSERVATION_DIRECTORY = '/tmp/bond_observations'
-  public
-  attr_reader :testing
 
+  def active?
+    !@current_test.nil?
+  end
+  
   def settings(spy_groups: nil, observation_directory: nil, reconcile_type: nil)
     raise 'not yet implemented' unless spy_groups.nil? # TODO spy_groups
     @observation_directory = observation_directory unless observation_directory.nil?
@@ -20,8 +22,6 @@ class Bond
   # TODO ETK make this able to use other test frameworks as well
   def start_test(rspec_test, test_name: nil, spy_groups: nil,
                  observation_directory: nil, reconcile_type: nil)
-
-    @testing = true
     @observations = []
     @spy_agents = Hash.new { |hash, key|
       hash[key] = []
@@ -43,7 +43,7 @@ class Bond
   end
 
   def spy(spy_point_name=nil, **observation)
-    return unless @testing && !@current_test.nil? # If we're not testing, don't do anything
+    return unless active? # If we're not testing, don't do anything
 
     spy_point_name = spy_point_name.nil? ? nil : spy_point_name.to_s
 
@@ -72,7 +72,7 @@ class Bond
   # The most recently deployed agent will always take precedence over any previous
   # agents for a given spy point.
   def deploy_agent(spy_point_name, **opts)
-    raise 'You must enable testing before using deploy_agent' unless @testing
+    raise 'You must enable testing before using deploy_agent' unless active?
     spy_point_name = spy_point_name.to_s
     @spy_agents[spy_point_name] = @spy_agents[spy_point_name].unshift(SpyAgent.new(**opts))
   end
@@ -105,7 +105,6 @@ class Bond
     return reconcile_result
   ensure
     @current_test = nil
-    @testing = false
   end
 
   private
