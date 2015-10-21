@@ -12,7 +12,7 @@ class Bond
   def active?
     !@current_test.nil?
   end
-  
+
   def settings(spy_groups: nil, observation_directory: nil, reconcile_type: nil)
     raise 'not yet implemented' unless spy_groups.nil? # TODO spy_groups
     @observation_directory = observation_directory unless observation_directory.nil?

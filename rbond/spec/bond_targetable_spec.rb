@@ -4,45 +4,45 @@ describe BondTargetable do
   include_context :bond
 
   class TestClass
-    include BondTargetable
+    extend BondTargetable
 
-    spy_point
+    bond.spy_point
     def annotated_standard_method(arg1, arg2) end
 
-    spy_point
+    bond.spy_point
     def self.annotated_class_method(arg1, arg2) end
 
-    spy_point
+    bond.spy_point
     def annotated_method_var_args(arg1, arg2, *args) end
 
-    spy_point
+    bond.spy_point
     def annotated_method_kw_params_mixed(arg1:, arg2: 'default', arg3: 'default') end
 
-    spy_point
+    bond.spy_point
     def annotated_method_kw_params_optional(arg1: 'default', arg2: 'default') end
 
-    spy_point
+    bond.spy_point
     def annotated_method_variable_kw_args(arg1:, arg2: 'default', **kwargs) end
 
-    spy_point
+    bond.spy_point
     def annotated_method_mixed_params(arg1, arg2, arg3: 'default', arg4: 'foobar') end
 
-    spy_point
+    bond.spy_point
     def annotated_method_mixed_variable_params(arg1, *args, arg_n1:, arg_n2: 'default', **kwargs) end
 
-    spy_point(spy_point_name: 'my_name')
+    bond.spy_point(spy_point_name: 'my_name')
     def annotated_method_with_name; end
 
-    spy_point(excluded_keys: :arg1)
+    bond.spy_point(excluded_keys: :arg1)
     def annotated_method_single_exclude(arg1, arg2) end
 
-    spy_point(excluded_keys: ['arg1', 'arg3'])
+    bond.spy_point(excluded_keys: ['arg1', 'arg3'])
     def annotated_method_multiple_exclude(arg1, arg2:, arg3: 'default') end
 
-    spy_point(spy_point_name: 'mock_required', require_agent_result: true)
+    bond.spy_point(spy_point_name: 'mock_required', require_agent_result: true)
     def annotated_method_mocking_required(arg1) 'return' end
 
-    spy_point(spy_point_name: 'spy_return', spy_result: true)
+    bond.spy_point(spy_point_name: 'spy_return', spy_result: true)
     def annotated_method_spy_return(arg1) 'return' end
 
     def method_calling_protected; annotated_protected_method('value') end
@@ -163,12 +163,12 @@ describe BondTargetable do
 
   context 'with modules' do
     module TestModule
-      include BondTargetable
+      extend BondTargetable
 
-      spy_point
+      bond.spy_point
       def self.annotated_class_method(arg1, arg2) end
 
-      spy_point
+      bond.spy_point
       def annotated_standard_method(arg1) end
 
     end

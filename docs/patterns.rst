@@ -66,9 +66,6 @@ or else fake the Bond API functions using something like this in your file:
                     return lambda f: f
 
     .. code-block:: ruby
-
-        
-    .. code-block:: ruby
         :emphasize-lines: 1, 3-9
 
         begin
@@ -76,7 +73,7 @@ or else fake the Bond API functions using something like this in your file:
         rescue LoadError
             module BondTargetable
                 DUMMY_BOND = Class.new { def method_missing(meth, *args); end }.new
-                def self.included(base); base.extend(BondTargetable); end
+                def self.extended(base); base.include(BondTargetable); end
                 def bond; DUMMY_BOND; end
             end
         end

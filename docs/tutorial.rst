@@ -281,7 +281,7 @@ to other services. You may want to spy how many times this method is called in y
 and with what arguments, and possibly what it returns for each call. You also want
 your tests to be able to bypass the actual HTTP request and provide mock results for this function.
 This can be achieved with the ``bond.spy_point`` function annotation, as shown below:
-(note that for Ruby, any class or module which you wish to spy on must ``include BondTargetable``)
+(note that for Ruby, any class or module which you wish to spy on must ``extend BondTargetable``)
 
 .. container:: code-examples
 
@@ -304,7 +304,7 @@ This can be achieved with the ``bond.spy_point`` function annotation, as shown b
 
         class MyClass
             # Denotes this class as being able to be targetted by Bond
-            include BondTargetable
+            extend BondTargetable
 
             bond.spy_point
             # Among other things, has the effect of injecting a call to
