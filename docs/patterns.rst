@@ -55,7 +55,9 @@ or else fake the Bond API functions using something like this in your file:
             from utils import bond
         except ImportError:
             class bond:
-                TESTING = False
+                @staticmethod
+                def active()
+                    return False
                 @staticmethod
                 def spy(*args, **kw):
                     return None
@@ -100,7 +102,7 @@ the mock functionality to the agent, and thus to the testing code.
         # Inline spying
         bond.spy(what=x, msg='Spying has effect only if you called bond.start_test')
         ...
-        if not bond.TESTING:
+        if not bond.active():
            value = compute_production_value ()
         else
            # This is true only if you called bond.start_test

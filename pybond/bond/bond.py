@@ -8,7 +8,7 @@ import json
 
 # We use this global to signal that we are in Bond spying mode, i.e., start_test has been
 # called.
-TESTING = False
+TESTING = False  ## DEPRECATED
 
 # Special result from spy when no agent matches, or no agent provides a result
 AGENT_RESULT_NONE = '_bond_agent_result_none'
@@ -104,6 +104,18 @@ def settings(observation_directory=None,
                              reconcile=reconcile,
                              spy_groups=spy_groups)
 
+
+def active():
+    """
+    This function can be called to find out if a ``bond.start_test`` is currently active.
+    For example,
+
+    .. code::
+
+         if bond.active():
+            ..do something..
+    """
+    return Bond.instance().active()
 
 def spy(spy_point_name=None, **kwargs):
     """
@@ -266,7 +278,7 @@ def spy_point(spy_point_name=None,
         @wraps(fn)
         def fn_wrapper(*args, **kwargs):
             # Bypass spying if we are not TESTING
-            if not TESTING:
+            if not active():
                 return fn(*args, **kwargs)
             the_bond = Bond.instance()
             if enabled_for_groups_local is not None:
@@ -375,7 +387,7 @@ class Bond:
         :param kwargs:
         :return:
         """
-        global TESTING
+        global TESTING   ## DEPRECATED
         TESTING = True
 
         self.observations = []
@@ -396,6 +408,9 @@ class Bond:
             print('WARNING: you should set the settings(observation_directory). Observations saved to {}'.format(
                 Bond.DEFAULT_OBSERVATION_DIRECTORY
             ))
+
+    def active(self):
+        return (self.test_framework_bridge is not None)
 
     def spy(self, spy_point_name=None, **kwargs):
         if not self.test_framework_bridge:

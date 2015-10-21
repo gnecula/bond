@@ -22,6 +22,10 @@ def setup_bond_self_tests(test_instance, spy_groups=None):
                     observation_directory=bond_observations_dir,
                     reconcile=os.environ.get('BOND_RECONCILE', 'abort'))
     # By default we abort the test if it fails. No user-interface
+    # Still even the abort reconcile wants to run a quick diff
+    bond.deploy_agent('bond_reconcile._invoke_command',
+                      cmd__startswith='diff',
+                      result=0)
 
 class BondTest(unittest.TestCase):
 
@@ -29,6 +33,7 @@ class BondTest(unittest.TestCase):
     def setUp(self):
         setup_bond_self_tests(self)
         self.assertTrue(bond.TESTING)
+        self.assertTrue(bond.active())
 
     def test_spy_basic(self):
         "A basic spy test"
@@ -167,14 +172,13 @@ class BondTest(unittest.TestCase):
 
 
     def test_no_spy_groups(self):
-        # For this test use a separate instance of Bond
-        my_bond = bond.Bond()
-        my_bond.start_test(self, observation_directory='/tmp/bondObs')  # Start the test without spy_groups
+        # Update the settings
+        bond.settings(spy_groups=None)
+
 
     def test_no_observation_directory(self):
-        # For this test use a separate instance of Bond
-        my_bond = bond.Bond()
-        my_bond.start_test(self)  # Start the test without spy_groups or observation dir
+        # Update the settings
+        bond.settings(spy_groups=None, observation_directory=None)
 
     @bond.spy_point(enabled_for_groups='group2')
     def annotated_method_group_enabled(self):
