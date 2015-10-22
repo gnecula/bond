@@ -97,7 +97,7 @@ class Bond
   # to be written out to a file at the end of the current test. All observations are
   # JSON-serialized, and all hashes (at any level of nesting) are sorted. A deep copy
   # of the arguments is made, and any object that is not an Array or Hash will have
-  # its {Object#clone} method called. If it is not cloneable (`clone` throws an error),
+  # its `Object#clone` method called. If it is not cloneable (`clone` throws an error),
   # the original object will be used.
   # @param spy_point_name [#to_s] The name of this spy point. Will be used to subsequently
   #     refer to this point for, e.g., {#deploy_agent}. This name also gets printed as
@@ -379,7 +379,7 @@ class SpyAgent
   end
 end
 
-# Filters used to determine whether or not a {#SpyAgent} should
+# Filters used to determine whether or not a {SpyAgent} should
 # be applied to a given observation.
 # @api private
 class SpyAgentFilter

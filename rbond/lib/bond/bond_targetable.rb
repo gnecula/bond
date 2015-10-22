@@ -14,7 +14,7 @@
 #         ...
 #       end
 #     end
-# 
+#
 module BondTargetable
 
   protected
