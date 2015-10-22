@@ -3,32 +3,82 @@ require 'json'
 require 'fileutils'
 require 'shellwords'
 
-# TODO still needs lots more documentation here...
+# Singleton class providing the core functionality of Bond. You will generally
+# access this through the {BondTargetable#bond} method exported to you when you
+# `extend` BondTargetable, but it can also be accessed (e.g. for functions not
+# contained in a class/module) via `Bond.instance`.
 class Bond
   include Singleton
+  # TODO ETK make this able to use other test frameworks as well
 
-  DEFAULT_OBSERVATION_DIRECTORY = '/tmp/bond_observations'
-
+  # Returns true if Bond is currently active (in testing mode), else false.
+  # If this returns false, you can safely assume that calls to {#spy} will
+  # have no effect.
   def active?
     !@current_test.nil?
   end
 
-  def settings(spy_groups: nil, observation_directory: nil, reconcile_type: nil)
+  # Change the settings for Bond, overriding anything which was previously set by
+  # {#start_test}. Accepts any of the keyword arguments that {#start_test} does
+  # except for `test_name`, which cannot be changed.
+  # @param (see #start_test)
+  def settings(spy_groups: nil, observation_directory: nil, reconcile: nil)
     raise 'not yet implemented' unless spy_groups.nil? # TODO spy_groups
     @observation_directory = observation_directory unless observation_directory.nil?
-    @reconcile_type = reconcile_type unless @reconcile_type.nil?
+    @reconcile = reconcile unless @reconcile.nil?
   end
 
-  # TODO ETK make this able to use other test frameworks as well
+  # Enable testing for Bond. When using RSpec, this will be called automatically
+  # for you when you `include_context :bond`, to which you can pass all of the
+  # same keyword arguments as `start_test`.
+  # @param rspec_test The current test that is being run through RSpec.
+  # @param test_name [String] The name of the current test. If not provided,
+  #     the default is the test file concatenated with the full description
+  #     string of the RSpec test, e.g. for a test within my_class_spec.rb that
+  #     appeared as:
+  #
+  #       ```
+  #       describe MyClass do
+  #         include_context :bond
+  #         context 'when nothing is wrong' do
+  #           it 'should work!' do
+  #             ... test code ...
+  #           end
+  #         end
+  #       end
+  #       ```
+  #
+  #     `test_name` would be 'my_class_spec.MyClass_when_nothing_is_wrong_should_work_'
+  #     (note that all non-alphanumeric characters except periods and parenthesis are
+  #     replaced with an underscore).
+  # @param spy_groups NOT YET IMPLEMENTED.
+  # @param observation_directory [String] Path to the directory where
+  #     the observations for this test should be stored. The default is
+  #     a 'test_observations' directory located in the same directory
+  #     as the file containing the current test. Test observations will
+  #     be stored within this directory. Any hierarchy (as specified by .)
+  #     in the test name becomes a directory hierarchy, e.g. a test name of
+  #     'bond.my_tests.test_name' would be stored at
+  #     '`{observation_directory}`/bond/my_tests/test_name.json'
+  # @param reconcile The action to take when there are differences found between
+  #     the reference versions of test output and the current test output.
+  #     Should be one of:
+  #
+  #     - **`:console`** - interactive console prompts to decide what to merge (default)
+  #     - `:abort` - don't accept any new changes
+  #     - `:accept` - accept all new changes
+  #     - `:kdiff3` - use the kdiff3 graphical merge tool to reconcile differences
+  #
   def start_test(rspec_test, test_name: nil, spy_groups: nil,
-                 observation_directory: nil, reconcile_type: nil)
+                 observation_directory: nil, reconcile: nil)
+
     @observations = []
     @spy_agents = Hash.new { |hash, key|
       hash[key] = []
     }
     @observation_directory = nil
     @current_test = rspec_test
-    @reconcile_type = reconcile_type
+    @reconcile = reconcile
 
     if test_name.nil?
       test_file = @current_test.metadata[:file_path]
@@ -39,11 +89,24 @@ class Bond
       @test_name = test_name
     end
 
-    settings(spy_groups: spy_groups, observation_directory: observation_directory, reconcile_type: reconcile_type)
+    settings(spy_groups: spy_groups, observation_directory: observation_directory, reconcile: reconcile)
   end
 
+  # The main entrypoint, used to observe some program state. If Bond is not active,
+  # does nothing. Observes all keyword arguments within `observation`, recording them
+  # to be written out to a file at the end of the current test. All observations are
+  # JSON-serialized, and all hashes (at any level of nesting) are sorted. A deep copy
+  # of the arguments is made, and any object that is not an Array or Hash will have
+  # its {Object#clone} method called. If it is not cloneable (`clone` throws an error),
+  # the original object will be used.
+  # @param spy_point_name [#to_s] The name of this spy point. Will be used to subsequently
+  #     refer to this point for, e.g., {#deploy_agent}. This name also gets printed as
+  #     part of the observation with the key `__spy_point__`.
+  # @param observation Keyword arguments which should be observed.
+  # @return if an agent has been set for this spy point, this will return whatever value
+  #     is specified by that agent. Otherwise, returns `:agent_result_none`.
   def spy(spy_point_name=nil, **observation)
-    return unless active? # If we're not testing, don't do anything
+    return :agent_result_none unless active? # If we're not testing, don't do anything
 
     spy_point_name = spy_point_name.nil? ? nil : spy_point_name.to_s
 
@@ -67,17 +130,31 @@ class Bond
     res
   end
 
-  # Deploy an agent to watch a specific spy point (corresponding to +spy_point_name+).
-  # Any keyword arguments specified as +opts+ will be passed to SpyAgent#new
-  # The most recently deployed agent will always take precedence over any previous
-  # agents for a given spy point.
+  # Deploy an agent to watch a specific spy point. The most recently deployed agent
+  # will always take precedence over any previous agents for a given spy point.
+  # However, if the most recent agent does not apply to the current observation
+  # (because its filters do not match), the next most recent agent will be used,
+  # and so on. At most one agent will be applied.
+  # @param spy_point_name [#to_s] The name of the spy point for which to deploy this agent
+  # @param (see SpyAgent#initialize)
   def deploy_agent(spy_point_name, **opts)
     raise 'You must enable testing before using deploy_agent' unless active?
     spy_point_name = spy_point_name.to_s
     @spy_agents[spy_point_name] = @spy_agents[spy_point_name].unshift(SpyAgent.new(**opts))
   end
 
-  def _finish_test
+  private
+
+  # Clean up from the current test. Marks Bond as no longer active, and saves
+  # all of the current observations to a file specified by {#observation_file_name}.
+  # Creates whatever directory structure necessary for this, and adds a .gitignore
+  # file to ignore Bond's temporary output (if one does not already exist). Then begins
+  # the reconciliation process. If the new observations are different
+  # from the reference files, reconciles them using whatever means specified
+  # by the `reconcile` setting.
+  # @return If the test failed, returns `:test_fail`. If reconciliation fails
+  #     (new changes are not accepted), returns `:bond_fail`. Else returns `:pass`
+  def finish_test
     fname = observation_file_name
     fdir = File.dirname(fname)
     unless File.directory?(fdir)
@@ -107,15 +184,14 @@ class Bond
     @current_test = nil
   end
 
-  private
-
-  # Reconcile observations, for now using an external python script.
-  # Takes ref_file to be the correct test output, and compares cur_file against it.
-  # Depending on +@reconcile_type+, will take action to reconcile the differences.
-  # If ref_file does not exist, it will be treated as an empty file.
-  # If +no_save+ is not nil, the ref_file will *not* be overwritten and +no_save+
-  # will be displayed as the reason why saving is not allowed.
-  # Returns +:pass+ if the reconciliation succeeds, else +:bond_fail+
+  # Reconcile observations, for now using an external Python script.
+  # Depending on the `reconcile` setting, will take action to reconcile the differences.
+  # @param ref_file [String] Path to the accepted/reference test output.
+  #     If this does not exist, it will be treated as an empty file.
+  # @param cur_file [String] Path to the current test output.
+  # @param no_save [nil, String] If not `nil`, `ref_file` will *not* be overwritten
+  #     and the string will be displayed as the reason why saving is not allowed.
+  # @return `:pass` if the reconciliation succeeds, else `:bond_fail`
   def reconcile_observations(ref_file, cur_file, no_save=nil)
     bond_reconcile_script = File.absolute_path(File.join(File.dirname(File.dirname(__FILE__)), 'bin', 'bond_reconcile.py'))
     unless File.exists?(bond_reconcile_script)
@@ -123,16 +199,16 @@ class Bond
     end
 
     cmd = "#{bond_reconcile_script} --reference #{ref_file} --current #{cur_file} --test #{@test_name} " +
-        (@reconcile_type.nil? ? '' : "--reconcile #{@reconcile_type}") +
+        (@reconcile.nil? ? '' : "--reconcile #{@reconcile.to_s}") +
         (no_save.nil? ? '' : "--no-save #{Shellwords.shellescape(no_save.to_s)}")
     puts "Running: #{cmd}"
     code = system(cmd)
     code ? :pass : :bond_fail
   end
 
-  # Save all current observations to a file located at fname. Assumes that
-  # +@observations+ has already been JSON-serialized and outputs them all
-  # as a JSON array.
+  # Save all current observations to a file. Assumes that `@observations`
+  # has already been JSON-serialized and outputs them all as a JSON array.
+  # @param fname [String] Path where the file should be saved.
   def save_observations(fname)
     File.open(fname, 'w') do |f|
       f.print("[\n#{@observations.join(",\n")}\n]\n")
@@ -142,13 +218,13 @@ class Bond
   # Return the file name where observations for the current test should be
   # stored. Any hierarchy (as specified by .) in the test name becomes
   # a directory hierarchy, e.g. a test name of 'bond.my_tests.test_name'
-  # would be stored at '{+base_directory+}/bond/my_tests/test_name.json'
+  # would be stored at '`{base_directory}`/bond/my_tests/test_name.json'
   def observation_file_name
     File.join(observation_directory, @test_name.split('.'))
   end
 
   # Return the directory where observations should be stored
-  # This can be specified with the :observation_directory setting
+  # This can be specified with the `observation_directory` setting.
   # If not set, it will be a 'test_observations' directory located
   # in the same directory as the file containing the current test. 
   def observation_directory
@@ -157,20 +233,28 @@ class Bond
     File.join(File.dirname(File.absolute_path(test_file)), 'test_observations')
   end
 
+  # Formats the observation hash. Currently, this just JSON-serializes
+  # the hash.
+  # @param observation [Hash] Observations to be formatted.
+  # @return The formatted hash.
   def format_observation(observation, agent = nil)
     # TODO ETK actually have formatters
     # custom serialization options for the json serializer...?
     # way to sort the keys...?
-    JSON.pretty_generate(observation, ident: ' '*4)
+    JSON.pretty_generate(observation, indent: ' '*4)
   end
 
   # Deep-clones an object while sorting any Hashes at any depth:
-  #  #Hash::  Creates a new hash containing all of the old key-value
-  #           pairs sorted by key
-  #  #Array:: Creates a new array with the old contents *not* sorted
-  #  Other::  Attempts to call Object#clone. If this fails (results in #TypeError)
-  #           then the object is returned as-is (assumes that non-cloneable objects
-  #           are immutable and thus don't need cloning)
+  #
+  # - Hash: Creates a new hash containing all of the old key-value
+  #         pairs sorted by key
+  # - Array: Creates a new array with the old contents *not* sorted
+  # - Other: Attempts to call Object#clone. If this fails (results in #TypeError)
+  #          then the object is returned as-is (assumes that non-cloneable objects
+  #          are immutable and thus don't need cloning)
+  #
+  # @param obj The object to be cloned.
+  # @return The deep-clone with hashes sorted.
   def deep_clone_sort_hashes(obj)
     if obj.is_a?(Hash)
       {}.tap do |new|
@@ -191,10 +275,60 @@ class Bond
 
 end
 
-# TODO needs more documentation
+# Represents an agent deployed by {Bond#deploy_agent}. Takes
+# action on spy points depending on the options specified upon
+# initialization.
+# @api private
 class SpyAgent
-# TODO ETK needs formatters
+
+  # Initialize, setting the options for this SpyAgent.
+  # @param opts Key-value pairs that control whether the agent is
+  #     active and what it does. The following keys are recognized:
+  #
+  #     - Keys that restrict for which invocations of bond.spy this
+  #       agent is active. All of these conditions must be true for
+  #       the agent to be the active one:
+  #
+  #         - `key: val` - only when the observation dictionary contains
+  #           the `key` with the given value
+  #         - `key__contains: substr` - only when the observation dictionary
+  #           contains the `key` with a string value that contains the given substr.
+  #         - `key__startswith: substr` - only when the observation dictionary
+  #           contains the `key` with a string value that starts with the given substr.
+  #         - `key__endswith: substr` - only when the observation dictionary contains
+  #           the `key` with a string value that ends with the given substr.
+  #         - `filter: func` - only when the given func returns true when passed
+  #           observation dictionary. The function should not make changes to
+  #           the observation dictionary. Uses the observation before formatting.
+  #
+  #     - Keys that control what the observer does when processed:
+  #
+  #         - `do: func` - executes the given function with the observation dictionary.
+  #           func can also be a list of functions, executed in order.
+  #           The function should not make changes to the observation dictionary.
+  #           Uses the observation before formatting.
+  #
+  #     - Keys that control what the corresponding spy returns (by default `:agent_result_none`):
+  #
+  #         - `exception: x` - the call to bond.spy throws the given exception. If `x`
+  #           is a function it is invoked on the observation dictionary to compute
+  #           the exception to throw. The function should not make changes to the
+  #           observation dictionary. Uses the observation before formatting.
+  #         - `result: x` - the call to bond.spy returns the given value. If `x` is a
+  #           function it is invoked on the observe argument dictionary to compute
+  #           the value to return. If the function throws an exception then the
+  #           spied function throws an exception. The function should not make
+  #           changes to the observation dictionary. Uses the observation before
+  #           formatting.
+  #
+  #     - Keys that control how the observation is saved. This is processed after all
+  #       the above functions. **NOT YET AVAILABLE**
+  #
+  #         - `formatter: func` - If specified, a function that is given the observation and
+  #           can update it in place. The formatted observation is what gets serialized and saved.
+  #
   def initialize(**opts)
+    # TODO ETK needs formatters
     @result_spec = nil
     @exception_spec = nil
     @doers = []
@@ -214,16 +348,22 @@ class SpyAgent
     end
   end
 
+  # Checks if this agent should process this observation
+  # @return true iff this agent should process this observation
   def process?(observation)
     @filters.empty? || @filters.all? do |filter|
       filter.accept?(observation)
     end
   end
 
+  # Carries out all of the actions specified by the `do` option
   def do(observation)
     @doers.each { |doer| doer.call(observation) }
   end
 
+  # Gets the result that this agent should return, dependent on the
+  # `result` and `exception` options. If neither is present,
+  # returns `:agent_result_none`.
   def result(observation)
     unless @exception_spec.nil?
       raise @exception_spec.respond_to?(:call) ? @exception_spec.call(observation) : @exception_spec
@@ -239,15 +379,21 @@ class SpyAgent
   end
 end
 
+# Filters used to determine whether or not a {#SpyAgent} should
+# be applied to a given observation.
+# @api private
 class SpyAgentFilter
 
+  # Initialize this filter.
+  # @see Bond#deploy_agent
+  # @param filter_key [#to_s] The key for the filter.
+  # @param filter_value The value for the filter.
   def initialize(filter_key, filter_value)
     @field_name = nil
     @filter_func = nil
 
     filter_key = filter_key.to_s
     if filter_key == 'filter'
-      # TODO ETK is this the correct check?
       raise 'When using filter, passed value must be callable' unless filter_value.respond_to?(:call)
       @filter_func = filter_value
       return
@@ -276,6 +422,7 @@ class SpyAgentFilter
     end
   end
 
+  # Return true iff the provided observation meets this filter.
   def accept?(observation)
     if @field_name.nil?
       @filter_func.call(observation)
