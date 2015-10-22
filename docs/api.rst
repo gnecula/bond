@@ -80,3 +80,11 @@ mocking the result of those functions by deploying agents for specific spy point
 
 Ruby
 ------------------
+
+The Ruby API follows closely the Python API described above. The Ruby
+API is implemented using the following classes:
+
+- `Bond class <rbond/Bond.html>`_
+- `BondTargetable class <rbond/BondTargetable.html>`_
+
+ 
