@@ -14,6 +14,7 @@ Contents:
    tutorial
    api
    patterns
+   example_heat
    development
 
 

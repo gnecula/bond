@@ -390,3 +390,9 @@ You can read more about ``bond.deploy_agent`` in the :ref:`API documentation <ap
 
 That's it! Bond is simple but the possibilities are endless. You can be a pro now!
 
+More Usage Examples
+---------------------------
+
+To learn more about usage patterns visit :ref:`patterns`.
+
+To see a more elaborate example of using Bond visit :ref:`examples`.

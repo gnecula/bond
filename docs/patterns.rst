@@ -1,9 +1,11 @@
+.. _patterns:
+
 ================================
 Bond Usage Patterns
 ================================
 
 
-.. _patern_nondet:
+.. _pattern_nondet:
 
 Dealing with Non-determinism in Observations
 -------------------------------------------------

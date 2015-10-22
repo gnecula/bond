@@ -6,12 +6,25 @@ Bond Development
 Generating documentation
 ---------------------------
 
-You must install Sphinx (``pip install -U Sphinx``) and then
+You must install some tools:
+
+.. code::
+   
+   pip install -U Sphinx
+   gem install yard
+
+Then you can process the documentation
 
 .. code::
 
     make docs
 
+To push it to GitHub Pages:
+
+.. code::
+
+   make github_pages
+   
 
 Running tests
 -----------------
