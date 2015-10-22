@@ -65,3 +65,6 @@ class TemperatureMocker:
 
         # The first pair is the one we use
         return self.temp_steps[0][1]
+
+if __name__ == '__main__':
+    unittest.main ()

@@ -8,16 +8,8 @@ import bond
 
 class HeatWatcher:
     """
-    Monitor temperature rise over time
-    - if temperature stays constant or rises at less than 1 deg/min: Ok
-        - check temperature every minute
-    - if temperature rises at >= 1 deg/min but < 2 deg/min: Warning
-        - check temperature every 10 sec
-    - if temperature rises at >= 2 deg/min: Critical
-         - check temperature every 10 sec
-
-    Send an alert at every state change, and also once every 10 min
-    if in Warning or Critical state.
+    Monitor temperature rise over time.
+    See description in the Bond documentation.
     """
     def __init__(self):
         self.last_temp = None  # The last temp measurement
