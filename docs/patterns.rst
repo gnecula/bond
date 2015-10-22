@@ -28,6 +28,7 @@ to make it return consecutive recognizable numbers. To be continued ...
 
 
 .. _patern_time:
+
 Dealing with Timestamps
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -35,6 +36,7 @@ You should mock time. To be continued ...
 
 
 .. _pattern_bond_import:
+
 Including Bond in Production Code
 --------------------------------------------------
 

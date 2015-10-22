@@ -58,7 +58,16 @@ the arguments and the result of a function or a method.
 
 ----
 
+If you want to modify your production code to fine tune your mocking, you may need to
+know when Bond is active. You can use the function :py:func:`bond.active` for this purpose.
 
+
+----
+
+.. automodule:: bond
+  :members: active
+
+----
 
 Python Mocking API
 ^^^^^^^^^^^^^^^^^^^^^^^
