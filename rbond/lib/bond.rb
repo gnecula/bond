@@ -94,11 +94,14 @@ class Bond
 
   # The main entrypoint, used to observe some program state. If Bond is not active,
   # does nothing. Observes all keyword arguments within `observation`, recording them
-  # to be written out to a file at the end of the current test. All observations are
-  # JSON-serialized, and all hashes (at any level of nesting) are sorted. A deep copy
-  # of the arguments is made, and any object that is not an Array or Hash will have
-  # its `Object#clone` method called. If it is not cloneable (`clone` throws an error),
-  # the original object will be used.
+  # to be written out to a file at the end of the current test. A deep copy
+  # of the arguments is made, all hashes (at any level of nesting) are sorted, and
+  # any object that is not an Array or Hash will have its `Object#clone` method called.
+  # If it is not cloneable (`clone` throws an error), the original object will be used.
+  # The arguments are then JSON-serialized. For any object which has a `to_json` method,
+  # this will be called to serialize it. Note that `to_json` takes one argument which
+  # is a JSON::Ext::Generator::State object; you should pass this object into any `to_json`
+  # calls you make within your `to_json` function.
   # @param spy_point_name [#to_s] The name of this spy point. Will be used to subsequently
   #     refer to this point for, e.g., {#deploy_agent}. This name also gets printed as
   #     part of the observation with the key `__spy_point__`.
@@ -234,13 +237,14 @@ class Bond
   end
 
   # Formats the observation hash. Currently, this just JSON-serializes
-  # the hash.
+  # the hash. If any objects encountered have a `to_json` method, it will
+  # be called to serialize the object. Note that `to_json` takes one argument
+  # which is a JSON::Ext::Generator::State object; you should pass this object
+  # into any `to_json` calls you make within your `to_json` function.
   # @param observation [Hash] Observations to be formatted.
   # @return The formatted hash.
   def format_observation(observation, agent = nil)
     # TODO ETK actually have formatters
-    # custom serialization options for the json serializer...?
-    # way to sort the keys...?
     JSON.pretty_generate(observation, indent: ' '*4)
   end
 
