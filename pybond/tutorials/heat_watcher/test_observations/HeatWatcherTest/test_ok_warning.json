@@ -1,0 +1,132 @@
+[
+{
+    "__spy_point__": "HeatWatcher.get_temperature"
+},
+{
+    "__spy_point__": "HeatWatcher.get_temperature.result", 
+    "result": 70.0
+},
+{
+    "__spy_point__": "HeatWatcher.get_current_time"
+},
+{
+    "__spy_point__": "HeatWatcher.sleep", 
+    "seconds": 60
+},
+{
+    "__spy_point__": "HeatWatcher.get_temperature"
+},
+{
+    "__spy_point__": "HeatWatcher.get_temperature.result", 
+    "result": 70.5
+},
+{
+    "__spy_point__": "HeatWatcher.get_current_time"
+},
+{
+    "__spy_point__": "HeatWatcher.sleep", 
+    "seconds": 60
+},
+{
+    "__spy_point__": "HeatWatcher.get_temperature"
+},
+{
+    "__spy_point__": "HeatWatcher.get_temperature.result", 
+    "result": 71.6
+},
+{
+    "__spy_point__": "HeatWatcher.get_current_time"
+},
+{
+    "__spy_point__": "HeatWatcher.send_alert", 
+    "message": "Warning: Temperature is rising at 1.1 deg/min"
+},
+{
+    "__spy_point__": "HeatWatcher.sleep", 
+    "seconds": 10
+},
+{
+    "__spy_point__": "HeatWatcher.get_temperature"
+},
+{
+    "__spy_point__": "HeatWatcher.get_temperature.result", 
+    "result": 71.61666666666666
+},
+{
+    "__spy_point__": "HeatWatcher.get_current_time"
+},
+{
+    "__spy_point__": "HeatWatcher.send_alert", 
+    "message": "Ok: Temperature is rising at 0.1 deg/min"
+},
+{
+    "__spy_point__": "HeatWatcher.sleep", 
+    "seconds": 60
+},
+{
+    "__spy_point__": "HeatWatcher.get_temperature"
+},
+{
+    "__spy_point__": "HeatWatcher.get_temperature.result", 
+    "result": 71.71666666666665
+},
+{
+    "__spy_point__": "HeatWatcher.get_current_time"
+},
+{
+    "__spy_point__": "HeatWatcher.sleep", 
+    "seconds": 60
+},
+{
+    "__spy_point__": "HeatWatcher.get_temperature"
+},
+{
+    "__spy_point__": "HeatWatcher.get_temperature.result", 
+    "result": 71.81666666666665
+},
+{
+    "__spy_point__": "HeatWatcher.get_current_time"
+},
+{
+    "__spy_point__": "HeatWatcher.sleep", 
+    "seconds": 60
+},
+{
+    "__spy_point__": "HeatWatcher.get_temperature"
+},
+{
+    "__spy_point__": "HeatWatcher.get_temperature.result", 
+    "result": 71.91666666666664
+},
+{
+    "__spy_point__": "HeatWatcher.get_current_time"
+},
+{
+    "__spy_point__": "HeatWatcher.sleep", 
+    "seconds": 60
+},
+{
+    "__spy_point__": "HeatWatcher.get_temperature"
+},
+{
+    "__spy_point__": "HeatWatcher.get_temperature.result", 
+    "result": 72.01666666666664
+},
+{
+    "__spy_point__": "HeatWatcher.get_current_time"
+},
+{
+    "__spy_point__": "HeatWatcher.sleep", 
+    "seconds": 60
+},
+{
+    "__spy_point__": "HeatWatcher.get_temperature"
+},
+{
+    "__spy_point__": "HeatWatcher.get_temperature.result", 
+    "result": 72.11666666666663
+},
+{
+    "__spy_point__": "HeatWatcher.get_current_time"
+}
+]

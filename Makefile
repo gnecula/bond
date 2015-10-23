@@ -9,7 +9,7 @@ run_tests:
 .PHONY: docs
 docs:
 	$(MAKE) -C docs clean html
-	cd rbond && yardoc 'lib/*.rb' 'lib/bond/*.rb' --markup=markdown --no-private --protected
+	cd rbond && yardoc
 	mkdir -p docs/_build/html/rbond
 	rsync -ar rbond/doc/* docs/_build/html/rbond
 

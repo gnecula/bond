@@ -290,8 +290,7 @@ def spy_point(spy_point_name=None,
                     return fn(*args, **kwargs)
 
             arginfo = inspect.getargspec(fn)
-            # print arginfo
-
+            # TODO ETK this should be better: callargs = inspect.getcallargs(fn, *args, **kwargs)
             if spy_point_name is None:
                 # We recognize instance methods by the first argument 'self'
                 # TODO: there must be a better way to do this
@@ -612,7 +611,7 @@ class SpyAgent:
 
     def __init__(self, spy_point_name, **kwargs):
         self.spy_point_name = spy_point_name
-        self.result_spec = None
+        self.result_spec = AGENT_RESULT_NONE
         self.exception_spec = None
         self.formatter_spec = None
         self.doers = []  # A list of things to do
@@ -667,13 +666,10 @@ class SpyAgent:
                 raise es
 
         r = self.result_spec
-        if r is not None:
-            if hasattr(r, '__call__'):
-                return r(observation)
-            else:
-                return r
+        if r is not AGENT_RESULT_NONE and hasattr(r, '__call__'):
+            return r(observation)
         else:
-            return AGENT_RESULT_NONE
+            return r
 
 
 class SpyAgentFilter:

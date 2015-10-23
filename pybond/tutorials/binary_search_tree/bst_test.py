@@ -5,6 +5,9 @@
 import os
 import unittest
 from bst import Node
+import sys
+# Add bond directory to syspath so it can get loaded even if you haven't actually installed Bond
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 from bond import bond
 
 class NodeTest(unittest.TestCase):
@@ -85,3 +88,6 @@ class NodeTest(unittest.TestCase):
         if node.right:
             res['right'] = NodeTest.dumpTree(node.right)
         return res
+
+if __name__ == '__main__':
+    unittest.main()

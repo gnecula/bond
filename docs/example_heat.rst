@@ -120,7 +120,9 @@ certain rate for various time intervals, as shown below:
       :language: ruby
       :start-after: rst_TemperatureMocker
 
-Finally the actual tests:
+Finally the actual tests. We show two different common ways of mocking: mocking out 
+higher-level functions that eventually make calls to outside services, and mocking
+out a utility function (``make_request``), changing behavior based on the parameters. 
 
 .. container:: code-examples
 

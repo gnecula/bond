@@ -333,7 +333,7 @@ class SpyAgent
   #
   def initialize(**opts)
     # TODO ETK needs formatters
-    @result_spec = nil
+    @result_spec = :agent_result_none
     @exception_spec = nil
     @doers = []
     @filters = []
@@ -373,9 +373,7 @@ class SpyAgent
       raise @exception_spec.respond_to?(:call) ? @exception_spec.call(observation) : @exception_spec
     end
 
-    if @result_spec.nil?
-      :agent_result_none
-    elsif @result_spec.respond_to?(:call)
+    if !@result_spec.nil? && @result_spec.respond_to?(:call)
       @result_spec.call(observation)
     else
       @result_spec

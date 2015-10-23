@@ -1,0 +1,146 @@
+[
+{
+    "__spy_point__": "HeatWatcher.get_temperature"
+},
+{
+    "__spy_point__": "HeatWatcher.make_request", 
+    "url": "http://system.server.com/temperature"
+},
+{
+    "__spy_point__": "HeatWatcher.get_temperature.result", 
+    "result": 70.0
+},
+{
+    "__spy_point__": "HeatWatcher.get_current_time"
+},
+{
+    "__spy_point__": "HeatWatcher.sleep", 
+    "seconds": 60
+},
+{
+    "__spy_point__": "HeatWatcher.get_temperature"
+},
+{
+    "__spy_point__": "HeatWatcher.make_request", 
+    "url": "http://system.server.com/temperature"
+},
+{
+    "__spy_point__": "HeatWatcher.get_temperature.result", 
+    "result": 70.5
+},
+{
+    "__spy_point__": "HeatWatcher.get_current_time"
+},
+{
+    "__spy_point__": "HeatWatcher.sleep", 
+    "seconds": 60
+},
+{
+    "__spy_point__": "HeatWatcher.get_temperature"
+},
+{
+    "__spy_point__": "HeatWatcher.make_request", 
+    "url": "http://system.server.com/temperature"
+},
+{
+    "__spy_point__": "HeatWatcher.get_temperature.result", 
+    "result": 73.0
+},
+{
+    "__spy_point__": "HeatWatcher.get_current_time"
+},
+{
+    "__spy_point__": "HeatWatcher.send_alert", 
+    "message": "Critical: Temperature is rising at 2.5 deg/min"
+},
+{
+    "__spy_point__": "HeatWatcher.make_request", 
+    "data": {
+        "message": "Critical: Temperature is rising at 2.5 deg/min"
+    }, 
+    "url": "http://backend.server.com/messages"
+},
+{
+    "__spy_point__": "HeatWatcher.sleep", 
+    "seconds": 10
+},
+{
+    "__spy_point__": "HeatWatcher.get_temperature"
+},
+{
+    "__spy_point__": "HeatWatcher.make_request", 
+    "url": "http://system.server.com/temperature"
+},
+{
+    "__spy_point__": "HeatWatcher.get_temperature.result", 
+    "result": 73.5
+},
+{
+    "__spy_point__": "HeatWatcher.get_current_time"
+},
+{
+    "__spy_point__": "HeatWatcher.sleep", 
+    "seconds": 10
+},
+{
+    "__spy_point__": "HeatWatcher.get_temperature"
+},
+{
+    "__spy_point__": "HeatWatcher.make_request", 
+    "url": "http://system.server.com/temperature"
+},
+{
+    "__spy_point__": "HeatWatcher.get_temperature.result", 
+    "result": 74.0
+},
+{
+    "__spy_point__": "HeatWatcher.get_current_time"
+},
+{
+    "__spy_point__": "HeatWatcher.sleep", 
+    "seconds": 10
+},
+{
+    "__spy_point__": "HeatWatcher.get_temperature"
+},
+{
+    "__spy_point__": "HeatWatcher.make_request", 
+    "url": "http://system.server.com/temperature"
+},
+{
+    "__spy_point__": "HeatWatcher.get_temperature.result", 
+    "result": 74.0833333333
+},
+{
+    "__spy_point__": "HeatWatcher.get_current_time"
+},
+{
+    "__spy_point__": "HeatWatcher.send_alert", 
+    "message": "Ok: Temperature is rising at 0.5 deg/min"
+},
+{
+    "__spy_point__": "HeatWatcher.make_request", 
+    "data": {
+        "message": "Ok: Temperature is rising at 0.5 deg/min"
+    }, 
+    "url": "http://backend.server.com/messages"
+},
+{
+    "__spy_point__": "HeatWatcher.sleep", 
+    "seconds": 60
+},
+{
+    "__spy_point__": "HeatWatcher.get_temperature"
+},
+{
+    "__spy_point__": "HeatWatcher.make_request", 
+    "url": "http://system.server.com/temperature"
+},
+{
+    "__spy_point__": "HeatWatcher.get_temperature.result", 
+    "result": 74.5833333333
+},
+{
+    "__spy_point__": "HeatWatcher.get_current_time"
+}
+]
