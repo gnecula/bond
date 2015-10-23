@@ -51,11 +51,11 @@ class HeatWatcher:
                 self.last_alert_state = alert_state
 
                 if (alert_state != self.last_alert_state or
-                    (alert_state != 'Ok' and now >= 600 + self.last_alert_time)):
-
+                        (alert_state != 'Ok' and now >= 600 + self.last_alert_time)):
                     # Send an alert
-                    self.send_alert("{}: Temperature is rising at {:.1f} deg/min".format(alert_state,
-                                                                                         change_rate))
+                    self.send_alert("{}: Temperature is rising at {:.1f} deg/min"
+                                    .format(alert_state,
+                                            change_rate))
                     self.last_alert_time = now
 
             self.sleep(interval)

@@ -8,11 +8,12 @@ from heat_watcher import HeatWatcher
 
 class HeatWatcherTest:
 
-    def setup_mocks(self, temp_steps):
-        "Ok state then alert"
+    def setup_mocks(self, temp_rates):
+        "Helper function to setup the mocks and agents"
         self.time_mocker = TimeMocker()
         self.temp_mocker = TemperatureMocker(time_mocker=self.time_mocker,
-                                        temp_steps=self.temp_mocker)
+                                             temp_start=70,
+                                             temp_steps=self.temp_mocker)
         bond.deploy_agent('heat_watcher.get_current_time',
                           result=self.time_mocker.current_time)
         bond.deploy_agent('heat_watcher.sleep',
@@ -23,9 +24,10 @@ class HeatWatcherTest:
                           result=None)
 
     def test_ok_warning(self):
-        self.setup_mocks(((0, 70), (60, 70), (300, 75)))
+        self.setup_mocks([ (0, 0.5), (60, 1.2), (300, 0.0)])
         HeatWatcher().monitor_loop(self.time_mocker.current_time() + 400)
 
+# rst_TimeMocker
 class TimeMocker:
     """
     A class to mock time
@@ -40,31 +42,42 @@ class TimeMocker:
     def sleep(self, seconds):
         self.current_time += seconds
 
+# rst_TemperatureMocker
 class TemperatureMocker:
     """
     A class to mock temperature
     """
     def __init__(self,
                  time_mocker,
-                 temp_steps=()):
+                 temp_start,
+                 temp_rates=()):
         """
 
         :param time_mocker: a reference to the current time mocker
-        :param temp_steps: a list of pairs (time_since_start, temperature_to_report)
+        :param temp_start: the starting temperature
+        :param temp_rates: a list of pairs (time_since_start,
+                                            temperature_increase_rate_per_min)
+                           ordered by time_since_start
         :return:
         """
         self.time_mocker = time_mocker
-        self.start_time =  time_mocker.time ()
-        self.temp_steps = temp_steps
+        self.start_time = time_mocker.time()
+        self.last_temp = temp_start       # last temp read
+        self.last_temp_time = self.start_time  # last temp read time
+        self.temp_rates = temp_rates
 
     def get_temperature(self):
-        time_since_start = self.time_mocker.time () - self.start_time
-        # See if we need to advance past the next temperature step
-        if len(self.temp_steps) > 1 and time_since_start >= self.temp_steps[1][0]:
-            self.temp_steps.pop(0)
+        now = self.time_mocker.time()
+        time_since_start = now - self.start_time
+        # See if we need to advance to the next temperature rate
+        if len(self.temp_rates) > 1 and time_since_start >= self.temp_rates[1][0]:
+            self.temp_rates.pop(0)
 
-        # The first pair is the one we use
-        return self.temp_steps[0][1]
+        # The first pair is the one we use to get the rate
+        rate = self.temp_rates[0][1] if len(self.temp_rates) > 0 else 0
+        self.last_temp += (now - self.last_temp_time) / 60 * rate
+        self.last_temp_time = now
+        return self.last_temp
 
 if __name__ == '__main__':
     unittest.main ()
