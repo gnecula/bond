@@ -5,7 +5,7 @@
 },
 {
     "__spy_point__": "bond_reconcile._read_console", 
-    "prompt": "These are the differences for test 1. Saving them not allowed: No saving, period.. ([k]diff3 | [d]iff | *): "
+    "prompt": "Observations are shown for test 1. Saving them not allowed: No saving, period.. Use the diff option to show the differences. ([k]diff3 | [d]iff | *): "
 },
 {
     "__spy_point__": "bond_reconcile._read_console.result", 
@@ -37,7 +37,7 @@
 },
 {
     "__spy_point__": "bond_reconcile._read_console", 
-    "prompt": "These are the differences for test 1. Saving them not allowed: No saving, period.. ([k]diff3 | [d]iff | *): "
+    "prompt": "Observations are shown for test 1. Saving them not allowed: No saving, period.. Use the diff option to show the differences. ([k]diff3 | [d]iff | *): "
 },
 {
     "__spy_point__": "bond_reconcile._read_console.result", 

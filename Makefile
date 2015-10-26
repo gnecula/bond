@@ -3,10 +3,15 @@ PYTHON_TEST_ARGS ?= tests
 
 BOND_RECONCILE ?= console
 
-run_tests:
+run_tests: run_tests_py run_tests_rb
+
+run_tests_py:
 	BOND_RECONCILE=$(BOND_RECONCILE) python -m unittest discover -s pybond -p '*_test.py'
 
-.PHONY: docs
+run_tests_rb:
+	cd rbond && BOND_RECONCILE=$(BOND_RECONCILE) rspec
+
+.PHONY: docs run_tests_py run_tests_rb run_tests
 docs:
 	$(MAKE) -C docs clean html
 	cd rbond && yardoc

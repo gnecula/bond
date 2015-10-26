@@ -37,6 +37,6 @@ To run all the tests from the command line:
 
    bond> [BOND_RECONCILE=...] make run_tests
 
-   
+To execute only tests for Python or Ruby, ``make`` using tasks ``run_tests_py`` or ``run_tests_rb``. 
  
     

@@ -238,7 +238,7 @@ class ReconcileToolConsole(ReconcileTool):
                 prompt = 'Observations are shown for {}. Saving them not allowed: {}.'.format(
                     test_name,
                     no_save
-                ) + 'Use the diff option to show the differences. ([k]diff3 | [d]iff | *):'
+                ) + ' Use the diff option to show the differences. ([k]diff3 | [d]iff | *): '
             else:
                 # Show the diff
                 self.show_diff(test_name, diff_file)
