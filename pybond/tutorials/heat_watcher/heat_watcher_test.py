@@ -26,13 +26,21 @@ class HeatWatcherTest(unittest.TestCase):
 
     def test_ok_warning(self):
         """
-        A test where the higher-level functions get_temperature and send_alert
-        are mocked out to return specified temperatures and do nothing, respectively.
+        A test where the higher-level functions get_temperature and send_alert are
+        mocked out to return specified temperatures and do nothing, respectively.
         """
+
+        def temp_func(time_since_start):
+            if time_since_start < 60:
+                return 70 + 0.5 * (time_since_start / 60.0)
+            elif time_since_start < 110:
+                return 70.5 + 1.2 * ((time_since_start - 60) / 60.0)
+            else:
+                return 71.5 + 0.12 * ((time_since_start - 110) / 60.0)
+
         self.deploy_time_mock()
         self.temp_mocker = TemperatureMocker(time_mocker=self.time_mocker,
-                                             temp_start=70,
-                                             temp_rates=[(0, 0.5), (60, 1.3), (110, 0.1)])
+                                             temp_func=temp_func)
 
         bond.deploy_agent('HeatWatcher.get_temperature',
                           result=self.temp_mocker.get_temperature)
@@ -47,10 +55,21 @@ class HeatWatcherTest(unittest.TestCase):
         depending on the URL that is passed in. This can allow you to test that the
         parsing logic in get_temperature is working correctly.
         """
+
+        def temp_func(time_since_start):
+            if time_since_start < 60:
+                return 70 + 0.5 * (time_since_start / 60.0)
+            elif time_since_start < 120:
+                return 70.5 + 2.5 * ((time_since_start - 60) / 60.0)
+            elif time_since_start < 140:
+                print 'here'
+                return 73 + 3 * ((time_since_start - 120) / 60.0)
+            else:
+                return 74 + 0.5 * ((time_since_start - 140) / 60.0)
+
         self.deploy_time_mock()
         self.temp_mocker = TemperatureMocker(time_mocker=self.time_mocker,
-                                             temp_start=70,
-                                             temp_rates=[(0, 0.5), (60, 2.5), (120, 3), (140, 0.5)])
+                                             temp_func=temp_func)
 
         bond.deploy_agent('HeatWatcher.make_request',
                           url__contains='messages',
@@ -84,40 +103,21 @@ class TemperatureMocker:
     """
     A class to mock temperature
     """
-    def __init__(self,
-                 time_mocker,
-                 temp_start,
-                 temp_rates=()):
+    def __init__(self, time_mocker, temp_func):
         """
-
         :param time_mocker: a reference to the current time mocker
         :param temp_start: the starting temperature
-        :param temp_rates: a list of pairs (time_since_start,
-                                            temperature_increase_rate_per_min)
-                           ordered by time_since_start
-        :return:
+        :param temp_func: function that takes in the number of seconds
+                          since start and returns a temperature value
         """
         self.time_mocker = time_mocker
         self.start_time = time_mocker.time()
-        self.last_temp = temp_start       # last temp read
-        self.last_temp_time = self.start_time  # last temp read time
-        self.temp_rates = temp_rates
+        self.temp_func = temp_func
 
     def get_temperature(self, observation={}):
         now = self.time_mocker.time()
         time_since_start = now - self.start_time
-        # See if we need to advance to the next temperature rate
-        if len(self.temp_rates) > 1 and time_since_start >= self.temp_rates[1][0]:
-            old_rate = self.temp_rates.pop(0)[1]
-            old_rate_time = self.temp_rates[0][0]
-            self.last_temp += (old_rate_time + self.start_time - self.last_temp_time) / 60.0 * old_rate
-            self.last_temp_time = old_rate_time + self.start_time
-
-        # The first pair is the one we use to get the rate
-        rate = self.temp_rates[0][1] if len(self.temp_rates) > 0 else 0
-        self.last_temp += (now - self.last_temp_time) / 60.0 * rate
-        self.last_temp_time = now
-        return self.last_temp
+        return self.temp_func(time_since_start)
 
 if __name__ == '__main__':
     unittest.main()

@@ -20,7 +20,7 @@ class HeatWatcher:
         self.last_temp = None  # The last temp measurement
         self.last_time = None  # The time when we took the last measurement
         self.last_alert_state = 'Ok'   # Ok, Warning, Critical
-        self.last_alert_time = float('-inf')  # The time when we sent the last alert
+        self.last_alert_time = float('-inf')  # Time when we sent the last alert
 
     def monitor_loop(self,
                      exit_time=None):
@@ -40,7 +40,7 @@ class HeatWatcher:
                 self.last_time = now
                 interval = 60
             else:
-                change_rate = (temp - self.last_temp) / (now - self.last_time) * 60
+                change_rate = (temp-self.last_temp) / (now-self.last_time) * 60
                 if change_rate < 1:
                     interval = 60
                     alert_state = 'Ok'
@@ -55,11 +55,11 @@ class HeatWatcher:
                 self.last_time = now
 
                 if (alert_state != self.last_alert_state or
-                        (alert_state != 'Ok' and now >= 600 + self.last_alert_time)):
+                        (alert_state != 'Ok' and
+                            now >= 600 + self.last_alert_time)):
                     # Send an alert
                     self.send_alert("{}: Temperature is rising at {:.1f} deg/min"
-                                    .format(alert_state,
-                                            change_rate))
+                                    .format(alert_state, change_rate))
                     self.last_alert_time = now
 
                 self.last_alert_state = alert_state
