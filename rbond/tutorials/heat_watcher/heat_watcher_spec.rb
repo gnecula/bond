@@ -5,7 +5,7 @@
 # http://necula01.github.io/bond/example_heat.html
 #
 
-require_relative '../../lib/bond/bond_spec_helper'
+require 'bond/bond_spec_helper'
 require_relative 'heat_watcher'
 
 describe HeatWatcher do

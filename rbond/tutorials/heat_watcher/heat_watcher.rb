@@ -6,7 +6,7 @@
 # http://necula01.github.io/bond/example_heat.html
 #
 
-require_relative '../../lib/bond'
+require 'bond'
 
 # Monitor temperature rise over time.
 # See description in the Bond documentation.

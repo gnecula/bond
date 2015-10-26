@@ -8,10 +8,7 @@
 
 import time
 import re
-import sys, os
 import urllib, urllib2
-# Add bond directory to syspath so it loads even if you haven't actually installed Bond
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 from bond import bond
 
 class HeatWatcher:

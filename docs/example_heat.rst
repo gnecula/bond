@@ -51,15 +51,19 @@ How to use this example
       .. container:: code-language-python
   
           .. code-block:: bash
-  
-             python heat_watchers_test.py
+ 
+             ./run_test.sh 
+             # OR
+             PYTHONPATH=$PYTHONPATH:../../ python heat_watcher_test.py
   
   
       .. container:: code-language-ruby
   
           .. code-block:: bash
   
-             rspec heat_watcher_spec.rb           
+             ./run_test.sh
+             # OR
+             RUBYLIB=$RUBYLIB:../../lib rspec heat_watcher_spec.rb           
                         
 #. You can write more tests to test more complex scenarios.
 

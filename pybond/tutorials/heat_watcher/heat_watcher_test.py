@@ -6,9 +6,6 @@
 #
 
 import unittest
-import sys, os
-# Add bond directory to syspath so it loads even if you haven't actually installed Bond
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 from bond import bond
 from heat_watcher import HeatWatcher
 
