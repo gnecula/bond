@@ -45,6 +45,9 @@ describe BondTargetable do
     bond.spy_point(spy_point_name: 'spy_return', spy_result: true)
     def annotated_method_spy_return(arg1) 'return' end
 
+    bond.spy_point
+    def annotated_method_with_block(arg1, &blk) yield; end
+
     def method_calling_protected; annotated_protected_method('value') end
 
     def method_calling_private; annotated_private_method('value') end
@@ -159,6 +162,18 @@ describe BondTargetable do
     bond.deploy_agent('spy_return', result: :agent_result_none)
     ret = tc.annotated_method_spy_return('value')
     bond.spy('return value', ret: ret)
+  end
+
+  it 'correctly passes through blocks' do
+    ret = tc.annotated_method_with_block('foo') { 'value' }
+    bond.spy('return value', ret: ret)
+  end
+
+  it 'correctly returns nil (and mocks) when an agent returns nil' do
+    arr = [0]
+    bond.deploy_agent('TestClass#annotated_method_with_block', result: nil)
+    ret = tc.annotated_method_with_block('foo') { arr[0] = 1 }
+    bond.spy('return value', ret: ret, arr_val: arr[0])
   end
 
   context 'with modules' do

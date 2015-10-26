@@ -93,7 +93,7 @@ describe Bond do
 
     it 'should call the function passed as result if it is callable' do
       mocked_value = 1
-      bond.deploy_agent('my_point', result: lambda { |obs| mocked_value += 1 }, obs_name: 'foo')
+      bond.deploy_agent('my_point', result: lambda { |_| mocked_value += 1 }, obs_name: 'foo')
       bond.spy(result: bond.spy('my_point', obs_name: 'foo'))
       bond.spy(result: bond.spy('my_point', obs_name: 'bar'))
       bond.spy(result: bond.spy('my_point', obs_name: 'foo'))
@@ -135,16 +135,17 @@ describe Bond do
     end
 
     it 'should not call doers of overriden agents' do
-      bond.deploy_agent('my_point', do: lambda { |obs| bond.spy('bad_agent') })
-      bond.deploy_agent('my_point', do: lambda { |obs| bond.spy('valid_agent') })
+      bond.deploy_agent('my_point', do: lambda { |_| bond.spy('bad_agent') })
+      bond.deploy_agent('my_point', do: lambda { |_| bond.spy('valid_agent') })
       bond.spy('my_point')
     end
 
     it 'should call doers before returning result' do
-      bond.deploy_agent('my_point', do: lambda { |obs| bond.spy('internal_doer') },
-                        result: lambda { |obs| bond.spy('internal_result'); 'mocked' })
+      bond.deploy_agent('my_point', do: lambda { |_| bond.spy('internal_doer') },
+                        result: lambda { |_| bond.spy('internal_result'); 'mocked' })
       bond.spy(result: bond.spy('my_point'))
     end
+
   end
 
   # TODO

@@ -49,8 +49,8 @@ class Bond
   #       ```
   #
   #     `test_name` would be 'my_class_spec.MyClass_when_nothing_is_wrong_should_work_'
-  #     (note that all non-alphanumeric characters except periods and parenthesis are
-  #     replaced with an underscore).
+  #     (note that all non-alphanumeric characters except periods are replaced with
+  #     an underscore).
   # @param spy_groups NOT YET IMPLEMENTED.
   # @param observation_directory [String] Path to the directory where
   #     the observations for this test should be stored. The default is
@@ -84,7 +84,7 @@ class Bond
       test_file = @current_test.metadata[:file_path]
       # TODO ETK allow other characters besides alphanumeric?
       @test_name = File.basename(test_file, File.extname(test_file)) + '.' +
-          @current_test.metadata[:full_description].gsub(/[^A-z0-9.()]/, '_')
+          @current_test.metadata[:full_description].gsub(/[^A-z0-9.]/, '_')
     else
       @test_name = test_name
     end

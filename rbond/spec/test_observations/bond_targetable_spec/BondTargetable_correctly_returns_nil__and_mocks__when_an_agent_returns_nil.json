@@ -1,0 +1,11 @@
+[
+{
+    "__spy_point__": "TestClass#annotated_method_with_block",
+    "arg1": "foo"
+},
+{
+    "__spy_point__": "return value",
+    "arr_val": 0,
+    "ret": null
+}
+]

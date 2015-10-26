@@ -79,6 +79,16 @@ class AnnotationTests(unittest.TestCase):
     def test_with_exclusion(self):
         self.annotated_with_exclusion('foo', 'bar', newArg='disappears', newArg2='baz')
 
+    @bond.spy_point()
+    def annotated_with_side_effects(self, array):
+        array[0] = 1
+
+    def test_with_return_none(self):
+        arr = [0]
+        bond.deploy_agent('AnnotationTests.annotated_With_side_effects', result=None)
+        ret = self.annotated_with_side_effects(arr)
+        bond.spy('return value', ret=ret, arr_value=arr[0])
+
     @bond.spy_point(require_agent_result=True, spy_result=True)
     def annotated_with_mocking_mandatory(self, arg1=None):
         return 'return value'
