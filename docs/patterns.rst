@@ -76,7 +76,7 @@ or else fake the Bond API functions using something like this in your file:
             require 'bond'
         rescue LoadError
             module BondTargetable
-                DUMMY_BOND = Class.new { def method_missing(meth, *args); end }.new
+                DUMMY_BOND = Class.new { def method_missing(meth, *args); False; end }.new
                 def self.extended(base); base.include(BondTargetable); end
                 def bond; DUMMY_BOND; end
             end
@@ -115,7 +115,15 @@ the mock functionality to the agent, and thus to the testing code.
 
     .. code-block:: ruby
 
-        
-    .. code-block:: ruby
-
-         at some point do { |x| add code }
+        # Inline spying
+        bond.spy(what: x, msg: 'Spying has effect only if you called bond.start_test')
+        ...
+        unless bond.active?
+            value = compute_production_value
+        else
+            # This is executed only if you called bond.start_test
+            # or used `include_context :bond` in RSpec
+            value = bond.spy('my_spy_point', what: x)
+            if value == :agent_result_none
+                raise "When testing, you must mock 'my_spy_point'" 
+            end
