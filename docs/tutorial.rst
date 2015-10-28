@@ -291,8 +291,11 @@ This can be achieved with the ``bond.spy_point`` function annotation, as shown b
         @bond.spy_point()
         # Among other things, has the effect of injecting a call to
         #
-        #         bond.spy(spy_point_name='make_request', url=url, data=data)
+        #     bond.spy(spy_point_name='module.make_request', url=url, data=data)
         #
+        # where `module` is the name of the module containing make_request.
+        # If make_request was contained within a class, the default spy point 
+        # name would be `Class.make_request`.
         def make_request(url, data=None):
             "HTTP request (GET, or POST if the data is provided)"
             resp = urllib2.urlopen(url, data)
@@ -309,8 +312,10 @@ This can be achieved with the ``bond.spy_point`` function annotation, as shown b
             bond.spy_point
             # Among other things, has the effect of injecting a call to
             #
-            #     bond.spy('make_request', url: url, data: data)
+            #     bond.spy('MyClass#make_request', url: url, data: data)
             #
+            # If make_request was a class method, `MyClass.make_request`
+            # would have been used instead. 
             def make_request(url, data=nil)
                 uri = URI(url)
                 if data.nil?
@@ -351,10 +356,10 @@ agents for the ``make_request`` spy point that we have instrumented earlier.
 
         def test_with_mocking(self):
             bond.start_test()
-            bond.deploy_agent('make_request',
+            bond.deploy_agent('module.make_request',
                               url__endswith='/books',
                               result=(200, json.dumps(mock_books_response)))
-            bond.deploy_agent('make_request',
+            bond.deploy_agent('module.make_request',
                               url__contains='/books/100',
                               result=(404, 'Book not found'))
 
@@ -366,10 +371,10 @@ agents for the ``make_request`` spy point that we have instrumented earlier.
         :emphasize-lines: 2-7
 
         it 'should be able to call out to mock services' do
-             bond.deploy_agent('make_request', 
+             bond.deploy_agent('MyClass#make_request', 
                                url__endswith: '/books',
                                result: [200, mock_books_response.to_json])
-             bond.deploy_agent('make_request',
+             bond.deploy_agent('MyClass#make_request',
                                url__contains: '/books/100',
                                result: [404, 'Book not found'])
 
