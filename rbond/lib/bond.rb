@@ -11,6 +11,12 @@ class Bond
   include Singleton
   # TODO ETK make this able to use other test frameworks as well
 
+  # Maximum number of characters to allow in any test file name
+  # File names which would be longer than this will be truncated
+  # to 10 fewer characters than the max, and a hash of the full
+  # name will be appended to uniquely identify the file.
+  MAX_FILE_NAME_LENGTH = 100
+
   # Returns true if Bond is currently active (in testing mode), else false.
   # If this returns false, you can safely assume that calls to {#spy} will
   # have no effect.
@@ -222,8 +228,22 @@ class Bond
   # stored. Any hierarchy (as specified by .) in the test name becomes
   # a directory hierarchy, e.g. a test name of 'bond.my_tests.test_name'
   # would be stored at '`{base_directory}`/bond/my_tests/test_name.json'
+  # If any portion of the file name (i.e. a directory or file name) is
+  # longer than {#MAX_FILE_NAME_LENGTH} - 5 (to account for a possible
+  # `.json` extension), reduce the length to 10 characters less than
+  # this and fill the remaining 10 characters with a hash of the full name.
   def observation_file_name
-    File.join(observation_directory, @test_name.split('.'))
+    name_array = @test_name.split('.').map do |name|
+      if name.length <= MAX_FILE_NAME_LENGTH - 5
+        name
+      else
+        # Using djb2 hash algorithm translated from http://www.cse.yorku.ca/~oz/hash.html
+        name_hash = name.chars.inject(5381) { |sum, c| ((sum << 5) + sum) + c.to_i }
+        # Take start of name, up to first 10 chars of the hash as base 36 (alphanumerics)
+        name[0, MAX_FILE_NAME_LENGTH - 15] + name_hash.to_s(36)[0, 10]
+      end
+    end
+    File.join(observation_directory, name_array)
   end
 
   # Return the directory where observations should be stored

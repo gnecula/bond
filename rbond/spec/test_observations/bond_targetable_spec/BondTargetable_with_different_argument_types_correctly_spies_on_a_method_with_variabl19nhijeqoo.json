@@ -1,0 +1,13 @@
+[
+{
+    "__spy_point__": "TestClass#annotated_method_var_args",
+    "arg1": "value1",
+    "arg2": "value2"
+},
+{
+    "__spy_point__": "TestClass#annotated_method_var_args",
+    "anonymous_parameter0": "value4",
+    "arg1": "value1",
+    "arg2": "value2"
+}
+]

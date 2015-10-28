@@ -1,0 +1,22 @@
+[
+{
+    "__spy_point__": "my_point"
+},
+{
+    "result": "second mock"
+},
+{
+    "__spy_point__": "my_point",
+    "obs_name": "foobar"
+},
+{
+    "result": "third mock"
+},
+{
+    "__spy_point__": "my_point",
+    "obs_name": "baz"
+},
+{
+    "result": "second mock"
+}
+]
