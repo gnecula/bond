@@ -236,7 +236,7 @@ def spy_point(spy_point_name=None,
 
     :param spy_point_name: (optional) A name to use for this spy point. Default is obtained from the name
                            of the decorated function: for module methods, `module.method_name`. For other
-                           methods, `ClassName.method_name`. 
+                           methods, `ClassName.method_name`.
     :param enabled_for_groups: (optional) A list or tuple of spy point groups to which this spy point belongs.
                            If missing then it is enabled for all groups. These names are arbitrary labels
                            that :py:func:`start_test` can use to turn off groups of spy points.

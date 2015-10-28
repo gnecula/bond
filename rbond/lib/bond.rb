@@ -11,7 +11,7 @@ class Bond
   include Singleton
   # TODO ETK make this able to use other test frameworks as well
 
-  # Maximum number of characters to allow in any test file name
+  # Maximum number of characters to allow in any test file name.
   # File names which would be longer than this will be truncated
   # to 10 fewer characters than the max, and a hash of the full
   # name will be appended to uniquely identify the file.
