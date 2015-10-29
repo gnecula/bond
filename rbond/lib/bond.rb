@@ -207,7 +207,10 @@ class Bond
       raise "Cannot find the bond_reconcile script: #{bond_reconcile_script}"
     end
 
-    cmd = "#{bond_reconcile_script} --reference #{ref_file} --current #{cur_file} --test #{@test_name} " +
+    cmd = "#{Shellwords.shellescape(bond_reconcile_script)} " +
+        "--reference #{Shellwords.shellescape(ref_file)} " +
+        "--current #{Shellwords.shellescape(cur_file)} " +
+        "--test #{Shellwords.shellescape(@test_name)} " +
         (@reconcile.nil? ? '' : "--reconcile #{@reconcile.to_s}") +
         (no_save.nil? ? '' : "--no-save #{Shellwords.shellescape(no_save.to_s)}")
     puts "Running: #{cmd}"
