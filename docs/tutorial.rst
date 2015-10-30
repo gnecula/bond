@@ -255,6 +255,15 @@ variable ``BOND_RECONCILE``, with possible values
 If the test fails, then you will still be shown the differences in the observations, but you will not have
 the choice to accept them as the new reference observations.
 
+The following is the UML sequence diagram for the interation between the test, the BST (system-under-test),
+and the Bond library:
+
+.. uml::
+
+   @startuml
+   @enduml
+
+
 Spying inside your production code while testing
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

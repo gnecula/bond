@@ -14,6 +14,7 @@
 
 import sys
 import os
+import subprocess
 import shlex
 
 # If extensions (or modules to document with autodoc) are in another directory,
@@ -39,7 +40,19 @@ extensions = [
     'sphinx.ext.todo',
     'sphinx.ext.coverage',
     'sphinx.ext.viewcode',
+    'sphinxcontrib.plantuml'
 ]
+
+# Make sure that dot is in the path
+try:
+    dot_path = subprocess.check_output(['/bin/bash', '-c', 'which dot'])
+except subprocess.CalledProcessError:
+    print "ERROR: cannot find 'dot' in PATH. You must install graphviz first"
+    sys.exit(1)
+
+os.environ['GRAPHVIZ_DOT'] = dot_path.strip()
+
+plantuml = 'java -jar plantuml.8031.jar'
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

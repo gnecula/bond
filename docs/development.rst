@@ -6,18 +6,28 @@ Bond Development
 Generating documentation
 ---------------------------
 
-You must install some tools:
+You must install Sphinx and dependencies:
 
 .. code::
    
    pip install -U Sphinx
+   brew install graphviz
+   pip install sphinxcontrib-plantuml
    gem install yard
 
 Then you can process the documentation
 
 .. code::
 
-    make docs
+   pip install -u Sphinx
+   pip install sphinxcontrib-plantuml
+
+Then
+   
+.. code::
+
+   make docs           # makes all the docs
+   make -C docs html   # makes the RST docs (subset of above)
 
 To push it to GitHub Pages:
 
