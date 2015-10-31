@@ -1,0 +1,13 @@
+[
+{
+    "__spy_point__": "AnnotationTests.annotated_with_side_effects", 
+    "array": [
+        0
+    ]
+},
+{
+    "__spy_point__": "return value", 
+    "arr_value": 0, 
+    "ret": null
+}
+]

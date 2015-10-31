@@ -85,7 +85,7 @@ class AnnotationTests(unittest.TestCase):
 
     def test_with_return_none(self):
         arr = [0]
-        bond.deploy_agent('AnnotationTests.annotated_With_side_effects', result=None)
+        bond.deploy_agent('AnnotationTests.annotated_with_side_effects', result=None)
         ret = self.annotated_with_side_effects(arr)
         bond.spy('return value', ret=ret, arr_value=arr[0])
 

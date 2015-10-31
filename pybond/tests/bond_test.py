@@ -22,10 +22,16 @@ def setup_bond_self_tests(test_instance, spy_groups=None):
                     spy_groups=spy_groups,
                     observation_directory=bond_observations_dir,
                     reconcile=os.environ.get('BOND_RECONCILE', 'abort'))
+
     # By default we abort the test if it fails. No user-interface
     # Still even the abort reconcile wants to run a quick diff. We let it do it
     bond.deploy_agent('bond_reconcile._invoke_command',
                       cmd__startswith='diff',
+                      result=bond.AGENT_RESULT_CONTINUE)
+
+    # if we ever get to the read_console, it means that there is a problem with the test.
+    # continue
+    bond.deploy_agent('bond_reconcile._read_console',
                       result=bond.AGENT_RESULT_CONTINUE)
 
 class BondTest(unittest.TestCase):
@@ -84,17 +90,19 @@ class BondTest(unittest.TestCase):
 
 
     def test_spy_not_testing(self):
-        "Trying to spy when not in testing"
+        "Trying to spy when not in testing mode"
 
         # Pretend the test ended
         bond_instance = bond.Bond.instance()
-        bond_instance._finish_test()  # We reach into the internal API
+        old_test_framework_bridge = bond_instance.test_framework_bridge
+        bond_instance.test_framework_bridge = None  # We reach into the internal API
 
+        self.assertFalse(bond.active())
         bond.spy('first_observation', val=1)
         bond.spy('second_observation', val=2)
 
         # Just before the test ends, we restore current_python_test
-        bond_instance.test_framework_bridge = bond.TestFrameworkBridge.make_bridge(self) # Has to allow the test to continue
+        bond_instance.test_framework_bridge = old_test_framework_bridge # Has to allow the test to continue
 
     def test_formatter(self):
         "Apply the formatter"
