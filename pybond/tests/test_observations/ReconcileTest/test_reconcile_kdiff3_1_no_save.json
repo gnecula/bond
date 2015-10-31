@@ -1,7 +1,7 @@
 [
 {
     "__spy_point__": "bond_reconcile._invoke_command", 
-    "cmd": "diff -u -b \"/tmp/bondObservationsDir/reference.json\" \"/tmp/bondObservationsDir/reference_now.json\" >\"/tmp/bondObservationsDir/reference_now.json.diff\""
+    "cmd": "diff -u -b \"/tmp/bondObservations Dir/reference.json\" \"/tmp/bondObservations Dir/reference_now.json\" >\"/tmp/bondObservations Dir/reference_now.json.diff\""
 },
 {
     "__spy_point__": "bond_reconcile._read_console", 
@@ -13,7 +13,7 @@
 },
 {
     "__spy_point__": "bond_reconcile._invoke_command", 
-    "cmd": "kdiff3 \"/tmp/bondObservationsDir/reference.json\" --L1 \"test 1_REFERENCE\" \"/tmp/bondObservationsDir/reference_now.json\" --L2 \"test 1_CURRENT\" "
+    "cmd": "kdiff3 \"/tmp/bondObservations Dir/reference.json\" --L1 \"test 1_REFERENCE\" \"/tmp/bondObservations Dir/reference_now.json\" --L2 \"test 1_CURRENT\" "
 },
 {
     "__spy_point__": "invoke_top_reconcile_results", 

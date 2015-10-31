@@ -14,7 +14,7 @@ from bond_test import setup_bond_self_tests
 class ReconcileTest(unittest.TestCase):
 
     def setUp(self):
-        self.testing_observation_dir = '/tmp/bondObservationsDir'
+        self.testing_observation_dir = '/tmp/bondObservations Dir'  # Intentionally put a space in the path
         self.reference_file = os.path.join(self.testing_observation_dir, 'reference.json')
         self.current_file = os.path.join(self.testing_observation_dir, 'reference_now.json')
 
@@ -34,7 +34,7 @@ class ReconcileTest(unittest.TestCase):
 
         self.console_reply = []  # List of strings to reply when we try to read from console
         bond.deploy_agent('bond_reconcile._read_console',
-                          result=lambda obs: self.console_reply.pop(0))
+                          result=lambda obs: self.console_reply.pop(0) if self.console_reply else bond.AGENT_RESULT_CONTINUE)
 
 
         self.kdiff3_result = 0
