@@ -255,14 +255,55 @@ variable ``BOND_RECONCILE``, with possible values
 If the test fails, then you will still be shown the differences in the observations, but you will not have
 the choice to accept them as the new reference observations.
 
-The following is the UML sequence diagram for the interation between the test, the BST (system-under-test),
+The following is the UML sequence diagram for the interaction between the test, the BST (system-under-test),
 and the Bond library:
 
 .. uml::
 
    @startuml
+
+   participant Test
+   participant SUT as "System-under-test"
+   participant Bond
+   actor Diff as "Interactive merging tool"
+
+   activate Test
+   [-> Test 
+   group "prepare test"
+       activate Bond
+       Test -> Bond : start_test*()
+       Bond -> Test
+   end
+   Test -> SUT : insert()
+   SUT -> Test
+   Test -> Bond : spy('data')
+   Test -> Bond : spy('more data')
+
+   group "finish test"
+       Test -> Bond: end_test*()
+       Bond -> Bond : save\nobservations
+    
+       alt observations different from reference
+          Bond -> Diff: interactive reconcile
+          Diff -> Bond
+       end
+        
+       Bond -> Test
+   end
+   deactivate Bond
+   deactivate Test
    @enduml
 
+Once ``start_test()`` has been called, any subsequent call to
+``bond.spy`` will record the observations, which are saved at the end
+of the test. If the saved observations are different from the
+reference ones, an interactive merging session is initiated to decide
+whether the current observations should be the new reference ones. 
+
+Note that the ``start_test()`` method is explicit in Python, but is
+implicit in Ruby, if you add ``include_context :bond`` to the RSpec
+test. The ``end_test()`` method call is automatic at the end of the
+test both in Python and in Ruby. 
 
 Spying inside your production code while testing
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -281,16 +322,20 @@ For a pattern to use when including Bond in production code, see :ref:`pattern_b
 Part 2: Mocking with Bond
 --------------------------------
 
-Sometimes you want not only to spy values from your production code, but also to
-replace some of those values. Spying and mocking together can be achieved if you place the
-``bond.spy_point`` annotation on a function or a method in your production code.
-Assume that you have a
-method called ``make_request`` in your code, whose purpose is to make HTTP requests
-to other services. You may want to spy how many times this method is called in your tests,
-and with what arguments, and possibly what it returns for each call. You also want
-your tests to be able to bypass the actual HTTP request and provide mock results for this function.
-This can be achieved with the ``bond.spy_point`` function annotation, as shown below:
-(note that for Ruby, any class or module which you wish to spy on must ``extend BondTargetable``)
+Sometimes you want not only to spy values from your production code,
+but also to replace some of those values. Spying and mocking together
+can be achieved if you place the ``bond.spy_point`` annotation on a
+function or a method in your production code.  Let's assume that the
+code to be tested (system under test) is expected to invoke a
+collaborator method called ``make_request``, whose
+purpose is to make HTTP requests to other services. You may want to
+spy how many times this method is called in your tests, and with what
+arguments, and possibly what it returns for each call. You also want
+your tests to be able to bypass the actual HTTP request and provide
+mock results for this function.  This can be achieved with the
+``bond.spy_point`` function annotation, as shown below: (note that for
+Ruby, any class or module which you wish to spy on must ``extend
+BondTargetable``)
 
 .. container:: code-examples
 
@@ -401,6 +446,57 @@ deploy a default agent, e.g., return success on every HTTP request, and then for
 or during a test, you want to deploy a more specific agent that has another behavior.
 
 You can read more about ``bond.deploy_agent`` in the :ref:`API documentation <api_deploy_agent>`.
+
+The following is the UML sequence diagram for using Bond for mocking:
+
+.. uml::
+
+   @startuml
+
+   participant Test
+   participant SUT as "System-under-test"
+   participant DOC as "Collaborator\nlibrary"
+   participant Bond
+   actor Diff as "Interactive merging tool"
+
+   activate Test
+   [-> Test 
+   activate Bond
+   group "prepare test"
+       Test -> Bond : start_test*()
+       Bond -> Test
+       Test -> Bond : deploy_agent(...)
+       Test -> Bond : deploy_agent(...)
+   end
+
+   Test -> SUT : call_my_code()
+   SUT -> DOC : make_request(url)
+   DOC -> Bond : spy('make_request', url=url)
+   Bond -> Bond : find and use\nactive agent
+   Bond -> SUT : mock response
+   SUT -> Test
+
+   group "finish test"
+      Test -> Bond: end_test*()
+      Bond -> Bond : save\nobservations
+   
+      alt observations different from reference
+         Bond -> Diff: interactive reconcile
+         Diff -> Bond
+      end
+       
+      Bond -> Test
+   end
+   deactivate Bond
+   @enduml
+
+In the above diagrams we see that the test would deploy a number of
+agents for specific spy points that would be reached during the
+execution, before the test invokes the system under test. When the
+system under test invokes the collaborator method on which a spy point
+has been declared, Bond is going to look for an active deployed agent
+for that spy point and use the mock result provided by the agent. 
+
 
 That's it! Bond is simple but the possibilities are endless. You can be a pro now!
 

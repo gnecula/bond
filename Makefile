@@ -32,7 +32,7 @@ github_pages: docs
 	cd $(TMP_GP) && git init && git remote add upstream $(GITHUB_REPO)
 	rsync -arv docs/_build/html/* $(TMP_GP)
 	echo "Disable Jekyll to allow _static" >$(TMP_GP)/.nojekyll
-	cd $(TMP_GP) && git add * .nojekyll && git commit -am"Bond documentation"
+	cd $(TMP_GP) && git add * .nojekyll && git commit -am"Updated Bond documentation"
 	cd $(TMP_GP) && git push -f upstream HEAD:gh-pages
 
 
