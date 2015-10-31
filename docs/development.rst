@@ -48,5 +48,31 @@ To run all the tests from the command line:
    bond> [BOND_RECONCILE=...] make run_tests
 
 To execute only tests for Python or Ruby, ``make`` using tasks ``run_tests_py`` or ``run_tests_rb``. 
- 
+
+To execute only a subset of the Python tests:
+
+.. code::
+
+   bond> PYTHON_TEST_ARGS=tests.bond_test[.BondTest[.test_result]]
+
     
+Deploying a new version
+--------------------------
+
+For Python
+
+   - Increment the version number (``pybond/setup.py`` and ``pybond/bond/__init__.py``)
+   - Update docs/changelog.rst
+   - Test the submission to PyPi
+
+      - It is best to create an account on `https://testpypi.python.org/pypi`_
+      - Create the ``~/.pypirc`` as described at https://wiki.python.org/moin/TestPyPI
+
+        .. code::
+
+           make pypi_test     # Create the package and test it
+           make pypi_upload   # Upload to Test PyPi
+
+
+         
+         

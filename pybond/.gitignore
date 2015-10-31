@@ -2,4 +2,8 @@
 *.pyc
 
 build
-
+MANIFEST
+bond.egg-info
+dist
+bond_venv
+bond_venv_tests

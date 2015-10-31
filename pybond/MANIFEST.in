@@ -1,0 +1,10 @@
+include setup.cfg
+include setup.py
+include AUTHORS.rst
+include README.rst
+include LICENSE
+
+global-exclude *.pyc
+
+recursive-include bond
+

@@ -15,8 +15,10 @@ be updated.
 
 For more examples please look at:
 
-* `The main project page <http://necula01.github.io/bond/>`_
-* `A tutorial <http://necula01.github.io/bond/tutorial.html>`_
-* `The API documentation <http://necula01.github.io/bond/tutorial.html>`_
+- `The main project page <http://necula01.github.io/bond/>`_
+- `A tutorial <http://necula01.github.io/bond/tutorial.html>`_
+- `The API documentation <http://necula01.github.io/bond/tutorial.html>`_
+
+
 
 

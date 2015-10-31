@@ -12,9 +12,10 @@ def setup_bond_self_tests(test_instance, spy_groups=None):
     :param spy_groups:
     :return:
     """
-    bond_observations_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-                                         'tests',
-                                         'test_observations')
+    bond_observations_dir = os.environ.get('BOND_OBSERVATION_DIR',
+                                           os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                                                        'tests',
+                                                        'test_observations'))
 
     spy_groups = 'bond_self_test' if spy_groups is None else spy_groups
     bond.start_test(test_instance,
@@ -22,10 +23,10 @@ def setup_bond_self_tests(test_instance, spy_groups=None):
                     observation_directory=bond_observations_dir,
                     reconcile=os.environ.get('BOND_RECONCILE', 'abort'))
     # By default we abort the test if it fails. No user-interface
-    # Still even the abort reconcile wants to run a quick diff
+    # Still even the abort reconcile wants to run a quick diff. We let it do it
     bond.deploy_agent('bond_reconcile._invoke_command',
                       cmd__startswith='diff',
-                      result=0)
+                      result=bond.AGENT_RESULT_CONTINUE)
 
 class BondTest(unittest.TestCase):
 

@@ -3,14 +3,20 @@ PYTHON_TEST_ARGS ?= tests
 
 BOND_RECONCILE ?= console
 
+##
+## Running tests
+##
 run_tests: run_tests_py run_tests_rb
 
 run_tests_py:
-	BOND_RECONCILE=$(BOND_RECONCILE) python -m unittest discover -s pybond -p '*_test.py'
+	$(MAKE) -C pybond run_tests BOND_RECONCILE=$(BOND_RECONCILE) 
 
 run_tests_rb:
 	cd rbond && BOND_RECONCILE=$(BOND_RECONCILE) rspec
 
+##
+## Documentation
+##
 .PHONY: docs run_tests_py run_tests_rb run_tests
 docs:
 	$(MAKE) -C docs clean html
@@ -18,6 +24,9 @@ docs:
 	mkdir -p docs/_build/html/rbond
 	rsync -ar rbond/doc/* docs/_build/html/rbond
 
+##
+## Publishing documentation
+##
 TMP_GP=/tmp/bond_github
 
 # Invoke make ... GITHUB_USER=you
