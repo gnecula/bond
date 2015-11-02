@@ -255,7 +255,8 @@ variable ``BOND_RECONCILE``, with possible values
 If the test fails, then you will still be shown the differences in the observations, but you will not have
 the choice to accept them as the new reference observations.
 
-The following is the UML sequence diagram for the interaction between the test, the BST (system-under-test),
+The following is the UML sequence diagram for the interaction between the
+test, the system-under-test (e.g., the binary-search tree example code from above),
 and the Bond library:
 
 .. uml::
@@ -275,6 +276,7 @@ and the Bond library:
        Bond -> Test
    end
    Test -> SUT : insert()
+   SUT -> Bond : spy('intermediate data')
    SUT -> Test
    Test -> Bond : spy('data')
    Test -> Bond : spy('more data')
@@ -296,7 +298,8 @@ and the Bond library:
 
 Once ``start_test()`` has been called, any subsequent call to
 ``bond.spy`` will record the observations, which are saved at the end
-of the test. If the saved observations are different from the
+of the test. Both the test and the system-under-test can spy values.
+If the saved observations are different from the
 reference ones, an interactive merging session is initiated to decide
 whether the current observations should be the new reference ones. 
 
