@@ -1,6 +1,6 @@
 # Tests for BST trees
 require 'rspec'
-require 'bond/bond_spec_helper'
+require 'bond/spec_helper'
 require './bst'
 
 describe Node do

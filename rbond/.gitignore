@@ -1,4 +1,5 @@
 # Ruby specific
+*.gem
 /.bundle/
 /.yardoc
 /Gemfile.lock

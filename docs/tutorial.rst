@@ -96,7 +96,7 @@ The alternative with Bond is as follows:
         :emphasize-lines: 7, 19
 
         # Necessary to get the bond context
-        require 'bond/bond_spec_helper'
+        require 'bond/spec_helper'
 
         # Using RSpec
         describe BST do

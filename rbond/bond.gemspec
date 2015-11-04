@@ -3,10 +3,11 @@ require_relative 'lib/bond/version'
 Gem::Specification.new do |spec|
   spec.name          = 'bond-testing-erik'
   spec.version       = Bond::VERSION
-  spec.date          = '2015-10-27'
+  spec.date          = '2015-11-04'
 
   spec.authors       = ['George Necula', 'Erik Krogen']
   spec.email         = ['necula@cs.berkeley.edu', 'erikkrogen@gmail.com']
+  spec.license       = 'BSD-2-Clause-FreeBSD'
 
   spec.summary       = 'A spy-based testing framework'
   spec.homepage      = 'http://github.com/necula01/bond'
@@ -25,9 +26,7 @@ Gem::Specification.new do |spec|
   EOF
 
   spec.files         = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^spec/}) }
-  # Currently can't include test files because some of the observations
-  # have file names that are too long to be included in a gem
-  # spec.test_files    = `git ls-files -z -- spec`.split("\x0")
+  spec.test_files    = `git ls-files -z -- spec`.split("\x0")
   spec.bindir        = 'bin'
 
   spec.add_development_dependency 'bundler', '~> 1.10'

@@ -45,9 +45,14 @@ class Bond
   #
   #       ```
   #       describe MyClass do
-  #         include_context :bond
+  #         include_context :bond, observation_directory: 'spec/observations'
+  #
   #         context 'when nothing is wrong' do
   #           it 'should work!' do
+  #             ... test code ...
+  #             # `include_context :bond` automatically exports a `bond` variable
+  #             # for you to access for e.g. `spy` and `deploy_agent`
+  #             bond.spy('spy_point', key: value, ...)
   #             ... test code ...
   #           end
   #         end
@@ -169,7 +174,6 @@ class Bond
     unless File.directory?(fdir)
       FileUtils.mkdir_p(fdir)
       top_git_ignore = File.join(observation_directory, '.gitignore')
-      puts top_git_ignore
       unless File.file?(top_git_ignore)
         # TODO ETK make this configurable in case you don't use git?
         File.open(top_git_ignore, 'w') do |outfile|
@@ -462,4 +466,4 @@ class SpyAgentFilter
 
 end
 
-require_relative 'bond/bond_targetable'
+require_relative 'bond/targetable'
