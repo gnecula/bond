@@ -11,6 +11,15 @@ repositories {
 
 dependencies {
     compile 'com.google.guava:guava:18.0'
+    compile 'com.google.code.gson:gson:2.4'
+    testCompile 'junit:junit:4.12'
+}
+
+jar {
+    manifest {
+        attributes('Implementation-Title': 'Bond',
+                   'Implementation-Version': version)
+    }
 }
 
 uploadArchives {
