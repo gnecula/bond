@@ -1,14 +1,28 @@
 package bond;
 
 import com.google.common.base.Optional;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.google.gson.*;
 
+import java.lang.reflect.Type;
 import java.util.*;
 
 public class Observation {
 
-  SortedMap<String, Object> _observationMap = new TreeMap<>();
+
+
+  // Sorted map, forcing __spyPoint__ to appear as the first entry (if present)
+  SortedMap<String, Object> _observationMap = new TreeMap<>(new Comparator<String>() {
+    @Override
+    public int compare(String s1, String s2) {
+      if (s1.equals("__spyPoint__")) {
+        return -1;
+      } else if (s2.equals("__spyPoint__")) {
+        return 1;
+      } else {
+        return s1.compareTo(s2);
+      }
+    }
+  });
 
   public Observation() {
     // TODO anything to be done here?
@@ -24,6 +38,9 @@ public class Observation {
   }
 
   public <T> Optional<T> spy(String spyPointName) {
+    //if (!Bond.isActive()) {
+    //  return Optional.absent();
+    //}
     SpyAgent<T> agent = Bond.getAgent(spyPointName, _observationMap);
     processObservation(spyPointName);
     if (agent != null) {
@@ -34,6 +51,9 @@ public class Observation {
   }
 
   public <T, E extends Exception> Optional<T> spyWithException(String spyPointName) throws E {
+    if (!Bond.isActive()) {
+      return Optional.absent();
+    }
     SpyAgent.SpyAgentWithCheckedException<T, E> agent;
     try {
       agent = (SpyAgent.SpyAgentWithCheckedException<T, E>) Bond.getAgent(spyPointName, _observationMap);
@@ -51,12 +71,12 @@ public class Observation {
   }
 
   private void processObservation(String spyPointName) {
+    _observationMap.put("zz", "blah");
     if (spyPointName != null) {
       _observationMap.put("__spyPoint__", spyPointName);
     }
-    Gson gson = new GsonBuilder().setPrettyPrinting().create();
-    // TODO sorting? Maybe using toJsonTree somehow?
-    Bond.addObservation(gson.toJson(_observationMap));
+
+    Bond.addObservation(Serializer.serialize(_observationMap));
   }
 
 }
