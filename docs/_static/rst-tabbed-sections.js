@@ -49,6 +49,7 @@ var TabSections = (function TabSections() {
                                 nav_div_class=' class="active"';
                                 nav_content_class=' in active';
                             }
+                            tab_name = tab_name.substr(0,1).toUpperCase() + tab_name.substr(1)
                             tab_names.push(tab_name);
 
                             var tab_id = 'tab-'+tab_name+'-'+tab_container_idx;
