@@ -69,6 +69,9 @@ public class Bond {
   }
 
   public static void deployAgent(String spyPointName, SpyAgent<?> agent) {
+    if (!isActive()) {
+      throw new IllegalStateException("Cannot deploy an agent when not in a test!");
+    }
     if (!_agentMap.containsKey(spyPointName)) {
       _agentMap.put(spyPointName, new ArrayList<SpyAgent<?>>());
     }
