@@ -49,38 +49,42 @@ If you put spy point annotations in your production code, you will have to eithe
 Bond with your code, which is safe as long as you do not call ``bond.start_test``,
 or else fake the Bond API functions using something like this in your file:
 
-.. container:: code-examples
+.. container:: tab-section-group
 
-    .. code-block:: python
-        :emphasize-lines: 2, 4-
+   .. container:: tab-section-python
 
-        # Import, or fake, bond
-        try:
-            from utils import bond
-        except ImportError:
-            class bond:
-                @staticmethod
-                def active()
-                    return False
-                @staticmethod
-                def spy(*args, **kw):
-                    return None
-                @staticmethod
-                def spy_point(**kw):
-                    return lambda f: f
+      .. code-block:: python
+           :emphasize-lines: 2, 4-
+   
+           # Import, or fake, bond
+           try:
+               from utils import bond
+           except ImportError:
+               class bond:
+                   @staticmethod
+                   def active()
+                       return False
+                   @staticmethod
+                   def spy(*args, **kw):
+                       return None
+                   @staticmethod
+                   def spy_point(**kw):
+                       return lambda f: f
 
-    .. code-block:: ruby
-        :emphasize-lines: 1, 3-9
-
-        begin
-            require 'bond'
-        rescue LoadError
-            module BondTargetable
-                DUMMY_BOND = Class.new { def method_missing(meth, *args); False; end }.new
-                def self.extended(base); base.include(BondTargetable); end
-                def bond; DUMMY_BOND; end
-            end
-        end
+   .. container:: tab-section-ruby
+               
+       .. code-block:: ruby
+           :emphasize-lines: 1, 3-9
+   
+           begin
+               require 'bond'
+           rescue LoadError
+               module BondTargetable
+                   DUMMY_BOND = Class.new { def method_missing(meth, *args); False; end }.new
+                   def self.extended(base); base.include(BondTargetable); end
+                   def bond; DUMMY_BOND; end
+               end
+           end
 
 
 The code shown above defines all the API functions that may be used in your production code. Put this in
@@ -96,34 +100,37 @@ of a function. This pattern gives you full flexibilty for how you weave
 the mock injection point into your production code, while still delegating
 the mock functionality to the agent, and thus to the testing code. 
 
-.. container:: code-examples
+.. container:: tab-section-group
 
-    .. code-block:: python
-
-        # Inline spying
-        bond.spy(what=x, msg='Spying has effect only if you called bond.start_test')
-        ...
-        if not bond.active():
-           value = compute_production_value ()
-        else
-           # This is true only if you called bond.start_test
-           value = bond.spy('my_spy_point', what=x)
-           if value == bond.AGENT_RESULT_NONE:
-               assert False, "When testing, you must mock 'my_spy_point'"
+   .. container:: tab-section-python
                
-               
-
-    .. code-block:: ruby
-
-        # Inline spying
-        bond.spy(what: x, msg: 'Spying has effect only if you called bond.start_test')
-        ...
-        unless bond.active?
-            value = compute_production_value
-        else
-            # This is executed only if you called bond.start_test
-            # or used `include_context :bond` in RSpec
-            value = bond.spy('my_spy_point', what: x)
-            if value == :agent_result_none
-                raise "When testing, you must mock 'my_spy_point'" 
-            end
+       .. code-block:: python
+   
+           # Inline spying
+           bond.spy(what=x, msg='Spying has effect only if you called bond.start_test')
+           ...
+           if not bond.active():
+              value = compute_production_value ()
+           else
+              # This is true only if you called bond.start_test
+              value = bond.spy('my_spy_point', what=x)
+              if value == bond.AGENT_RESULT_NONE:
+                  assert False, "When testing, you must mock 'my_spy_point'"
+                  
+                  
+   .. container:: tab-section-ruby               
+   
+       .. code-block:: ruby
+   
+           # Inline spying
+           bond.spy(what: x, msg: 'Spying has effect only if you called bond.start_test')
+           ...
+           unless bond.active?
+               value = compute_production_value
+           else
+               # This is executed only if you called bond.start_test
+               # or used `include_context :bond` in RSpec
+               value = bond.spy('my_spy_point', what: x)
+               if value == :agent_result_none
+                   raise "When testing, you must mock 'my_spy_point'" 
+               end

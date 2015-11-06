@@ -46,9 +46,9 @@ How to use this example
 #. You can run the tests, and you can observe in your debugger how the different
    functions are called.
 
-  .. container:: code-examples
+  .. container:: tab-section-group
   
-      .. container:: code-language-python
+      .. container:: tab-section-python
   
           .. code-block:: bash
  
@@ -56,7 +56,7 @@ How to use this example
              # OR
              PYTHONPATH=../../ python heat_watcher_test.py
   
-      .. container:: code-language-ruby
+      .. container:: tab-section-ruby
   
           .. code-block:: bash
   
@@ -74,13 +74,17 @@ How to use this example
 The code to be tested
 -----------------------------
 
-.. container:: code-examples
+.. container:: tab-section-group
 
-   .. literalinclude:: ../pybond/tutorials/heat_watcher/heat_watcher.py
-      :language: python
+   .. container:: tab-section-python
 
-   .. literalinclude:: ../rbond/tutorials/heat_watcher/heat_watcher.rb
-      :language: ruby
+      .. literalinclude:: ../pybond/tutorials/heat_watcher/heat_watcher.py
+         :language: python
+
+   .. container:: tab-section-ruby
+               
+      .. literalinclude:: ../rbond/tutorials/heat_watcher/heat_watcher.rb
+         :language: ruby
 
                  
 
@@ -95,45 +99,57 @@ We will need to use a time mocker. This is pretty simple for our application.
 We store the current mocked value of the time, and upon call to ``sleep`` we
 advance the mock time, as shown below:
 
-.. container:: code-examples
+.. container:: tab-section-group
 
-   .. literalinclude:: ../pybond/tutorials/heat_watcher/heat_watcher_test.py
-      :language: python
-      :start-after: rst_TimeMocker
-      :end-before: rst_TemperatureMocker
+   .. container:: tab-section-python
 
-   .. literalinclude:: ../rbond/tutorials/heat_watcher/heat_watcher_spec.rb
-      :language: ruby
-      :start-after: rst_TimeMocker
-      :end-before: rst_TemperatureMocker
+      .. literalinclude:: ../pybond/tutorials/heat_watcher/heat_watcher_test.py
+         :language: python
+         :start-after: rst_TimeMocker
+         :end-before: rst_TemperatureMocker
+
+   .. container:: tab-section-ruby
+                      
+      .. literalinclude:: ../rbond/tutorials/heat_watcher/heat_watcher_spec.rb
+         :language: ruby
+         :start-after: rst_TimeMocker
+         :end-before: rst_TemperatureMocker
 
 
 In order to mock the temperature changes, we will implement a mock that can be
 programmed to start at a given temperature and change the temperature at a
 certain rate for various time intervals, as shown below:
 
-.. container:: code-examples
+.. container:: tab-section-group
 
-   .. literalinclude:: ../pybond/tutorials/heat_watcher/heat_watcher_test.py
-      :language: python
-      :start-after: rst_TemperatureMocker
-      :end-before: __name__
+   .. container:: tab-section-python
+   
+      .. literalinclude:: ../pybond/tutorials/heat_watcher/heat_watcher_test.py
+         :language: python
+         :start-after: rst_TemperatureMocker
+         :end-before: __name__
 
-   .. literalinclude:: ../rbond/tutorials/heat_watcher/heat_watcher_spec.rb
-      :language: ruby
-      :start-after: rst_TemperatureMocker
+   .. container:: tab-section-ruby
+                      
+       .. literalinclude:: ../rbond/tutorials/heat_watcher/heat_watcher_spec.rb
+          :language: ruby
+          :start-after: rst_TemperatureMocker
 
 Finally the actual tests. We show two different common ways of mocking: mocking out 
 higher-level functions that eventually make calls to outside services, and mocking
 out a utility function (``make_request``), changing behavior based on the parameters. 
 
-.. container:: code-examples
+.. container:: tab-section-group
 
-   .. literalinclude:: ../pybond/tutorials/heat_watcher/heat_watcher_test.py
-      :language: python
-      :end-before: rst_TimeMocker
-
-   .. literalinclude:: ../rbond/tutorials/heat_watcher/heat_watcher_spec.rb
-      :language: ruby
-      :end-before: rst_TimeMocker
+   .. container:: tab-section-python
+   
+       .. literalinclude:: ../pybond/tutorials/heat_watcher/heat_watcher_test.py
+          :language: python
+          :end-before: rst_TimeMocker
+    
+   .. container:: tab-section-ruby
+   
+       .. literalinclude:: ../rbond/tutorials/heat_watcher/heat_watcher_spec.rb
+          :language: ruby
+          :end-before: rst_TimeMocker
          

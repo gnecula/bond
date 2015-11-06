@@ -22,50 +22,54 @@ Consider, for example,
 that you have just implemented binary-search-trees (BST) and want to write tests. You may write the following
 testing code:
 
-.. container:: code-examples
+.. container:: tab-section-group
 
-    .. code-block:: python
-        :emphasize-lines: 11-15
-
-        def test_bst(self):
-            tree = BST()
-            tree.insert(8)
-            tree.insert(12)
-            tree.insert(3)
-            tree.insert(4)
-            tree.insert(6)
-
-            # WITHOUT BOND: Add self.assertEquals here to verify the position in the tree
-            # of all the data points, in the order in which they were inserted
-            self.assertEquals(8, tree.data)
-            self.assertEquals(12, tree.right.data)
-            self.assertEquals(3, tree.left.data)
-            self.assertEquals(4, tree.left.right.data)
-            self.assertEquals(6, tree.left.right.right.data)
-
-    .. code-block:: ruby
-        :emphasize-lines: 14-18
-
-        # Using RSpec
-        describe BST do
- 
-            it 'should insert correctly' do
+   .. container:: tab-section-python
+               
+        .. code-block:: python
+            :emphasize-lines: 11-15
+    
+            def test_bst(self):
                 tree = BST()
                 tree.insert(8)
                 tree.insert(12)
                 tree.insert(3)
                 tree.insert(4)
                 tree.insert(6)
-
+    
                 # WITHOUT BOND: Add self.assertEquals here to verify the position in the tree
                 # of all the data points, in the order in which they were inserted
-                expect(tree.data).to eq(8)            
-                expect(tree.right.data).to eq(12)            
-                expect(tree.left.data).to eq(3)            
-                expect(tree.left.right.data).to eq(4)            
-                expect(tree.left.right.right.data).to eq(6)            
+                self.assertEquals(8, tree.data)
+                self.assertEquals(12, tree.right.data)
+                self.assertEquals(3, tree.left.data)
+                self.assertEquals(4, tree.left.right.data)
+                self.assertEquals(6, tree.left.right.right.data)
+    
+   .. container:: tab-section-ruby
+               
+        .. code-block:: ruby
+            :emphasize-lines: 14-18
+    
+            # Using RSpec
+            describe BST do
+     
+                it 'should insert correctly' do
+                    tree = BST()
+                    tree.insert(8)
+                    tree.insert(12)
+                    tree.insert(3)
+                    tree.insert(4)
+                    tree.insert(6)
+    
+                    # WITHOUT BOND: Add self.assertEquals here to verify the position in the tree
+                    # of all the data points, in the order in which they were inserted
+                    expect(tree.data).to eq(8)            
+                    expect(tree.right.data).to eq(12)            
+                    expect(tree.left.data).to eq(3)            
+                    expect(tree.left.right.data).to eq(4)            
+                    expect(tree.left.right.right.data).to eq(6)            
+                end
             end
-        end
 
 
 That is a lot of ``assertEquals``, and in fact, it is not even a complete test, because you'd have to
@@ -73,49 +77,53 @@ test, e.g., that 6 is a leaf node.
 
 The alternative with Bond is as follows:
 
-.. container:: code-examples
+.. container:: tab-section-group
 
-    .. code-block:: python
-        :emphasize-lines: 2, 13
+   .. container:: tab-section-python
 
-        def test_bst(self):
-            bond.start_test(self)              # Initialize Bond for this test
-
-            tree = BST()
-            tree.insert(8)
-            tree.insert(12)
-            tree.insert(3)
-            tree.insert(4)
-            tree.insert(6)
-
-            # WITH BOND: record the value of the tree variable, and compare it
-            # with previous recordings.
-            bond.spy(tree=tree)  # Spy the whole tree
-
-    .. code-block:: ruby
-        :emphasize-lines: 7, 19
-
-        # Necessary to get the bond context
-        require 'bond/spec_helper'
-
-        # Using RSpec
-        describe BST do
-            # Automatically initializes Bond
-            include_context :bond
- 
-            it 'should insert correctly' do
+      .. code-block:: python
+            :emphasize-lines: 2, 13
+    
+            def test_bst(self):
+                bond.start_test(self)              # Initialize Bond for this test
+    
                 tree = BST()
                 tree.insert(8)
                 tree.insert(12)
                 tree.insert(3)
                 tree.insert(4)
                 tree.insert(6)
-
+    
                 # WITH BOND: record the value of the tree variable, and compare it
                 # with previous recordings.
-                bond.spy(tree: tree)  # Spy the whole tree
+                bond.spy(tree=tree)  # Spy the whole tree
+
+   .. container:: tab-section-ruby
+                
+        .. code-block:: ruby
+            :emphasize-lines: 7, 19
+    
+            # Necessary to get the bond context
+            require 'bond/spec_helper'
+    
+            # Using RSpec
+            describe BST do
+                # Automatically initializes Bond
+                include_context :bond
+     
+                it 'should insert correctly' do
+                    tree = BST()
+                    tree.insert(8)
+                    tree.insert(12)
+                    tree.insert(3)
+                    tree.insert(4)
+                    tree.insert(6)
+    
+                    # WITH BOND: record the value of the tree variable, and compare it
+                    # with previous recordings.
+                    bond.spy(tree: tree)  # Spy the whole tree
+                end
             end
-        end
          
 
 What is happening there is that we call the ``bond.spy`` function to tell Bond to record the value of the
@@ -162,11 +170,9 @@ Let's say that you decide that you get a better test coverage with a different t
 insert 7 in the tree. If you run the traditional test, you will see the familiar test failure:
 
 
-.. container:: code-examples
+.. container:: tab-section-group
 
-    .. we use the highlight python to allow the code example selector to pick it
-
-    .. container:: code-language-python
+    .. container:: tab-section-python
 
         .. code-block:: diff
 
@@ -178,7 +184,7 @@ insert 7 in the tree. If you run the traditional test, you will see the familiar
                 self.assertEquals(4, tree.left.right.data)
             AssertionError: 4 != 7
 
-    .. container:: code-language-ruby
+    .. container:: tab-section-ruby
 
         .. code-block:: diff
 
@@ -340,49 +346,53 @@ mock results for this function.  This can be achieved with the
 Ruby, any class or module which you wish to spy on must ``extend
 BondTargetable``)
 
-.. container:: code-examples
+.. container:: tab-section-group
 
-    .. code-block:: python
-        :emphasize-lines: 1
+   .. container:: tab-section-python
 
-        @bond.spy_point()
-        # Among other things, has the effect of injecting a call to
-        #
-        #     bond.spy(spy_point_name='module.make_request', url=url, data=data)
-        #
-        # where `module` is the name of the module containing make_request.
-        # If make_request was contained within a class, the default spy point 
-        # name would be `Class.make_request`.
-        def make_request(url, data=None):
-            "HTTP request (GET, or POST if the data is provided)"
-            resp = urllib2.urlopen(url, data)
-            return (resp.getcode(), resp.read())
-
-
-    .. code-block:: ruby
-       :emphasize-lines: 3,5
-
-        class MyClass
-            # Denotes this class as being able to be targetted by Bond
-            extend BondTargetable
-
-            bond.spy_point
+      .. code-block:: python
+            :emphasize-lines: 1
+    
+            @bond.spy_point()
             # Among other things, has the effect of injecting a call to
             #
-            #     bond.spy('MyClass#make_request', url: url, data: data)
+            #     bond.spy(spy_point_name='module.make_request', url=url, data=data)
             #
-            # If make_request was a class method, `MyClass.make_request`
-            # would have been used instead. 
-            def make_request(url, data=nil)
-                uri = URI(url)
-                if data.nil?
-                    resp = Net::HTTP.get_response(uri)
-                else
-                    resp = Net::HTTP.post_form(uri, data)
+            # where `module` is the name of the module containing make_request.
+            # If make_request was contained within a class, the default spy point 
+            # name would be `Class.make_request`.
+            def make_request(url, data=None):
+                "HTTP request (GET, or POST if the data is provided)"
+                resp = urllib2.urlopen(url, data)
+                return (resp.getcode(), resp.read())
+    
+    
+   .. container:: tab-section-ruby
+
+        .. code-block:: ruby
+           :emphasize-lines: 3,5
+    
+            class MyClass
+                # Denotes this class as being able to be targetted by Bond
+                extend BondTargetable
+    
+                bond.spy_point
+                # Among other things, has the effect of injecting a call to
+                #
+                #     bond.spy('MyClass#make_request', url: url, data: data)
+                #
+                # If make_request was a class method, `MyClass.make_request`
+                # would have been used instead. 
+                def make_request(url, data=nil)
+                    uri = URI(url)
+                    if data.nil?
+                        resp = Net::HTTP.get_response(uri)
+                    else
+                        resp = Net::HTTP.post_form(uri, data)
+                    end
+                    return [resp.code, resp.message]           
                 end
-                return [resp.code, resp.message]           
             end
-        end
         
 
 Just like ``bond.spy``, this annotation has effect only if ``bond.start_test`` has been called, meaning that
@@ -406,37 +416,40 @@ The behavior of spy points can be controlled with agents that are deployed from 
 test code, as shown in the following example, where the test is deploying two
 agents for the ``make_request`` spy point that we have instrumented earlier.
 
-.. container:: code-examples
+.. container:: tab-section-group
 
-    .. code-block:: python
-        :emphasize-lines: 2-8
+   .. container:: tab-section-python
 
-        def test_with_mocking(self):
-            bond.start_test()
-            bond.deploy_agent('module.make_request',
-                              url__endswith='/books',
-                              result=(200, json.dumps(mock_books_response)))
-            bond.deploy_agent('module.make_request',
-                              url__contains='/books/100',
-                              result=(404, 'Book not found'))
+      .. code-block:: python
+           :emphasize-lines: 2-8
+   
+           def test_with_mocking(self):
+               bond.start_test()
+               bond.deploy_agent('module.make_request',
+                                 url__endswith='/books',
+                                 result=(200, json.dumps(mock_books_response)))
+               bond.deploy_agent('module.make_request',
+                                 url__contains='/books/100',
+                                 result=(404, 'Book not found'))
+   
+               call_my_code_that_will_make_request()
+   
+   
+   .. container:: tab-section-ruby
 
-            call_my_code_that_will_make_request()
-
-
-
-    .. code-block:: ruby
-        :emphasize-lines: 2-7
-
-        it 'should be able to call out to mock services' do
-             bond.deploy_agent('MyClass#make_request', 
-                               url__endswith: '/books',
-                               result: [200, mock_books_response.to_json])
-             bond.deploy_agent('MyClass#make_request',
-                               url__contains: '/books/100',
-                               result: [404, 'Book not found'])
-
-             call_my_code_that_will_make_request()
-        end
+       .. code-block:: ruby
+           :emphasize-lines: 2-7
+   
+           it 'should be able to call out to mock services' do
+                bond.deploy_agent('MyClass#make_request', 
+                                  url__endswith: '/books',
+                                  result: [200, mock_books_response.to_json])
+                bond.deploy_agent('MyClass#make_request',
+                                  url__contains: '/books/100',
+                                  result: [404, 'Book not found'])
+   
+                call_my_code_that_will_make_request()
+           end
 
 In the above example the first agent will instruct the ``make_request`` spy point to
 skip the actual body of the method and return immediately a respose with status code
