@@ -6,28 +6,13 @@ import java.util.*;
 
 public class SpyAgent<T> {
 
-  private final String _spyPointName;
-
-  private RuntimeException _exception;
-  private Excepter _excepter;
-  private boolean _hasResult = false;
-  private T _result;
-  private Resulter<T> _resulter;
-  private List<Doer> _doers = new ArrayList<>();
-  private List<Filter> _filters = new ArrayList<>();
-
-  // TODO anything to do here?
-  private SpyAgent(String spyPointName) {
-    _spyPointName = spyPointName;
-  }
-
-  public static <T> SpyAgent<T> on(String spyPointName) {
-    return new SpyAgent<>(spyPointName);
-  }
-
-  public String getSpyPointName() {
-    return _spyPointName;
-  }
+  protected RuntimeException _exception;
+  protected Excepter _excepter;
+  protected boolean _hasResult = false;
+  protected T _result;
+  protected Resulter<T> _resulter;
+  protected List<Doer> _doers = new ArrayList<>();
+  protected List<Filter> _filters = new ArrayList<>();
 
   // TODO decide if we should call toString on the object before comparing to
   // value, tojson on it, or what?
@@ -116,6 +101,14 @@ public class SpyAgent<T> {
     return this;
   }
 
+  public <E extends Exception> SpyAgentWithCheckedException<T, E> withCheckedException(E exception) {
+    return new SpyAgentWithCheckedException<>(this, exception);
+  }
+
+  public <E extends Exception> SpyAgentWithCheckedException<T, E> withCheckedException(CheckedExcepter<E> e) {
+    return new SpyAgentWithCheckedException<>(this, e);
+  }
+
   public SpyAgent<T> withResult(T ret) {
     clearResults();
     _hasResult = true;
@@ -165,6 +158,42 @@ public class SpyAgent<T> {
     _hasResult = false;
     _excepter = null;
     _exception = null;
+  }
+
+  static class SpyAgentWithCheckedException<T, E extends Exception> extends SpyAgent<T> {
+
+    private CheckedExcepter<E> _excepter;
+    private E _exception;
+
+    public SpyAgentWithCheckedException(SpyAgent<T> parentAgent, E exception) {
+      super();
+      populateFieldsFromParent(parentAgent);
+      _exception = exception;
+    }
+
+    public SpyAgentWithCheckedException(SpyAgent<T> parentAgent, CheckedExcepter<E> e) {
+      super();
+      populateFieldsFromParent(parentAgent);
+      _excepter = e;
+    }
+
+    void throwCheckedException(Map<String, Object> observationMap) throws E {
+      if (_exception != null) {
+        throw _exception;
+      }
+      if (_excepter != null) {
+        throw _excepter.accept(observationMap);
+      }
+    }
+
+    private void populateFieldsFromParent(SpyAgent<T> parentAgent) {
+      _result = parentAgent._result;
+      _resulter = parentAgent._resulter;
+      _hasResult = parentAgent._hasResult;
+      _doers = parentAgent._doers;
+      _filters = parentAgent._filters;
+    }
+
   }
 
 }

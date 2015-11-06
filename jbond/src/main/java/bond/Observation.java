@@ -8,95 +8,65 @@ import java.util.*;
 
 public class Observation {
 
-  SortedMap<String, Object> observationMap = new TreeMap<>();
+  SortedMap<String, Object> _observationMap = new TreeMap<>();
 
   public Observation() {
     // TODO anything to be done here?
   }
 
-  public Observation obs(String name, Object value) {
-    observationMap.put(name, value);
+  public Observation obs(String key, Object value) {
+    _observationMap.put(key, value);
     return this;
   }
 
-  // TODO what does this return, exactly?
-  public Object spy() {
-    return null; // spy(null);
+  public void spy() {
+    spy(null);
   }
 
-  public void spy(String spyPointName) {
-    SpyAgent<?> agent = null;
-    if (spyPointName != null) {
-      observationMap.put("__spyPoint__", spyPointName);
-      agent = getGenericSpyAgent(spyPointName);
-    }
-    processObservation();
+  public <T> Optional<T> spy(String spyPointName) {
+    SpyAgent<T> agent = Bond.getAgent(spyPointName, _observationMap);
+    processObservation(spyPointName);
     if (agent != null) {
-      agent.performDoersGetReturn(observationMap);
-    }
-  }
-
-  public Optional<String> spyWithString() {
-    return spyWithString(null);
-  }
-
-  public Optional<String> spyWithString(String spyPointName) {
-    return spyWith(spyPointName, Bond.getStringSpyAgents(spyPointName));
-  }
-
-  public Optional<Integer> spyWithInteger() {
-    return spyWithInteger(null);
-  }
-
-  public Optional<Integer> spyWithInteger(String spyPointName) {
-    return spyWith(spyPointName, Bond.getIntegerSpyAgents(spyPointName));
-  }
-
-  public Optional<Object> spyWithObject() {
-    return spyWithObject(null);
-  }
-
-  public Optional<Object> spyWithObject(String spyPointName) {
-    return spyWith(spyPointName, Bond.getObjectSpyAgents(spyPointName));
-  }
-
-  private <T> Optional<T> spyWith(String spyPointName, List<SpyAgent<T>> agents) {
-    SpyAgent<T> agent = null;
-    if (spyPointName != null) {
-      observationMap.put("__spyPoint__", spyPointName);
-      agent = getSpyAgent(agents);
-    }
-    processObservation();
-    if (agent == null) {
-      return Optional.absent();
+      return agent.performDoersGetReturn(_observationMap);
     } else {
-      return agent.performDoersGetReturn(observationMap);
+      return Optional.absent();
     }
   }
 
-  private SpyAgent<?> getGenericSpyAgent(String spyPointName) {
-    List<SpyAgent<?>> agents = Bond.getGenericSpyAgents(spyPointName);
-    for (SpyAgent<?> agent : agents) {
-      if (agent.accept(observationMap)) {
-        return agent;
-      }
+  private void processObservation(String spyPointName) {
+    if (spyPointName != null) {
+      _observationMap.put("__spyPoint__", spyPointName);
     }
-    return null;
-  }
-
-  private <T> SpyAgent<T> getSpyAgent(List<SpyAgent<T>> agents) {
-    for (SpyAgent<T> agent : agents) {
-      if (agent.accept(observationMap)) {
-        return agent;
-      }
-    }
-    return null;
-  }
-
-  private void processObservation() {
     Gson gson = new GsonBuilder().setPrettyPrinting().create();
     // TODO sorting? Maybe using toJsonTree somehow?
-    Bond.addObservation(gson.toJson(observationMap));
+    Bond.addObservation(gson.toJson(_observationMap));
+  }
+
+  class ObservationWithException<E extends Exception> {
+
+    private Observation _parentObservation;
+
+    ObservationWithException(Observation parentObservation) {
+      _parentObservation = parentObservation;
+    }
+
+    public <T> Optional<T> spy(String spyPointName) throws E {
+      SpyAgent.SpyAgentWithCheckedException<T, E> agent;
+      try {
+        agent = (SpyAgent.SpyAgentWithCheckedException<T, E>) Bond.getAgent(spyPointName, _observationMap);
+      } catch (ClassCastException e) {
+        throw new IllegalSpyAgentException("Requested a return value / exception type for " + spyPointName +
+            " which is not compatible with the agent deployed!");
+      }
+      processObservation(spyPointName);
+      if (agent != null) {
+        agent.throwCheckedException(_observationMap);
+        return agent.performDoersGetReturn(_observationMap);
+      } else {
+        return Optional.absent();
+      }
+    }
+
   }
 
 }

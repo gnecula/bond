@@ -1,7 +1,7 @@
 package bond;
 
+import bond.reconcile.ReconcileType;
 import com.google.common.base.Optional;
-import junit.framework.Assert;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
@@ -11,22 +11,33 @@ import java.io.File;
 public class BondTestRule implements TestRule {
 
   private Optional<File> _observationDirectory = Optional.absent();
-  private Optional<Reconcile> _reconciliationMethod = Optional.absent();
+  private Optional<ReconcileType> _reconciliationMethod = Optional.absent();
+  private Optional<String> _testName = Optional.absent();
+
+  public BondTestRule withTestName(String name) {
+    _testName = Optional.fromNullable(name);
+    return this;
+  }
 
   public BondTestRule withObservationDirectory(File observationDirectory) {
     _observationDirectory = Optional.fromNullable(observationDirectory);
     return this;
   }
 
-  public BondTestRule withReconciliationMethod(Reconcile reconcile) {
-    _reconciliationMethod = Optional.fromNullable(reconcile);
+  public BondTestRule withReconciliationMethod(ReconcileType reconcileType) {
+    _reconciliationMethod = Optional.fromNullable(reconcileType);
     return this;
   }
 
   @Override
   public Statement apply(final Statement statement, Description description) {
-    String className = description.getTestClass().getCanonicalName();
-    final String testName = className + "." + description.getMethodName();
+    final String testName;
+    if (_testName.isPresent()) {
+      testName = _testName.get();
+    } else {
+      testName = String.format("%s.%s", description.getTestClass().getCanonicalName(),
+          description.getMethodName());
+    }
     //String testFile = description.getTestClass().getProtectionDomain().getCodeSource().getLocation().getPath();
     return new Statement() {
       @Override

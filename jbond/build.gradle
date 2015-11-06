@@ -12,7 +12,15 @@ repositories {
 dependencies {
     compile 'com.google.guava:guava:18.0'
     compile 'com.google.code.gson:gson:2.4'
+    compile 'com.googlecode.java-diff-utils:diffutils:1.2.1'
     testCompile 'junit:junit:4.12'
+}
+
+test {
+    testLogging {
+        exceptionFormat = 'full'
+        events "passed", "skipped", "failed", "standardOut", "standardError"
+    }
 }
 
 jar {

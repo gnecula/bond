@@ -1,10 +1,9 @@
 package bond;
 
-import com.google.common.base.Charsets;
-import com.google.common.base.Joiner;
+import bond.reconcile.ReconcileType;
+import bond.reconcile.Reconciler;
 import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
-import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 
 import java.io.File;
@@ -12,34 +11,47 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Bond {
 
   private static final Splitter CLASS_SPLITTER = Splitter.on(".").trimResults();
-  private static final Joiner OBSERVATION_JOINER = Joiner.on("\n");
+  private static final Splitter LINE_SPLITTER = Splitter.on("\n").trimResults();
 
   private static Optional<String> _currentTest = Optional.absent();
 
-  private static AgentMap<SpyAgent<?>> _allSpyAgents = new AgentMap<>();
-  private static AgentMap<SpyAgent<Object>> _objectSpyAgents = new AgentMap<>();
-  private static AgentMap<SpyAgent<Integer>> _integerSpyAgents = new AgentMap<>();
-  private static AgentMap<SpyAgent<String>> _stringSpyAgents = new AgentMap<>();
+  private static Map<String, List<SpyAgent<?>>> _agentMap = new HashMap<>();
 
   private static List<String> _observationJsons = new ArrayList<>();
 
   private static Optional<File> _observationDirectory = Optional.absent();
-  private static Optional<Reconcile> _reconciliationMethod = Optional.absent();
+  private static Optional<ReconcileType> _reconciliationMethod = Optional.absent();
 
   /**
    * Private constructor to enforce singleton-style pattern
    */
   private Bond() {}
 
+  public static <T> Optional<T> spy(String spyPointName) {
+    return new Observation().spy(spyPointName);
+  }
+
+  public static void spy() {
+    new Observation().spy();
+  }
+
+  public static Observation obs(String key, Object value) {
+    return new Observation().obs(key, value);
+  }
+
   public static boolean isActive() {
     return _currentTest.isPresent();
   }
 
   public static void startTest(String testName) {
+    clearSettings();
+    _observationJsons = new ArrayList<>();
+    _agentMap = new HashMap<>();
     _currentTest = Optional.of(testName);
   }
 
@@ -47,12 +59,24 @@ public class Bond {
     _observationDirectory = Optional.fromNullable(observationDirectory);
   }
 
-  public static void setReconciliationMethod(Reconcile reconcile) {
-    _reconciliationMethod = Optional.fromNullable(reconcile);
+  public static void setReconciliationMethod(ReconcileType reconcileType) {
+    _reconciliationMethod = Optional.fromNullable(reconcileType);
+  }
+
+  private static void clearSettings() {
+    _observationDirectory = Optional.absent();
+    _reconciliationMethod = Optional.absent();
+  }
+
+  public static void deployAgent(String spyPointName, SpyAgent<?> agent) {
+    if (!_agentMap.containsKey(spyPointName)) {
+      _agentMap.put(spyPointName, new ArrayList<SpyAgent<?>>());
+    }
+    _agentMap.get(spyPointName).add(0, agent);
   }
 
   public static void finishTest(Throwable e) throws IOException {
-    finishTest("Test had failure(s)!");
+    finishTest("Test had failure(s): " + e);
   }
 
   public static boolean finishTest() throws IOException {
@@ -71,133 +95,62 @@ public class Bond {
     }
 
     File outFileBase = _observationDirectory.get();
-    // TODO ETK should be configurable in case of not using git
-    if (!outFileBase.exists()) {
-      File gitignoreFile = new File(outFileBase, ".gitignore");
-      Files.createParentDirs(gitignoreFile);
-      Files.write("*_now.json\n*.diff\n", gitignoreFile, Charsets.UTF_8);
-    }
     for (String pathComponent : CLASS_SPLITTER.split(_currentTest.get())) {
       outFileBase = new File(outFileBase, pathComponent);
     }
     Files.createParentDirs(outFileBase);
-    File referenceFile = new File(outFileBase, ".json");
-    File currentFile = new File(outFileBase, "_now.json");
+    File referenceFile = new File(outFileBase.getCanonicalPath() + ".json");
 
-    if (currentFile.exists()) {
-      currentFile.delete();
-    }
-    saveObservations(currentFile);
-
-    boolean reconcileResult = reconcileObservations(referenceFile, currentFile, testFailureMessage);
+    boolean reconcileResult = reconcileObservations(referenceFile, testFailureMessage);
 
     _currentTest = Optional.absent();
     return reconcileResult;
   }
 
-  private static void saveObservations(File outFile) throws IOException {
-    Files.write(OBSERVATION_JOINER.join(_observationJsons), outFile, Charsets.UTF_8);
-  }
-
   // return true if reconcile succeeded
-  private static boolean reconcileObservations(File referenceFile, File currentFile,
-                                               String testFailureMessage) throws IOException {
-    // TODO well this clearly needs work... Same problem as getting the observation directory!
-    File reconcileScript = new File("/home/erik/dev/research/bond/bond/pybond/bond/bond_reconcile.py");
+  private static boolean reconcileObservations(File referenceFile, String testFailureMessage)
+      throws IOException {
 
-    List<String> reconcileCommand = Lists.newArrayList(reconcileScript.getCanonicalPath(),
-        "--reference", referenceFile.getCanonicalPath(),
-        "--current", currentFile.getCanonicalPath(),
-        "--test", _currentTest.get());
+    Reconciler reconciler;
     if (_reconciliationMethod.isPresent()) {
-      reconcileCommand.add("--reconcile");
-      reconcileCommand.add(_reconciliationMethod.get().getName());
+      reconciler = Reconciler.getReconciler(_reconciliationMethod.get());
+    } else {
+      reconciler = Reconciler.getReconciler();
     }
-    if (testFailureMessage != null) {
-      reconcileCommand.add("--no-save");
-      reconcileCommand.add(testFailureMessage);
-    }
-    // TODO I think this doesn't require shell escaping but we should check
-    Process reconcileProcess = new ProcessBuilder(reconcileCommand).start();
-    return reconcileProcess.exitValue() == 0;
+    return reconciler.reconcile(_currentTest.get(), referenceFile, getObservationsAsLines(),
+        testFailureMessage);
   }
 
-  public static void obs(String key, Object value) {
-
-  }
-
-  public static void spy() {
-
+  private static List<String> getObservationsAsLines() {
+    List<String> lines = new ArrayList<>();
+    for (String obs : _observationJsons) {
+      lines.addAll(LINE_SPLITTER.splitToList(obs));
+    }
+    return lines;
   }
 
   static void addObservation(String observationJson) {
     _observationJsons.add(observationJson);
   }
 
-  static void deployAgent(String spyPointName, SpyAgent<?> agent) {
-    // TODO check this should theoretically be in all of the methods
-    if (!isActive()) {
-      throw new IllegalStateException("Must be in a test to call deployAgent!");
+  static <T> SpyAgent<T> getAgent(String spyPointName, Map<String, Object> observationMap) {
+    if (spyPointName == null) {
+      return null;
     }
-    _allSpyAgents.getAgents(spyPointName).add(0, agent);
-  }
-
-  // TODO doing something like this could reduce the necessity for agents to have types
-  // (at least in the user's eyes) and get rid of the ugly deploy{Object,Integer,...}Agent
-  // syntax. But... that would still be necessary when using a Resulter
-  static <T> void deployAgentWithResult(String spyPointName, SpyAgent agent, T result) {}
-  static <T> void deployAgentWithTResulter(String spyPointName, SpyAgent agent, Resulter<T> result) {}
-  //static <T> void deployAgent(String spyPointName, SpyAgentWithResult<T> agent)
-
-  // TODO should these actually add their agent to genericAgents?
-  // two ways of thinking about it:
-  //   - for spy points that don't need a return, you can just pick any
-  //     agent that matches, so add them all
-  //   - the category of 'no return' spy points is no different from the
-  //     category of any other return type spy point, so it shouldn't grab the others
-  static void deployObjectAgent(String spyPointName, SpyAgent<Object> agent) {
-    deployAgent(spyPointName, agent);
-    _objectSpyAgents.getAgents(spyPointName).add(0, agent);
-  }
-  
-  static void deployIntegerAgent(String spyPointName, SpyAgent<Integer> agent) {
-    deployAgent(spyPointName, agent);
-    _integerSpyAgents.getAgents(spyPointName).add(0, agent);
-  }
-  
-  static void deployStringAgent(String spyPointName, SpyAgent<String> agent) {
-    deployAgent(spyPointName, agent);
-    _stringSpyAgents.getAgents(spyPointName).add(0, agent);
-  }
-
-  static List<SpyAgent<?>> getGenericSpyAgents(String spyPointName) {
-    return _allSpyAgents.getAgents(spyPointName);
-  }
-
-  static List<SpyAgent<Object>> getObjectSpyAgents(String spyPointName) {
-    return _objectSpyAgents.getAgents(spyPointName);
-  }
-
-  static List<SpyAgent<Integer>> getIntegerSpyAgents(String spyPointName) {
-    return _integerSpyAgents.getAgents(spyPointName);
-  }
-
-  static List<SpyAgent<String>> getStringSpyAgents(String spyPointName) {
-    return _stringSpyAgents.getAgents(spyPointName);
-  }
-
-  private static class AgentMap<T> extends HashMap<String, List<T>> {
-    public List<T> getAgents(String key) {
-      if (key == null) {
-        return new ArrayList<>();
-      } else if (containsKey(key)) {
-        return get(key);
-      } else {
-        ArrayList<T> newList = new ArrayList<>();
-        put(key, newList);
-        return newList;
+    List<SpyAgent<?>> agents = _agentMap.get(spyPointName);
+    if (agents == null) {
+      return null;
+    }
+    try {
+      for (SpyAgent<?> agent : agents) {
+        if (agent.accept(observationMap)) {
+          return (SpyAgent<T>) agent;
+        }
       }
+      return null;
+    } catch (ClassCastException e) {
+      throw new IllegalSpyAgentException("Requested a return value for " + spyPointName +
+          " which is not compatible with the return type of the agent deployed!");
     }
   }
-
 }
