@@ -2,8 +2,8 @@ package bond;
 
 import java.util.Map;
 
-public interface Excepter extends CheckedExcepter<RuntimeException> {
+public interface Excepter extends CheckedExcepter {
 
-  <T extends RuntimeException> T accept(Map<String, Object> map);
+  RuntimeException accept(Map<String, Object> map);
 
 }

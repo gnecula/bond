@@ -1,0 +1,14 @@
+{
+  "__spyPoint__": "myPoint",
+  "key": "val"
+}
+{
+  "exceptionMessage": "bond.BondTest$BondTestException: No Foo Exception"
+}
+{
+  "__spyPoint__": "myPoint",
+  "foo": "bar"
+}
+{
+  "exceptionMessage": "bond.BondTest$BondTestException: Foo Exception"
+}

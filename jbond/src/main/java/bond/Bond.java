@@ -19,7 +19,7 @@ public class Bond {
   private static final Splitter LINE_SPLITTER = Splitter.on("\n");
 
   private static Optional<String> _currentTest = Optional.absent();
-  private static Map<String, List<SpyAgent<?>>> _agentMap = new HashMap<>();
+  private static Map<String, List<SpyAgent>> _agentMap = new HashMap<>();
   private static List<String> _observationJsons = new ArrayList<>();
   private static Optional<File> _observationDirectory = Optional.absent();
   private static Optional<ReconcileType> _reconciliationMethod = Optional.absent();
@@ -29,12 +29,25 @@ public class Bond {
    */
   private Bond() {}
 
-  public static <T> Optional<T> spy(String spyPointName) {
+  public static Optional<Object> spy(String spyPointName) {
     return new Observation().spy(spyPointName);
   }
 
   public static void spy() {
     new Observation().spy();
+  }
+
+  public static <T> Optional<T> spy(String spyPointName, Class<T> expectedType) {
+    return new Observation().spy(spyPointName, expectedType);
+  }
+
+  public void spyWithException(String spyPointName) throws Exception {
+    spyWithException(spyPointName, Exception.class);
+  }
+
+  public <E extends Exception> void spyWithException(String spyPointName,
+                                                     Class<E> expectedException) throws E {
+    new Observation().spyWithException(spyPointName, expectedException);
   }
 
   public static Observation obs(String key, Object value) {
@@ -91,12 +104,12 @@ public class Bond {
     _reconciliationMethod = Optional.absent();
   }
 
-  public static void deployAgent(String spyPointName, SpyAgent<?> agent) {
+  public static void deployAgent(String spyPointName, SpyAgent agent) {
     if (!isActive()) {
       throw new IllegalStateException("Cannot deploy an agent when not in a test!");
     }
     if (!_agentMap.containsKey(spyPointName)) {
-      _agentMap.put(spyPointName, new ArrayList<SpyAgent<?>>());
+      _agentMap.put(spyPointName, new ArrayList<SpyAgent>());
     }
     _agentMap.get(spyPointName).add(0, agent);
   }
@@ -149,24 +162,19 @@ public class Bond {
     _observationJsons.add(observationJson);
   }
 
-  static <T> SpyAgent<T> getAgent(String spyPointName, Map<String, Object> observationMap) {
+  static SpyAgent getAgent(String spyPointName, Map<String, Object> observationMap) {
     if (spyPointName == null) {
       return null;
     }
-    List<SpyAgent<?>> agents = _agentMap.get(spyPointName);
+    List<SpyAgent> agents = _agentMap.get(spyPointName);
     if (agents == null) {
       return null;
     }
-    try {
-      for (SpyAgent<?> agent : agents) {
-        if (agent.accept(observationMap)) {
-          return (SpyAgent<T>) agent;
-        }
+    for (SpyAgent agent : agents) {
+      if (agent.accept(observationMap)) {
+        return agent;
       }
-      return null;
-    } catch (ClassCastException e) {
-      throw new IllegalSpyAgentException("Requested a return value for " + spyPointName +
-          " which is not compatible with the return type of the agent deployed!");
     }
+    return null;
   }
 }

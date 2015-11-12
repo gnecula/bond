@@ -1,0 +1,15 @@
+{
+  "__spyPoint__": "myPoint",
+  "foo": "bar"
+}
+{
+  "__spyPoint__": "myPoint"
+}
+{
+  "agent result with foo": {
+    "reference": "foo result"
+  },
+  "agent result without foo": {
+    "reference": "no foo result"
+  }
+}

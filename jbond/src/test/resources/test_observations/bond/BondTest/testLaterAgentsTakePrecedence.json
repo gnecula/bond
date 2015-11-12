@@ -1,0 +1,17 @@
+{
+  "__spyPoint__": "myPoint",
+  "key": "foobar"
+}
+{
+  "__spyPoint__": "myPoint",
+  "key": "notbar"
+}
+{
+  "__spyPoint__": "results",
+  "backupAgentResult": {
+    "reference": "backup agent result"
+  },
+  "primaryAgentResult": {
+    "reference": "primary agent result"
+  }
+}

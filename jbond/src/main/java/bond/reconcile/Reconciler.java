@@ -18,17 +18,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static bond.reconcile.ReconcileType.CONSOLE;
 
 public abstract class Reconciler {
-
-  public static Reconciler getReconciler() {
-    String reconcileTypeName = System.getenv("BOND_RECONCILE");
-    if (reconcileTypeName == null || reconcileTypeName.equals("")) {
-      return getReconciler(CONSOLE);
-    }
-    return getReconciler(ReconcileType.getFromName(reconcileTypeName));
-  }
 
   public static Reconciler getReconciler(ReconcileType type) {
     switch (type) {
@@ -254,8 +245,8 @@ class ConsoleReconciler extends Reconciler {
       if (noSaveMessage != null) {
         prompt = String.format("Observations are shown for %s. Saving them not allowed: %s\n",
             testName, noSaveMessage) + "Use the diff option to show the differences.";
-        response = getUserInput(prompt, Lists.newArrayList("kdiff3", "diff", "no"),
-            Lists.newArrayList("k", "d", "n"),
+        response = getUserInput(prompt, Lists.newArrayList("kdiff3", "diff", "okay"),
+            Lists.newArrayList("k", "d", "o"),
             diffMessage == null ? Joiner.on("\n").join(currentLines) : diffMessage);
       } else {
         printf(getDiffString(testName, unifiedDiff));

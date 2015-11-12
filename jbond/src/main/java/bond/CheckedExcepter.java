@@ -2,8 +2,8 @@ package bond;
 
 import java.util.Map;
 
-public interface CheckedExcepter<E extends Exception> {
+public interface CheckedExcepter {
 
-  <T extends E> T accept(Map<String, Object> map);
+  Exception accept(Map<String, Object> map);
 
 }

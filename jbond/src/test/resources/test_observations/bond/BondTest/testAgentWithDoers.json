@@ -1,0 +1,10 @@
+{
+  "__spyPoint__": "myPoint",
+  "key": "foo"
+}
+{
+  "__spyPoint__": "doer 1 spy point"
+}
+{
+  "__spyPoint__": "doer 2 spy point"
+}

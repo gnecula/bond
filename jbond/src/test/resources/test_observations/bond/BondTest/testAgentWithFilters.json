@@ -1,0 +1,19 @@
+{
+  "__spyPoint__": "myPoint"
+}
+{
+  "__spyPoint__": "myPoint",
+  "key": "foobar"
+}
+{
+  "__spyPoint__": "myPoint",
+  "key": "fo"
+}
+{
+  "__spyPoint__": "results",
+  "matching": {
+    "reference": "result"
+  },
+  "notMatching1": {},
+  "notMatching2": {}
+}

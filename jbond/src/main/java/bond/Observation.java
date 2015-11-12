@@ -37,11 +37,11 @@ public class Observation {
     spy(null);
   }
 
-  public <T> Optional<T> spy(String spyPointName) {
-    //if (!Bond.isActive()) {
-    //  return Optional.absent();
-    //}
-    SpyAgent<T> agent = Bond.getAgent(spyPointName, _observationMap);
+  public Optional<Object> spy(String spyPointName) {
+    if (!Bond.isActive()) {
+      return Optional.absent();
+    }
+    SpyAgent agent = Bond.getAgent(spyPointName, _observationMap);
     processObservation(spyPointName);
     if (agent != null) {
       return agent.performDoersGetReturn(_observationMap);
@@ -50,23 +50,47 @@ public class Observation {
     }
   }
 
-  public <T, E extends Exception> Optional<T> spyWithException(String spyPointName) throws E {
+  public <T> Optional<T> spy(String spyPointName, Class<T> expectedType) {
     if (!Bond.isActive()) {
       return Optional.absent();
     }
-    SpyAgent.SpyAgentWithCheckedException<T, E> agent;
+    Optional<T> ret = (Optional<T>) spy(spyPointName);
+    if (ret.isPresent()) {
+      if (!expectedType.isAssignableFrom(ret.get().getClass())) {
+        throw new IllegalSpyAgentException("Requested a return value for " + spyPointName +
+            " which is not compatible with the return type of the agent deployed!");
+      }
+      return ret;
+    } else {
+      return Optional.absent();
+    }
+  }
+
+  public void spyWithException(String spyPointName) throws Exception {
+    spyWithException(spyPointName, Exception.class);
+  }
+
+  public <E extends Exception> void spyWithException(String spyPointName,
+                                                     Class<E> expectedException) throws E {
+    if (!Bond.isActive()) {
+      return;
+    }
     try {
-      agent = (SpyAgent.SpyAgentWithCheckedException<T, E>) Bond.getAgent(spyPointName, _observationMap);
+      SpyAgent.SpyAgentWithCheckedException agent =
+          (SpyAgent.SpyAgentWithCheckedException) Bond.getAgent(spyPointName, _observationMap);
+      processObservation(spyPointName);
+      if (agent != null) {
+        E e = (E) agent.getCheckedException(_observationMap);
+        if (e != null && !expectedException.isAssignableFrom(e.getClass())) {
+          throw new ClassCastException("jump to catch clause");
+        }
+        if (e != null) {
+          throw e;
+        }
+      }
     } catch (ClassCastException e) {
       throw new IllegalSpyAgentException("Requested a return value / exception type for " + spyPointName +
                                              " which is not compatible with the agent deployed!");
-    }
-    processObservation(spyPointName);
-    if (agent != null) {
-      agent.throwCheckedException(_observationMap);
-      return agent.performDoersGetReturn(_observationMap);
-    } else {
-      return Optional.absent();
     }
   }
 
