@@ -6,7 +6,7 @@ BOND_RECONCILE ?= console
 ##
 ## Running tests
 ##
-run_tests: run_tests_py run_tests_rb
+run_tests: run_tests_py run_tests_rb run_tests_java
 
 run_tests_py:
 	$(MAKE) -C pybond run_tests BOND_RECONCILE=$(BOND_RECONCILE) 
@@ -14,10 +14,13 @@ run_tests_py:
 run_tests_rb:
 	cd rbond && BOND_RECONCILE=$(BOND_RECONCILE) rspec
 
+run_tests_java:
+	cd jbond && BOND_RECONCILE=$(BOND_RECONCILE) gradle test
+
 ##
 ## Documentation
 ##
-.PHONY: docs run_tests_py run_tests_rb run_tests
+.PHONY: docs run_tests_py run_tests_rb run_tests_java run_tests
 docs:
 	$(MAKE) -C docs clean html
 	cd rbond && yardoc
