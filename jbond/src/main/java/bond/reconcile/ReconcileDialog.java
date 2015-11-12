@@ -9,7 +9,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
 
-public class ReconcileDialog extends JDialog implements ActionListener {
+/**
+ * Custom dialog used to request user input for reconciling observations.
+ */
+class ReconcileDialog extends JDialog implements ActionListener {
 
   private String value;
 

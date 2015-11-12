@@ -5,10 +5,38 @@ import com.google.gson.*;
 import java.lang.reflect.Type;
 import java.util.*;
 
+/**
+ * <p>Class used to serialize objects into a JSON representation.</p>
+ *
+ * <p>Internally, this uses {@link Gson} to serialize objects. This means, by default,
+ * all fields of an object are serialized. The exact settings that are used are as follows:</p>
+ *
+ * <pre><code>
+ *   GsonBuilder().setPrettyPrinting().serializeNulls()
+ *     .serializeSpecialFloatingPointValues().disableHtmlEscaping().create()
+ * </code></pre>
+ *
+ * <p>In addition to the settings above, this class includes custom logic to serialize {@link Map Maps}
+ * and {@link Set Sets} in a way that their values are sorted by taking the {@code toString} of values
+ * (for sets) or keys (for maps) to ensure that they will be serialized deterministically. Maps which
+ * inherit from {@link SortedMap} and Sets which inherit from {@link SortedSet} are serialized in their
+ * normal sorted order.</p>
+ *
+ * <p>In future releases there will be the option to specify custom serializers for specific types.</p>
+ */
 public class Serializer {
+
+  // Static methods only
+  private Serializer() { }
 
   private static Gson gson = createGson();
 
+  /**
+   * Serialize the given object.
+   *
+   * @param obj The object to be serialized
+   * @return A JSON string representation of {@code obj}
+   */
   static String serialize(Object obj) {
     return gson.toJson(obj);
   }

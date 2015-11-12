@@ -96,4 +96,16 @@ API is implemented using the following classes:
 - `Bond class <rbond/Bond.html>`_
 - `BondTargetable class <rbond/BondTargetable.html>`_
 
+
+Java
+------------------
+
+Due to the strongly typed nature of Java, the `Java API <jbond/index.html>`_ 
+has significant differences from the Python API described above. You'll want
+to start with:
+
+- `Bond class <jbond/bond/Bond.html>`_
+- `Observation class <jbond/bond/Observation.html>`_
+- `BondTestRule JUnit Rule <jbond/bond/BondTestRule.html>`_
+- `SpyAgent class <rbond/BondTargetable.html>`_
  

@@ -101,7 +101,7 @@ public class BondTest {
   @Test
   public void testAgentWithResulter() {
     SpyAgent agent = new SpyAgent()
-                         .withResult(new Resulter<String>() {
+                         .withResult(new Resulter() {
                            @Override
                            public String accept(Map<String, Object> map) {
                              if (map.containsKey("foo")) {
@@ -259,5 +259,17 @@ public class BondTest {
     } catch (BondTestException e) {
       Bond.obs("exceptionMessage", e.toString()).spy();
     }
+  }
+
+  @Test
+  public void testWithCustomTestName() {
+    Bond.setCurrentTestName("bond.MyCustomTestName");
+    Bond.spy("custom test name spy point");
+  }
+
+  @Test
+  public void testWithCustomTestNameWithSpecialCharacters() {
+    Bond.setCurrentTestName("bond.custom test special!");
+    Bond.spy("custom test name spy point");
   }
 }

@@ -20,12 +20,21 @@ dependencies {
 
 test {
     useJUnit() {
-        environment 'BOND_OBS_DIR', Paths.get(file("$projectDir").toString(), 'src', 'test', 'resources', 'test_observations').toAbsolutePath()
+        environment 'BOND_OBS_DIR', Paths.get(file("$projectDir").toString(),
+                'src', 'test', 'resources', 'test_observations').toAbsolutePath()
     }
     testLogging {
         exceptionFormat = 'full'
         events "passed", "skipped", "failed", "standardOut", "standardError"
     }
+}
+
+javadoc {
+    options.addStringOption('noqualifier', 'java.lang:com.google.common.base:org.junit')
+    options.links 'http://docs.oracle.com/javase/7/docs/api/',
+            'http://docs.guava-libraries.googlecode.com/git-history/release/javadoc/',
+            'http://google.github.io/gson/apidocs/',
+            'http://junit.org/javadoc/latest/'
 }
 
 jar {

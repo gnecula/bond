@@ -3,24 +3,32 @@ package bond.reconcile;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
-import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import difflib.Delta;
 import difflib.DiffUtils;
 import difflib.Patch;
 
-import javax.swing.*;
-import java.awt.*;
 import java.io.Console;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-
+/**
+ * <p>Class to reconcile differences between the reference set of observations and
+ * the current set of observations.</p>
+ *
+ * <p>Should be subclassed to implement different types of reconciliation logic.</p>
+ */
 public abstract class Reconciler {
 
+  /**
+   * Retrieve the correct {@code Reconciler} for {@code type}.
+   *
+   * @param type The type to fetch a {@code Reconciler} for
+   * @return The proper {@code Reconciler}
+   */
   public static Reconciler getReconciler(ReconcileType type) {
     switch (type) {
       case ABORT:
@@ -36,6 +44,22 @@ public abstract class Reconciler {
     }
   }
 
+  /**
+   * <p>The main entrypoint to the class; performs reconciliation.</p>
+   *
+   * <p>If reconciliation was successful and {@code noSaveMessage} is null, the reconciled
+   * set of observations are saved to {@code referenceFile}, overriding the previous
+   * set of reference observations.</p>
+   *
+   * @param testName The name of the current test
+   * @param referenceFile File containing the set of reference observations; if this file
+   *                      does not exist, it will be treated as if it was empty.
+   * @param currentLines A list of all of the current observations, broken into single-line
+   *                     strings.
+   * @param noSaveMessage If the test failed, a String explaining the failure. Else, null.
+   * @return True iff the reconciliation was successful
+   * @throws IOException If errors are encountered while writing out reconciled observations
+   */
   public boolean reconcile(String testName, File referenceFile, List<String> currentLines,
                            String noSaveMessage) throws IOException {
 
@@ -74,9 +98,32 @@ public abstract class Reconciler {
     }
   }
 
+  /**
+   * The primary reconciliation logic.
+   *
+   * @param testName The name of the current test.
+   * @param referenceFile The file containing the current set of reference observations
+   * @param currentLines A list of all of the current observations, broken into single-line
+   *                     strings.
+   * @param unifiedDiff A list of all lines of the unified diff between {@code referenceFile}
+   *                    and {@code currentLines}
+   * @param noSaveMessage If the test failed, a String explaining the failure. Else, null.
+   * @return {@link Optional#absent()} if the reconciliation failed; in this case no new
+   *         observations will be saved. Else, return a list of all of the lines that
+   *         should be saved as the new reference observations.
+   * @throws IOException If errors are encountered while writing out reconciled observations
+   */
   protected abstract Optional<List<String>> reconcileDiffs(String testName, File referenceFile,
       List<String> currentLines, List<String> unifiedDiff, String noSaveMessage) throws IOException;
 
+  /**
+   * Prepare a full diff string to be printed based off of the test name and
+   * list of unified diff lines.
+   *
+   * @param testName Test name
+   * @param unifiedDiff List of unified diff lines
+   * @return String to be printed to show the current diffs
+   */
   protected String getDiffString(String testName, List<String> unifiedDiff) {
     if (unifiedDiff.isEmpty()) {
       return String.format("No differences in observations for %s\n", testName);
@@ -92,17 +139,47 @@ public abstract class Reconciler {
     return Files.readLines(file, Charsets.UTF_8);
   }
 
+  /**
+   * Used internally to print to the console; this should be used for any printing
+   * performed within a {@code Reconciler}
+   *
+   * @param formatString Formatting string, a la {@code PrintStream}'s {@code printf}
+   * @param objs Objects to be formatted
+   */
   protected void printf(String formatString, Object... objs) {
     System.out.printf(formatString, objs);
   }
 
-  // TODO this is a workaround for IDEs / Gradle redirecting stdin in such a way
-  // that it's completely inaccessible during tests... Needs work, though.
-  // NOTE default is always the last option
+  /**
+   * Retrieve user input. Attempts to use the console; if one cannot be found,
+   * instead creates a dialog box to request input.
+   *
+   * @param prompt The prompt to be displayed to the user.
+   * @param options List of options to be presented to the user. Must be at least one.
+   *                The last option in the list will be the default.
+   * @param singleCharOptions The single-character shortcut to each one of the
+   *                          options, which <b>must</b> appear somewhere in the option
+   *                          itself.
+   * @return The option which was selected by the user.
+   */
   protected String getUserInput(String prompt, List<String> options, List<String> singleCharOptions) {
     return getUserInput(prompt, options, singleCharOptions, "");
   }
 
+  /**
+   * Retrieve user input. Attempts to use the console; if one cannot be found,
+   * instead creates a dialog box to request input.
+   *
+   * @param prompt The prompt to be displayed to the user.
+   * @param options List of options to be presented to the user. Must be at least one.
+   *                The last option in the list will be the default.
+   * @param singleCharOptions The single-character shortcut to each one of the
+   *                          options, which <b>must</b> appear somewhere in the option
+   *                          itself.
+   * @param extraPromptForDialog If a dialog box is used instead of a console to request
+   *                             user input, display this string before {@code prompt}
+   * @return The option which was selected by the user.
+   */
   protected String getUserInput(String prompt, List<String> options,
       List<String> singleCharOptions, String extraPromptForDialog) {
     if (options.size() != singleCharOptions.size()) {
@@ -110,17 +187,35 @@ public abstract class Reconciler {
     }
     Console sysConsole = System.console();
     if (sysConsole == null) {
-      //TODO ?????
       return getUserInputFromDialog(extraPromptForDialog + "\n" + prompt, options);
     } else {
       return getUserInputFromConsole(prompt, options, singleCharOptions);
     }
   }
-  
+
+  /**
+   * Create a dialog to retrieve user input.
+   *
+   * @param prompt Text to display
+   * @param options Options to display as buttons, with the last option being the
+   *                default.
+   * @return The selected option
+   */
   private String getUserInputFromDialog(String prompt, List<String> options) {
     return ReconcileDialog.showDialogGetValue(prompt, options);
   }
 
+  /**
+   * Retrieve user input from the console.
+   *
+   * @param prompt Text to display to the user
+   * @param options Options to display to the user, with the last option
+   *                being the default.
+   * @param singleCharOptions The single-character shortcut to each one of the
+   *                          options, which <b>must</b> appear somewhere in the option
+   *                          itself.
+   * @return The selected option
+   */
   private String getUserInputFromConsole(String prompt, List<String> options,
       List<String> singleCharOptions) {
     List<String> optionsWithSingleChar = new ArrayList<>();
@@ -141,12 +236,23 @@ public abstract class Reconciler {
     return input;
   }
 
+  /**
+   * Combine an option with its single character form. For example, if
+   * the option was `diff`, and the single character form was `d`, return `[d]iff`.
+   *
+   * @param option Full name of option
+   * @param singleChar Single-character form of option
+   * @return The unified option
+   */
   private String createOptionWithSingleChar(String option, String singleChar) {
     return option.replaceFirst(singleChar, "[" + singleChar + "]");
   }
 
 }
 
+/**
+ * A {@code Reconciler} which uses the kdiff3 graphical utility to merge differences.
+ */
 class KDiff3Reconciler extends Reconciler {
 
   protected Optional<List<String>> reconcileDiffs(String testName, File referenceFile,
@@ -212,6 +318,9 @@ class KDiff3Reconciler extends Reconciler {
   }
 }
 
+/**
+ * A {@code Reconciler} which accepts all new observations.
+ */
 class AcceptReconciler extends Reconciler {
 
   protected Optional<List<String>> reconcileDiffs(String testName, File referenceFile,
@@ -223,6 +332,9 @@ class AcceptReconciler extends Reconciler {
   }
 }
 
+/**
+ * A {@code Reconciler} which does not accept any new observations.
+ */
 class AbortReconciler extends Reconciler {
   protected Optional<List<String>> reconcileDiffs(String testName, File referenceFile,
       List<String> currentLines, List<String> unifiedDiff, String noSaveMessage) throws IOException {
@@ -234,6 +346,10 @@ class AbortReconciler extends Reconciler {
 
 }
 
+/**
+ * A {@code Reconciler} which requests input from the user via the console, or, if
+ * none is present, through a modal dialog box.
+ */
 class ConsoleReconciler extends Reconciler {
 
   protected Optional<List<String>> reconcileDiffs(String testName, File referenceFile,
