@@ -1,0 +1,9 @@
+{
+  "__spyPoint__": "hash maps",
+  "stringObjectHashMap": "{\n  \"a\": \"foo\",\n  \"b\": \"bar\",\n  \"g\": \"test\",\n  \"z\": \"baz\"\n}",
+  "stringOnlyHashMap": "{\n  \"a\": \"foo\",\n  \"b\": \"bar\",\n  \"g\": \"test\",\n  \"z\": \"baz\"\n}"
+}
+{
+  "__spyPoint__": "tree maps",
+  "stringOnlyTreeMap": "{\n  \"z\": \"baz\",\n  \"g\": \"test\",\n  \"b\": \"bar\",\n  \"a\": \"foo\"\n}"
+}

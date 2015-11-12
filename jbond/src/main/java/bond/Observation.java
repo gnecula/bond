@@ -71,7 +71,6 @@ public class Observation {
   }
 
   private void processObservation(String spyPointName) {
-    _observationMap.put("zz", "blah");
     if (spyPointName != null) {
       _observationMap.put("__spyPoint__", spyPointName);
     }

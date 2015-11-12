@@ -14,14 +14,18 @@ public class Serializer {
   }
 
   private static Gson createGson() {
-    final Gson plainGson = new GsonBuilder().setPrettyPrinting().create();
-
-    return new GsonBuilder().setPrettyPrinting()
-               .registerTypeAdapter(Map.class, new JsonSerializer<Map>() {
+    return new GsonBuilder().setPrettyPrinting().serializeNulls()
+               .serializeSpecialFloatingPointValues().disableHtmlEscaping()
+               .registerTypeHierarchyAdapter(Map.class, new JsonSerializer<Map>() {
                  @Override
                  public JsonElement serialize(Map map, Type type, JsonSerializationContext jsc) {
                    if (map instanceof SortedMap) {
-                     return plainGson.toJsonTree(map);
+                     JsonObject jsonObj = new JsonObject();
+                     Set<Map.Entry<?, ?>> entrySet = map.entrySet();
+                     for (Map.Entry<?, ?> entry : entrySet) {
+                       jsonObj.add(entry.getKey().toString(), jsc.serialize(entry.getValue()));
+                     }
+                     return jsonObj;
                    } else {
                      TreeMap tm = new TreeMap(new Comparator<Object>() {
                        @Override
@@ -30,15 +34,19 @@ public class Serializer {
                        }
                      });
                      tm.putAll(map);
-                     return plainGson.toJsonTree(tm);
+                     return jsc.serialize(tm);
                    }
                  }
                })
-               .registerTypeAdapter(Set.class, new JsonSerializer<Set>() {
+               .registerTypeHierarchyAdapter(Set.class, new JsonSerializer<Set>() {
                  @Override
                  public JsonElement serialize(Set set, Type type, JsonSerializationContext jsc) {
                    if (set instanceof SortedSet) {
-                     return plainGson.toJsonTree(set);
+                     JsonArray jsonArray = new JsonArray();
+                     for (Object entry : set) {
+                       jsonArray.add(jsc.serialize(entry));
+                     }
+                     return jsonArray;
                    } else {
                      TreeSet ts = new TreeSet(new Comparator<Object>() {
                        @Override
@@ -47,7 +55,7 @@ public class Serializer {
                        }
                      });
                      ts.addAll(set);
-                     return plainGson.toJsonTree(ts);
+                     return jsc.serialize(ts);
                    }
                  }
                })

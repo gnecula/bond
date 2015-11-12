@@ -3,6 +3,7 @@ package bond.reconcile;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
+import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import difflib.Delta;
@@ -10,10 +11,11 @@ import difflib.DiffUtils;
 import difflib.Patch;
 
 import javax.swing.*;
+import java.awt.*;
+import java.io.Console;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static bond.reconcile.ReconcileType.CONSOLE;
@@ -84,14 +86,14 @@ public abstract class Reconciler {
   protected abstract Optional<List<String>> reconcileDiffs(String testName, File referenceFile,
       List<String> currentLines, List<String> unifiedDiff, String noSaveMessage) throws IOException;
 
-  protected void printDiffs(String testName, List<String> unifiedDiff) {
+  protected String getDiffString(String testName, List<String> unifiedDiff) {
     if (unifiedDiff.isEmpty()) {
-      printf("No differences in observations for %s\n", testName);
+      return String.format("No differences in observations for %s\n", testName);
     } else {
-      printf("There were differences in observations for %s\n", testName);
-      printf(Joiner.on("\n").join(unifiedDiff) + "\n");
-      // Print it again at the end; makes it easy to see in the console what test just failed
-      printf("There were differences in observations for %s\n", testName);
+      return String.format("There were differences in observations for %s\n", testName) +
+                 Joiner.on("\n").join(unifiedDiff) + "\n" +
+                 // Print it again at the end; makes it easy to see in the console what test just failed
+                 String.format("There were differences in observations for %s\n", testName);
     }
   }
 
@@ -105,76 +107,115 @@ public abstract class Reconciler {
 
   // TODO this is a workaround for IDEs / Gradle redirecting stdin in such a way
   // that it's completely inaccessible during tests... Needs work, though.
-  protected String getUserInput(String prompt, List<String> options) {
-    JFrame frame = new JFrame("BondReconcileFrame");
-    Object[] buttonText = new Object[options.size()];
-    for (int i = 0; i < options.size(); i++) {
-      buttonText[i] = options.get(i);
+  // NOTE default is always the last option
+  protected String getUserInput(String prompt, List<String> options, List<String> singleCharOptions) {
+    return getUserInput(prompt, options, singleCharOptions, "");
+  }
+
+  protected String getUserInput(String prompt, List<String> options,
+      List<String> singleCharOptions, String extraPromptForDialog) {
+    if (options.size() != singleCharOptions.size()) {
+      throw new IllegalArgumentException("options and singleCharOptions must have same size!");
     }
-    int n = JOptionPane.showOptionDialog(frame,
-        prompt,
-        "Bond Test Reconciliation",
-        JOptionPane.YES_NO_CANCEL_OPTION,
-        JOptionPane.QUESTION_MESSAGE,
-        null,     //do not use a custom Icon
-        buttonText,  //the titles of buttons
-        buttonText[0]); //default button title
-    return options.get(n);
-    //String ret = System.console().readLine();
-    //printf("RET: " + ret);
-    //return ret;
-    //Scanner in = new Scanner(System.in);
-    //printf(prompt);
-    //return in.nextLine();
+    Console sysConsole = System.console();
+    if (sysConsole == null) {
+      //TODO ?????
+      return getUserInputFromDialog(extraPromptForDialog + "\n" + prompt, options);
+    } else {
+      return getUserInputFromConsole(prompt, options, singleCharOptions);
+    }
+  }
+  
+  private String getUserInputFromDialog(String prompt, List<String> options) {
+    return ReconcileDialog.showDialogGetValue(prompt, options);
+  }
+
+  private String getUserInputFromConsole(String prompt, List<String> options,
+      List<String> singleCharOptions) {
+    List<String> optionsWithSingleChar = new ArrayList<>();
+    for (int i = 0; i < options.size(); i++) {
+      String output = createOptionWithSingleChar(options.get(i), singleCharOptions.get(i));
+      if (i == options.size() - 1) { // default option; highlight in bold
+        output = "\\e[1m" + output + "\\e[0m";
+      }
+      optionsWithSingleChar.add(output);
+    }
+    printf(prompt + "(" + Joiner.on(" | ").join(optionsWithSingleChar) + " ): ");
+    String input = System.console().readLine();
+    if (input.length() == 1 && singleCharOptions.contains(input)) {
+      return options.get(singleCharOptions.indexOf(input));
+    } else if (input.equals("")) {
+      return options.get(options.size() - 1);
+    }
+    return input;
+  }
+
+  private String createOptionWithSingleChar(String option, String singleChar) {
+    return option.replaceFirst(singleChar, "[" + singleChar + "]");
   }
 
 }
 
 class KDiff3Reconciler extends Reconciler {
+
   protected Optional<List<String>> reconcileDiffs(String testName, File referenceFile,
-                                                  List<String> currentLines, List<String> unifiedDiff, String noSaveMessage) throws IOException {
+      List<String> currentLines, List<String> unifiedDiff, String noSaveMessage)
+      throws IOException {
 
     File currentFile = new File(referenceFile.getCanonicalPath() + ".temp");
     File mergedFile = new File(referenceFile.getCanonicalPath() + ".tempmerge");
-    Files.write(Joiner.on("\n").join(currentLines), currentFile, Charsets.UTF_8);
-    List<String> cmd = Lists.newArrayList("kdiff3", referenceFile.getCanonicalPath(), "--L1",
-        testName + "_REFERENCE", currentFile.toString(), "--L2", testName + "_CURRENT");
-    if (noSaveMessage != null) {
-      String response = getUserInput(String.format("\n!!! MERGING NOT ALLOWED for %s: %s. " +
-                                                      "Want to start kdiff3? ([y]es | *): ",
-          testName, noSaveMessage), Lists.newArrayList("yes", "no"));
-      if (!(response.equals("y") || response.equals("yes"))) {
-        return Optional.absent();
+    try {
+      Files.write(Joiner.on("\n").join(currentLines), currentFile, Charsets.UTF_8);
+      if (!referenceFile.exists()) {
+        // In case there is no existing reference file (kdiff3 will complain otherwise)
+        Files.write("\n", referenceFile, Charsets.UTF_8);
       }
-    } else {
-      cmd.add(1, "-m");
-      cmd.add("-o");
-      cmd.add(mergedFile.toString());
-    }
-    Process kdiff3Process;
-    try {
-      kdiff3Process = new ProcessBuilder().command(cmd).start();
-    } catch (IOException e) {
-      throw new RuntimeException("Cannot find kdiff3 installed on your system!");
-    }
-    int exitCode = 1;
-    try {
-      exitCode = kdiff3Process.waitFor();
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt(); // Set in case test runner wants to do something with it
-    }
-    if (noSaveMessage != null) {
-      return Optional.absent();
-    } else {
-      if (exitCode == 0) {
-        List<String> mergedLines = Files.readLines(mergedFile, Charsets.UTF_8);
-        mergedFile.delete();
-        return Optional.of(mergedLines);
-      } else {
-        if (mergedFile.exists()) {
-          mergedFile.delete();
+      List<String> cmd = Lists.newArrayList("kdiff3", referenceFile.toString(), "--L1",
+          testName + "_REFERENCE", currentFile.toString(), "--L2", testName + "_CURRENT");
+      if (noSaveMessage != null) {
+        String response = getUserInput(String.format("\n!!! MERGING NOT ALLOWED for %s: %s. Want to start kdiff3?",
+            testName, noSaveMessage), Lists.newArrayList("yes", "no"), Lists.newArrayList("y", "n"));
+        if (!(response.equals("y") || response.equals("yes"))) {
+          return Optional.absent();
         }
+      } else {
+        cmd.add(1, "-m");
+        cmd.add("-o");
+        cmd.add(mergedFile.toString());
+      }
+      Process kdiff3Process;
+      try {
+        kdiff3Process = new ProcessBuilder().command(cmd).start();
+      } catch (IOException e) {
+        throw new RuntimeException("Cannot find kdiff3 installed on your system!");
+      }
+      int exitCode = 1;
+      try {
+        exitCode = kdiff3Process.waitFor();
+      } catch (InterruptedException e) {
+        // Set interrupt status in  case test runner wants to do something with it
+        Thread.currentThread().interrupt();
+      }
+      if (noSaveMessage != null) {
         return Optional.absent();
+      } else {
+        if (exitCode == 0) {
+          List<String> mergedLines = Files.readLines(mergedFile, Charsets.UTF_8);
+          return Optional.of(mergedLines);
+        } else {
+          return Optional.absent();
+        }
+      }
+    } finally {
+      if (currentFile.exists()) {
+        currentFile.delete();
+      }
+      if (mergedFile.exists()) {
+        mergedFile.delete();
+      }
+      File kdiff3TempFile = new File(mergedFile + ".orig");
+      if (kdiff3TempFile.exists()) {
+        kdiff3TempFile.delete();
       }
     }
   }
@@ -195,7 +236,7 @@ class AbortReconciler extends Reconciler {
   protected Optional<List<String>> reconcileDiffs(String testName, File referenceFile,
       List<String> currentLines, List<String> unifiedDiff, String noSaveMessage) throws IOException {
     if (noSaveMessage == null) {
-      printDiffs(testName, unifiedDiff);
+      printf(getDiffString(testName, unifiedDiff));
     }
     return Optional.absent();
   }
@@ -206,27 +247,26 @@ class ConsoleReconciler extends Reconciler {
 
   protected Optional<List<String>> reconcileDiffs(String testName, File referenceFile,
       List<String> currentLines, List<String> unifiedDiff, String noSaveMessage) throws IOException {
+    String diffMessage = null;
     while (true) {
       String prompt;
       String response;
       if (noSaveMessage != null) {
         prompt = String.format("Observations are shown for %s. Saving them not allowed: %s\n",
-            testName, noSaveMessage)
-                     + "Use the diff option to show the differences. ([k]diff3 | [d]iff | *): ";
-        response = getUserInput(prompt, Lists.newArrayList("[k]diff3", "[d]iff", "no"));
+            testName, noSaveMessage) + "Use the diff option to show the differences.";
+        response = getUserInput(prompt, Lists.newArrayList("kdiff3", "diff", "no"),
+            Lists.newArrayList("k", "d", "n"),
+            diffMessage == null ? Joiner.on("\n").join(currentLines) : diffMessage);
       } else {
-        printDiffs(testName, unifiedDiff);
-        prompt = String.format("Do you want to accept the changes (%s)? ([y]es | [k]diff3 | *): ",
-            testName);
-        response = getUserInput(prompt, Lists.newArrayList("kdiff3", "yes", "no"));
+        printf(getDiffString(testName, unifiedDiff));
+        prompt = String.format("Do you want to accept the changes (%s)?", testName);
+        response = getUserInput(prompt, Lists.newArrayList("kdiff3", "yes", "no"),
+            Lists.newArrayList("k", "y", "n"), getDiffString(testName, unifiedDiff));
       }
-      //String response = getUserInput(prompt);
       switch (response) {
-        case "k":
         case "kdiff3":
           return new KDiff3Reconciler().reconcileDiffs(testName, referenceFile, currentLines,
               unifiedDiff, noSaveMessage);
-        case "y":
         case "yes":
           if (noSaveMessage == null) {
             printf("Accepting differences for test %s\n", testName);
@@ -234,9 +274,9 @@ class ConsoleReconciler extends Reconciler {
           } else {
             break;
           }
-        case "d":
         case "diff":
-          printDiffs(testName, unifiedDiff);
+          diffMessage = getDiffString(testName, unifiedDiff);
+          printf(diffMessage);
           continue;
       }
       if (noSaveMessage != null) {

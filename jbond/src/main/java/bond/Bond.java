@@ -16,14 +16,11 @@ import java.util.Map;
 public class Bond {
 
   private static final Splitter CLASS_SPLITTER = Splitter.on(".").trimResults();
-  private static final Splitter LINE_SPLITTER = Splitter.on("\n").trimResults();
+  private static final Splitter LINE_SPLITTER = Splitter.on("\n");
 
   private static Optional<String> _currentTest = Optional.absent();
-
   private static Map<String, List<SpyAgent<?>>> _agentMap = new HashMap<>();
-
   private static List<String> _observationJsons = new ArrayList<>();
-
   private static Optional<File> _observationDirectory = Optional.absent();
   private static Optional<ReconcileType> _reconciliationMethod = Optional.absent();
 
@@ -63,6 +60,32 @@ public class Bond {
     _reconciliationMethod = Optional.fromNullable(reconcileType);
   }
 
+  private static File getObservationDirectory() {
+    if (_observationDirectory.isPresent()) {
+      return _observationDirectory.get();
+    } else {
+      String bondObsDirString = System.getenv("BOND_OBS_DIR");
+      if (bondObsDirString == null) {
+        throw new IllegalStateException("Must specify a directory to store Bond's observations! This can be " +
+                                            "done using BondTestRule.withObservationDirectory() from your test, " +
+                                            "or by setting the BOND_OBS_DIR environment variable.");
+      }
+      return new File(bondObsDirString);
+    }
+  }
+
+  private static ReconcileType getReconciliationMethod() {
+    if (_reconciliationMethod.isPresent()) {
+      return _reconciliationMethod.get();
+    } else {
+      String reconciler = System.getenv("BOND_RECONCILE");
+      if (reconciler == null || reconciler.equals("")) {
+        return ReconcileType.ABORT;
+      }
+      return ReconcileType.getFromName(reconciler);
+    }
+  }
+
   private static void clearSettings() {
     _observationDirectory = Optional.absent();
     _reconciliationMethod = Optional.absent();
@@ -88,16 +111,11 @@ public class Bond {
 
   // returns true if the test should fail
   private static boolean finishTest(String testFailureMessage) throws IOException {
-    // TODO okay for now but if this stays this way (with no good default) then
-    // we should make it a required constructor parameter on BondTestRule
-    if (!_observationDirectory.isPresent()) {
-      throw new IllegalStateException("Bond's test observation directory must be set!");
-    }
     if (!isActive()) {
       throw new IllegalStateException("Cannot call finishTest when not in a test!");
     }
 
-    File outFileBase = _observationDirectory.get();
+    File outFileBase = getObservationDirectory();
     for (String pathComponent : CLASS_SPLITTER.split(_currentTest.get())) {
       outFileBase = new File(outFileBase, pathComponent);
     }
@@ -114,12 +132,7 @@ public class Bond {
   private static boolean reconcileObservations(File referenceFile, String testFailureMessage)
       throws IOException {
 
-    Reconciler reconciler;
-    if (_reconciliationMethod.isPresent()) {
-      reconciler = Reconciler.getReconciler(_reconciliationMethod.get());
-    } else {
-      reconciler = Reconciler.getReconciler();
-    }
+    Reconciler reconciler = Reconciler.getReconciler(getReconciliationMethod());
     return reconciler.reconcile(_currentTest.get(), referenceFile, getObservationsAsLines(),
         testFailureMessage);
   }

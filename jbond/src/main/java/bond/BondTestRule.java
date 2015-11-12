@@ -38,7 +38,6 @@ public class BondTestRule implements TestRule {
       testName = String.format("%s.%s", description.getTestClass().getCanonicalName(),
           description.getMethodName());
     }
-    //String testFile = description.getTestClass().getProtectionDomain().getCodeSource().getLocation().getPath();
     return new Statement() {
       @Override
       public void evaluate() throws Throwable {

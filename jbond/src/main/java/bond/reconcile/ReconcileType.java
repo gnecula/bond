@@ -15,7 +15,7 @@ public enum ReconcileType {
 
   public static ReconcileType getFromName(String name) {
     for (ReconcileType type : ReconcileType.values()) {
-      if (type.getName().equals(name)) {
+      if (type.getName().equalsIgnoreCase(name)) {
         return type;
       }
     }

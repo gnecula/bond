@@ -1,3 +1,5 @@
+import java.nio.file.Paths
+
 apply plugin: 'java'
 apply plugin: 'idea'
 apply plugin: 'eclipse'
@@ -13,10 +15,14 @@ dependencies {
     compile 'com.google.guava:guava:18.0'
     compile 'com.google.code.gson:gson:2.4'
     compile 'com.googlecode.java-diff-utils:diffutils:1.2.1'
-    testCompile 'junit:junit:4.12'
+    compile 'junit:junit:4.12'
 }
 
 test {
+    useJUnit() {
+        environment 'BOND_OBS_DIR', Paths.get(file("$projectDir").toString(), 'src', 'test', 'resources', 'test_observations').toAbsolutePath()
+        environment 'BOND_RECONCILE', 'console'
+    }
     testLogging {
         exceptionFormat = 'full'
         events "passed", "skipped", "failed", "standardOut", "standardError"
