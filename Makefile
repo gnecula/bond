@@ -15,7 +15,7 @@ run_tests_rb:
 	cd rbond && BOND_RECONCILE=$(BOND_RECONCILE) rspec
 
 run_tests_java:
-	cd jbond && BOND_RECONCILE=$(BOND_RECONCILE) gradle test
+	cd jbond && BOND_RECONCILE=$(BOND_RECONCILE) ./gradlew test
 
 ##
 ## Documentation
