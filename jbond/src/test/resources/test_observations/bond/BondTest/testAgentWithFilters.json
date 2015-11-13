@@ -1,14 +1,15 @@
+[
 {
   "__spyPoint__": "myPoint"
-}
+},
 {
   "__spyPoint__": "myPoint",
   "key": "foobar"
-}
+},
 {
   "__spyPoint__": "myPoint",
   "key": "fo"
-}
+},
 {
   "__spyPoint__": "results",
   "matching": {
@@ -17,3 +18,4 @@
   "notMatching1": {},
   "notMatching2": {}
 }
+]

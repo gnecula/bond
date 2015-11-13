@@ -1,4 +1,6 @@
+[
 {
   "objectMap": "{\n  \"hashMap\": {\n    \"a\": \"foo\",\n    \"b\": \"bar\",\n    \"g\": \"test\",\n    \"z\": \"baz\"\n  },\n  \"hashSet\": [\n    \"a\",\n    \"b\",\n    \"g\",\n    \"z\"\n  ],\n  \"nestingObject\": {\n    \"stringSet\": [\n      \"a\",\n      \"b\",\n      \"g\",\n      \"z\"\n    ],\n    \"stringMap\": {\n      \"a\": \"foo\",\n      \"b\": \"bar\",\n      \"g\": \"test\",\n      \"z\": \"baz\"\n    }\n  }\n}",
   "objectSet": "[\n  [\n    \"a\",\n    \"b\",\n    \"g\",\n    \"z\"\n  ],\n  {\n    \"stringSet\": [\n      \"a\",\n      \"b\",\n      \"g\",\n      \"z\"\n    ],\n    \"stringMap\": {\n      \"a\": \"foo\",\n      \"b\": \"bar\",\n      \"g\": \"test\",\n      \"z\": \"baz\"\n    }\n  },\n  {\n    \"a\": \"foo\",\n    \"b\": \"bar\",\n    \"g\": \"test\",\n    \"z\": \"baz\"\n  }\n]"
 }
+]

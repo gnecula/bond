@@ -2,6 +2,7 @@ package bond;
 
 import bond.reconcile.ReconcileType;
 import bond.reconcile.Reconciler;
+import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
 import com.google.common.io.Files;
@@ -381,9 +382,9 @@ public class Bond {
    */
   private static List<String> getObservationsAsLines() {
     List<String> lines = new ArrayList<>();
-    for (String obs : _observationJsons) {
-      lines.addAll(LINE_SPLITTER.splitToList(obs));
-    }
+    lines.add("[");
+    lines.addAll(LINE_SPLITTER.splitToList(Joiner.on(",\n").join(_observationJsons)));
+    lines.add("]");
     return lines;
   }
 

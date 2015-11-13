@@ -1,13 +1,15 @@
+[
 {
   "__spyPoint__": "myPoint"
-}
+},
 {
   "exceptionMessage": "java.lang.RuntimeException: No Foo Exception"
-}
+},
 {
   "__spyPoint__": "myPoint",
   "foo": "bar"
-}
+},
 {
   "exceptionMessage": "java.lang.RuntimeException: Foo Exception"
 }
+]

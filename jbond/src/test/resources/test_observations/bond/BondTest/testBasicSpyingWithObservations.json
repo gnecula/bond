@@ -1,8 +1,9 @@
+[
 {
   "obs1": "someValue",
   "obs2": 50,
   "obs3": true
-}
+},
 {
   "__spyPoint__": "pointName",
   "obs4": [
@@ -15,3 +16,4 @@
     "item2"
   ]
 }
+]

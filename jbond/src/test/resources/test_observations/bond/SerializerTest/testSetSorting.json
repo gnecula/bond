@@ -1,9 +1,11 @@
+[
 {
   "__spyPoint__": "hash sets",
   "stringHashSet": "[\n  \"a\",\n  \"b\",\n  \"g\",\n  \"z\"\n]",
   "stringObjectHashSet": "[\n  {\n    \"str\": \"a\"\n  },\n  {\n    \"str\": \"b\"\n  },\n  {\n    \"str\": \"g\"\n  },\n  {\n    \"str\": \"z\"\n  }\n]"
-}
+},
 {
   "__spyPoint__": "tree sets",
   "stringOnlyTreeSet": "[\n  \"z\",\n  \"g\",\n  \"b\",\n  \"a\"\n]"
 }
+]
