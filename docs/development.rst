@@ -14,6 +14,7 @@ You must install Sphinx and dependencies:
    brew install graphviz
    pip install sphinxcontrib-plantuml
    gem install yard
+   brew install gradle
 
 Then you can process the documentation
 

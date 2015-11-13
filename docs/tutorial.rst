@@ -705,11 +705,11 @@ has been declared, Bond is going to look for an active deployed agent
 for that spy point and use the mock result provided by the agent. 
 
 
-That's it! Bond is simple but the possibilities are endless. You can be a pro now!
-
-More Usage Examples
----------------------------
-
 To learn more about usage patterns visit :ref:`patterns`.
 
-To see a more elaborate example of using Bond visit :ref:`examples`.
+That's it! Bond is simple but the possibilities are endless. You can be a pro now!
+
+.. include:: example_heat.rst
+
+
+

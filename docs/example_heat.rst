@@ -1,8 +1,7 @@
 .. _examples:
 
-=======================================
-An Example of Bond Usage
-=======================================
+Part 3: An Example of Bond Usage
+-------------------------------------------
 
 We discuss here how you could use Bond to test a hypothetical example of a
 program that monitors the changes of temperature over time. The code will
@@ -37,7 +36,7 @@ so that it is even more easily testable.
 
 
 How to use this example
-------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 #. If you want to fully experience this example, you can copy and paste this
    code into your computer, or you can find it in the ``tutorials/heat_watcher``
@@ -72,7 +71,8 @@ How to use this example
    and the new observations.  
 
 The code to be tested
------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 
 .. container:: tab-section-group
 
@@ -89,7 +89,8 @@ The code to be tested
                  
 
 The tests using Bond
------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 
 The most testworthy code in our example is the ``monitor_loop`` method. Note
 that we have added a parameter ``exit_time`` to enable us to run the loop for a
