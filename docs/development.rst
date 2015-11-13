@@ -39,7 +39,7 @@ To push it to GitHub Pages:
 Running tests
 -----------------
 
-The best way to run tests is from PyCharm. Just right-click in the body of a test, and you can select "Debug test..."
+The best way to run tests is from PyCharm / RubyMine / IntelliJ / your favorite IDE. Just right-click in the body of a test, and you can select "Debug test..."
 
 To run all the tests from the command line:
 
@@ -47,7 +47,7 @@ To run all the tests from the command line:
 
    bond> [BOND_RECONCILE=...] make run_tests
 
-To execute only tests for Python or Ruby, ``make`` using tasks ``run_tests_py`` or ``run_tests_rb``. 
+To execute only tests for a single language, ``make`` using tasks ``run_tests_py``, ``run_tests_rb``, or ``run_tests_java``.. 
 
 To execute only a subset of the Python tests:
 

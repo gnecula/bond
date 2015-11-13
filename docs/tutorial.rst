@@ -15,12 +15,11 @@ Spying inside your test code
 
 Spying with Bond is meant to replace writting the common equality assertion calls in your tests, i.e., the validation
 that some state variable has some expected value. These assertions are tedious to write, and even more tedious to
-update when your code or your test fixture change and you need to update the test. For this reason, people
+update when your code or your test fixture changes and you need to update the test. For this reason, people
 tend to write fewer assertions than they should.
 
-Consider, for example,
-that you have just implemented binary-search-trees (BST) and want to write tests. You may write the following
-testing code:
+Consider, for example, that you have just implemented binary-search-trees (BST) and want to write tests. 
+You may write the following testing code:
 
 .. container:: tab-section-group
 
@@ -61,8 +60,6 @@ testing code:
                     tree.insert(4)
                     tree.insert(6)
     
-                    # WITHOUT BOND: Add self.assertEquals here to verify the position in the tree
-                    # of all the data points, in the order in which they were inserted
                     expect(tree.data).to eq(8)            
                     expect(tree.right.data).to eq(12)            
                     expect(tree.left.data).to eq(3)            
@@ -71,8 +68,30 @@ testing code:
                 end
             end
 
+   .. container:: tab-section-java
 
-That is a lot of ``assertEquals``, and in fact, it is not even a complete test, because you'd have to
+       .. code-block:: java
+           :emphasize-lines: 10-16
+
+           // Using JUnit
+           @Test
+           public void testAdd() {
+             Node<Integer> tree = new Node<>(8);
+             tree.insert(12);
+             tree.insert(3);
+             tree.insert(4); 
+             tree.insert(6);
+
+             assertEquals(8, tree.data.intValue());
+             assertEquals(12, tree.right.data.intValue());
+             assertNull(tree.right.left);
+             assertNull(tree.right.right);
+             assertEquals(3, tree.left.data.intValue());
+             assertEquals(4, tree.left.right.data.intValue());
+             assertEquals(6, tree.left.right.right.data.intValue());
+           }
+
+That is a lot of asserting, and in fact, it is not even a complete test, because you'd have to
 test, e.g., that 6 is a leaf node.
 
 The alternative with Bond is as follows:
@@ -124,39 +143,123 @@ The alternative with Bond is as follows:
                     bond.spy(tree: tree)  # Spy the whole tree
                 end
             end
+
+   .. container:: tab-section-java
+
+       .. code-block:: java      
+            :emphasize-lines: 2-3, 14
+
+            // Automatically initializes Bond
+            @Rule
+            public BondTestRule btr = new BondTestRule()
+
+            // Using JUnit
+            @Test
+            public void testAdd() {
+              Node<Integer> tree = new Node<>(8);
+              tree.insert(12);
+              tree.insert(3);
+              tree.insert(4); 
+              tree.insert(6);
+
+              Bond.obs("tree", tree).spy("testAdd");
+            }
+
          
 
-What is happening there is that we call the ``bond.spy`` function to tell Bond to record the value of the
-``tree`` variable. There could be multiple calls to ``bond.spy`` during a test.
-The spied values (observations) are recorded in a file saved by default in a subdirectory called ``test_observations``.
-This file should be checked in your repository along with your sources. Next time Bond runs the same test it will
-compare the current observation with the reference one. If there are differences, before concluding that the
-test has failed, you will get the opportunity
-to interact with Bond to select what you want to be the new reference.
+What is happening there is that we call the ``spy`` function to tell Bond to record the value of the
+``tree`` variable. There could be multiple calls to ``spy`` during a test.
+The spied values (observations) are recorded in a file saved by default in a subdirectory called ``test_observations``
+(except for Java, which does not support a default). This file should be checked in your repository along with 
+your sources. Next time Bond runs the same test it will compare the current observation with the reference one. 
+If there are differences, before concluding that the test has failed, you will get the opportunity to interact 
+with Bond to select what you want to be the new reference.
 
 Here is the test observation spied by the test case we wrote above:
 
-.. code-block:: javascript
+.. container:: tab-section-group
 
-    [
-    {
-        "tree": {
-            "data": 8,
-            "left": {
-                "data": 3,
-                "right": {
-                    "data": 4,
+    .. container:: tab-section-python
+
+        .. code-block:: javascript
+
+            [
+            {
+                "__spy_point__": "testAdd1",
+                "tree": {
+                    "data": 8,
+                    "left": {
+                        "data": 3,
+                        "right": {
+                            "data": 4,
+                            "right": {
+                                "data": 6
+                            }
+                        }
+                    },
                     "right": {
-                        "data": 6
+                        "data": 12
                     }
                 }
-            },
-            "right": {
-                "data": 12
             }
-        }
-    }
-    ]
+            ]
+
+    .. container:: tab-section-ruby
+
+        .. code-block:: javascript
+
+            [
+            {
+                "__spy_point__": "testAdd1",
+                "tree": {
+                    "data": 8,
+                    "left": {
+                        "data": 3,
+                        "right": {
+                            "data": 4,
+                            "right": {
+                                "data": 6
+                            }
+                        }
+                    },
+                    "right": {
+                        "data": 12
+                    }
+                }
+            }
+            ]
+
+    .. container:: tab-section-java
+
+        .. code-block:: javascript
+
+            [
+            {
+              "__spy_point__": "testAdd",
+              "tree": {
+                "data": 8,
+                "left": {
+                  "data": 3,
+                  "left": null,
+                  "right": {
+                    "data": 4,
+                    "left": null,
+                    "right": {
+                      "data": 6
+                      "left": null,
+                      "right": null
+                    }
+                  }
+                },
+                "right": {
+                  "data": 12
+                  "left": null,
+                  "right": null
+                }
+              }
+            }
+            ]
+
 
 Note that this observation acts implicitly as 15 equality assertions (5 for the data values, and 10 more for
 the ``left`` and ``right`` pointers on the nodes).
@@ -199,6 +302,19 @@ insert 7 in the tree. If you run the traditional test, you will see the familiar
                    (compared using ==)
                  # ./bst_spec.rb:20:in `block (2 levels) in <top (required)>'
 
+    .. container:: tab-section-java
+
+        .. code-block:: diff
+
+            tutorial.binarysearchtree.BinarySearchTreeTest > testAdd FAILED
+                java.lang.AssertionError: expected:<4> but was:<7>
+                    at org.junit.Assert.fail(Assert.java:88)
+                    at org.junit.Assert.failNotEquals(Assert.java:834)
+                    at org.junit.Assert.assertEquals(Assert.java:645)
+                    at org.junit.Assert.assertEquals(Assert.java:631)
+                    at tutorial.binarysearchtree.BinarySearchTreeTest.testAdd(BinarySearchTreeTest.java:37)
+
+
 Not only does your test abort on the first assertion, but it turns out that you have to fix
 several of the assertions because the tree structure has changed. This is a common scenario when
 your tests are aggressive about validating the data, and your test scenario or the underlying code
@@ -208,7 +324,22 @@ With Bond, there is absolutely no change to the test code, precisely because the
 tree shape is not part of your code! Instead, the test notices a discrepancy in the
 observations, and tries to reconcile the observations.
 
-You can read more about ``bond.start_test`` and ``bond.spy`` in the :ref:`API documentation <api_spy>`.
+.. container:: tab-section-group
+
+   .. container:: tab-section-python
+
+       You can read more about ``bond.start_test`` and ``bond.spy`` in the :ref:`API documentation <api_spy>`.
+
+   .. container:: tab-section-ruby
+
+       You can read more about the ``:bond`` context and `bond#spy <rbond/Bond.html#spy-instance_method>`_ 
+       in the `API documentation <rbond/Bond.html>`_.
+
+   .. container:: tab-section-java
+
+       You can read more about the `BondTestRule <jbond/bond/BondTestRule.html>`_ and 
+       `Bond.spy <jbond/bond/Bond.html#spy-->`_ in the `API documentation <jbond/index.html>`_.
+
 
 Reconciling Bond observations
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -219,24 +350,82 @@ testing proceeds as before. If there are differences, there are multiple possibl
 reconciliation methods. By default, you will be presented with the a console
 ``diff`` of the changes and a small reconciliation menu, as shown below:
 
-.. code-block:: diff
+.. container:: tab-section-group
 
-    --- bond/pybond/tutorials/binary_search_tree/test_observations/NodeTest/test_bst.json
-    +++ bond/pybond/tutorials/binary_search_tree/test_observations/NodeTest/test_bst_now.json
-    @@ -6,8 +6,8 @@
-             "left": {
-                 "data": 3,
-                 "right": {
-    -                "data": 4,
-    -                "right": {
-    +                "data": 7,
-    +                "left": {
-                         "data": 6
+    .. container:: tab-section-python
+
+        .. code-block:: diff
+
+            --- tutorials/binary_search_tree/test_observations/NodeTest/test_bst.json
+            +++ tutorials/binary_search_tree/test_observations/NodeTest/test_bst_now.json
+            @@ -6,8 +6,8 @@
+                     "left": {
+                         "data": 3,
+                         "right": {
+            -                "data": 4,
+            -                "right": {
+            +                "data": 7,
+            +                "left": {
+                                 "data": 6
+                             }
+                         }
+        
+            There were differences in observations for NodeTest.test_bst:
+            Do you want to accept the changes (NodeTest.test_bst) ? ( [y]es | [k]diff3 | *):
+
+    .. container:: tab-section-ruby
+
+        .. code-block:: diff
+
+            --- test_observations/bst_spec/Node_should_add_nodes_to_the_BST_correctly__testing_with_Bond.json
+            +++ test_observations/bst_spec/Node_should_add_nodes_to_the_BST_correctly__testing_with_Bond_now.json
+            @@ -6,8 +6,8 @@
+                 "left": {
+                   "data": 3,
+                   "right": {
+            -        "data": 4,
+            -        "right": {
+            +        "data": 7,
+            +        "left": {
+                       "data": 6
                      }
-                 }
+                   }
 
-    There were differences in observations for NodeTest.test_bst:
-    Do you want to accept the changes (NodeTest.test_bst) ? ( [y]es | [k]diff3 | *):
+            There were differences in observations for bst_spec.Node_should_add_nodes_to_the_BST_correctly__testing_with_Bond: 
+            Do you want to accept the changes (bst_spec.Node_should_add_nodes_to_the_BST_correctly__testing_with_Bond) ? ( [y]es | [k]diff3 | *): 
+
+
+    .. container:: tab-section-JAVA
+
+        .. code-block:: diff
+
+            There were differences in observations for tutorial.binarysearchtree.BinarySearchTreeTest.testAdd
+            --- reference
+            +++ current
+            @@ -6,15 +6,15 @@
+                 "left": {
+                   "data": 3,
+                   "left": null,
+                   "right": {
+            -        "data": 4,
+            -        "left": null,
+            -        "right": {
+            +        "data": 7,
+            +        "left": {
+                       "data": 6,
+                       "left": null,
+                       "right": null
+            -        }
+            +        },
+            +        "right": null
+                   }
+                 },
+                 "right": {
+                   "data": 12,
+            There were differences in observations for tutorial.binarysearchtree.BinarySearchTreeTest.testAdd
+
+            Do you want to accept the changes (tutorial.binarysearchtree.BinarySearchTreeTest.testAdd)?
+
 
 At this  point you can click "y" to accept the new changes (they will be saved as the new reference
 and the test will pass), or "n" to abort the test. Furthermore, if you click "k" at the above prompt,
@@ -250,7 +439,7 @@ deep assertions about your test while keeping the assertion maintenance cost low
 .. image:: _static/kdiff3_bst1.png
 
 
-You can control the reconciliation method using a parameter to ``bond.start_test`` or with the environment
+You can control the reconciliation method using a parameter to ``bond.start_test`` in Python / a parameter to ``:include_context :bond`` in Ruby / the `withReconciliationMethod() <jbond/bond/BondTestRule.html#withReconciliationMethod-bond.reconcile.ReconcileType->`_ method on `BondTestRule <jbond/bond/BondTestRule.html>`_ in Java, or with the environment
 variable ``BOND_RECONCILE``, with possible values
 
 * ``accept`` : accept the new observations and change the reference
@@ -311,8 +500,8 @@ whether the current observations should be the new reference ones.
 
 Note that the ``start_test()`` method is explicit in Python, but is
 implicit in Ruby, if you add ``include_context :bond`` to the RSpec
-test. The ``end_test()`` method call is automatic at the end of the
-test both in Python and in Ruby. 
+test, and in Java, if you add the JUnit @Rule `BondTestRule <jbond/bond/BondTestRule.html>`_. The ``end_test()`` method call is automatic at the end of the
+test in all languages.
 
 Spying inside your production code while testing
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -330,6 +519,8 @@ For a pattern to use when including Bond in production code, see :ref:`pattern_b
 
 Part 2: Mocking with Bond
 --------------------------------
+
+Note: This section applies to Python and Ruby only; Java does not (yet) support mocking.
 
 Sometimes you want not only to spy values from your production code,
 but also to replace some of those values. Spying and mocking together

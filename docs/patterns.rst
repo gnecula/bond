@@ -86,9 +86,15 @@ or else fake the Bond API functions using something like this in your file:
                end
            end
 
+   .. container: tab-section-java
+
+       .. code-block:: java
+       
+           // Not applicable to Java
+          
 
 The code shown above defines all the API functions that may be used in your production code. Put this in
-a module of your production code, and import ``bond`` from that module everywhere you need it in production files.
+a module of your production code, and import ``bond`` from that module everywhere you need it in production files. Unfortunately the Java version of Bond does not support anything like the above, but is still safe to use in production. 
 
 Inline Spy and Mock Points
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -134,3 +140,24 @@ the mock functionality to the agent, and thus to the testing code.
                if value == :agent_result_none
                    raise "When testing, you must mock 'my_spy_point'" 
                end
+
+   .. container:: tab-section-java
+
+       .. code-block:: java
+
+           // Inline spying
+           Bond.obs("what", x).obs("msg", "Spying has effect only if Bond is active").spy();
+           // ...
+           if (!Bond.isActive()) {
+             value = computeProductionValue();
+           } else {
+             // This is executed only if you called Bond.startTest()
+             // or used BondTestRule in JUnit
+             Optional<Integer> mockValue = Bond.obs("what", x).spy("mySpyPoint", Integer.class);
+             // or 
+             Optional<Object> mockValue = Bond.obs("what", x).spy("mySpyPoint");
+             if (!Optional.isPresent()) {
+               throw new RuntimeException("When testing, you must mock mySpyPoint!");
+             } 
+             value = mockValue.get();
+           }
