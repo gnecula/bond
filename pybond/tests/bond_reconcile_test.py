@@ -9,7 +9,7 @@ from bond import bond
 from bond import bond_reconcile
 from bond.bond_helpers import collect_directory_contents
 
-from bond_test import setup_bond_self_tests
+from bond_test import setup_bond_self_test, teardown_bond_self_test
 
 class ReconcileTest(unittest.TestCase):
 
@@ -26,7 +26,9 @@ class ReconcileTest(unittest.TestCase):
 }
 ]
 """
-        setup_bond_self_tests(self)
+
+
+        setup_bond_self_test(self)
         # By default allow diffs
         bond.deploy_agent('bond_reconcile._invoke_command',
                           cmd__startswith='diff ',
@@ -40,6 +42,9 @@ class ReconcileTest(unittest.TestCase):
         self.kdiff3_result = 0
         def mock_kdiff3(obs):
             "Mock call to kdiff3"
+            if not self.during_test:
+                return bond.AGENT_RESULT_CONTINUE
+
             if self.kdiff3_result == 0:
                 # Success, create the merged file
                 # First, get the file name from the command line
@@ -68,7 +73,11 @@ class ReconcileTest(unittest.TestCase):
         bond.deploy_agent('bond_reconcile._print',
                           what__contains='@@',
                           formatter=_print_formatter)
-                    
+
+    def tearDown(self):
+        # So that Bond mocking is turned off
+        teardown_bond_self_test(self)
+
     def prepare_observations(self,
                              reference_file_content=None,
                              current_file_content=None):

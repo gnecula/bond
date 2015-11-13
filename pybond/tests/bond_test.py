@@ -6,12 +6,21 @@ import setup_paths_test
 from bond import bond, bond_helpers
 
 
-def setup_bond_self_tests(test_instance, spy_groups=None):
+def setup_bond_self_test(test_instance, spy_groups=None):
     """
     Setup Bond for self-tests
     :param spy_groups:
     :return:
     """
+
+
+    # Since we use Bond both as a system-under-test and as a testing library, we
+    # have to be careful with mocking. We want to mock the reconcile prompts in the
+    # system under test, but not in the testing Bond.
+    # We keep a variable that is set whether we are running the test. In that case,
+    # the mocking works. Once the test ends, then Bond becomes the testing one.
+    test_instance.during_test = True
+
     bond_observations_dir = os.environ.get('BOND_OBSERVATION_DIR',
                                            os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                                                         'tests',
@@ -34,11 +43,16 @@ def setup_bond_self_tests(test_instance, spy_groups=None):
     bond.deploy_agent('bond_reconcile._read_console',
                       result=bond.AGENT_RESULT_CONTINUE)
 
+def teardown_bond_self_test(test_instance):
+    test_instance.during_test = False
+    # Change the settings to use a console reconcile for the end of the test
+    bond.settings(reconcile=os.environ.get('BOND_RECONCILE', 'console'))
+
 class BondTest(unittest.TestCase):
 
 
     def setUp(self):
-        setup_bond_self_tests(self)
+        setup_bond_self_test(self)
         self.assertTrue(bond.TESTING)
         self.assertTrue(bond.active())
 

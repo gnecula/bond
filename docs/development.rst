@@ -54,7 +54,7 @@ To execute only a subset of the Python tests:
 
 .. code::
 
-   bond> PYTHON_TEST_ARGS=tests.bond_test[.BondTest[.test_result]]
+   bond> PYTHON_TEST_ARGS=tests.bond_test[.BondTest[.test_result]] make run_tests_py
 
     
 Deploying a new version
