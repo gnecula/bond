@@ -1,0 +1,269 @@
+[
+{
+  "__spyPoint__": "HeatWatcher.getTemperature"
+},
+{
+  "__spyPoint__": "HeatWatcher.makeRequest",
+  "data": null,
+  "url": "http://system.server.com/temperature"
+},
+{
+  "__spyPoint__": "HeatWatcher.getTemperature.result",
+  "result": 70.0
+},
+{
+  "__spyPoint__": "HeatWatcher.getCurrentTime"
+},
+{
+  "__spyPoint__": "HeatWatcher.getCurrentTime.result",
+  "result": 1.4455677E9
+},
+{
+  "__spyPoint__": "HeatWatcher.sleep",
+  "seconds": 60
+},
+{
+  "__spyPoint__": "HeatWatcher.getTemperature"
+},
+{
+  "__spyPoint__": "HeatWatcher.makeRequest",
+  "data": null,
+  "url": "http://system.server.com/temperature"
+},
+{
+  "__spyPoint__": "HeatWatcher.getTemperature.result",
+  "result": 70.5
+},
+{
+  "__spyPoint__": "HeatWatcher.getCurrentTime"
+},
+{
+  "__spyPoint__": "HeatWatcher.getCurrentTime.result",
+  "result": 1.44556776E9
+},
+{
+  "__spyPoint__": "HeatWatcher.sleep",
+  "seconds": 60
+},
+{
+  "__spyPoint__": "HeatWatcher.getTemperature"
+},
+{
+  "__spyPoint__": "HeatWatcher.makeRequest",
+  "data": null,
+  "url": "http://system.server.com/temperature"
+},
+{
+  "__spyPoint__": "HeatWatcher.getTemperature.result",
+  "result": 73.0
+},
+{
+  "__spyPoint__": "HeatWatcher.getCurrentTime"
+},
+{
+  "__spyPoint__": "HeatWatcher.getCurrentTime.result",
+  "result": 1.44556782E9
+},
+{
+  "__spyPoint__": "HeatWatcher.sendAlert",
+  "message": "CRITICAL: Temperature is rising at "
+},
+{
+  "__spyPoint__": "HeatWatcher.makeRequest",
+  "data": "CRITICAL: Temperature is rising at ",
+  "url": "http://backend.server.com/messages"
+},
+{
+  "__spyPoint__": "HeatWatcher.sleep",
+  "seconds": 10
+},
+{
+  "__spyPoint__": "HeatWatcher.getTemperature"
+},
+{
+  "__spyPoint__": "HeatWatcher.makeRequest",
+  "data": null,
+  "url": "http://system.server.com/temperature"
+},
+{
+  "__spyPoint__": "HeatWatcher.getTemperature.result",
+  "result": 73.5
+},
+{
+  "__spyPoint__": "HeatWatcher.getCurrentTime"
+},
+{
+  "__spyPoint__": "HeatWatcher.getCurrentTime.result",
+  "result": 1.44556783E9
+},
+{
+  "__spyPoint__": "HeatWatcher.sleep",
+  "seconds": 10
+},
+{
+  "__spyPoint__": "HeatWatcher.getTemperature"
+},
+{
+  "__spyPoint__": "HeatWatcher.makeRequest",
+  "data": null,
+  "url": "http://system.server.com/temperature"
+},
+{
+  "__spyPoint__": "HeatWatcher.getTemperature.result",
+  "result": 74.0
+},
+{
+  "__spyPoint__": "HeatWatcher.getCurrentTime"
+},
+{
+  "__spyPoint__": "HeatWatcher.getCurrentTime.result",
+  "result": 1.44556784E9
+},
+{
+  "__spyPoint__": "HeatWatcher.sleep",
+  "seconds": 10
+},
+{
+  "__spyPoint__": "HeatWatcher.getTemperature"
+},
+{
+  "__spyPoint__": "HeatWatcher.makeRequest",
+  "data": null,
+  "url": "http://system.server.com/temperature"
+},
+{
+  "__spyPoint__": "HeatWatcher.getTemperature.result",
+  "result": 74.08333333333333
+},
+{
+  "__spyPoint__": "HeatWatcher.getCurrentTime"
+},
+{
+  "__spyPoint__": "HeatWatcher.getCurrentTime.result",
+  "result": 1.44556785E9
+},
+{
+  "__spyPoint__": "HeatWatcher.sendAlert",
+  "message": "OK: Temperature is rising at "
+},
+{
+  "__spyPoint__": "HeatWatcher.makeRequest",
+  "data": "OK: Temperature is rising at ",
+  "url": "http://backend.server.com/messages"
+},
+{
+  "__spyPoint__": "HeatWatcher.sleep",
+  "seconds": 60
+},
+{
+  "__spyPoint__": "HeatWatcher.getTemperature"
+},
+{
+  "__spyPoint__": "HeatWatcher.makeRequest",
+  "data": null,
+  "url": "http://system.server.com/temperature"
+},
+{
+  "__spyPoint__": "HeatWatcher.getTemperature.result",
+  "result": 74.58333333333333
+},
+{
+  "__spyPoint__": "HeatWatcher.getCurrentTime"
+},
+{
+  "__spyPoint__": "HeatWatcher.getCurrentTime.result",
+  "result": 1.44556791E9
+},
+{
+  "__spyPoint__": "HeatWatcher.sleep",
+  "seconds": 60
+},
+{
+  "__spyPoint__": "HeatWatcher.getTemperature"
+},
+{
+  "__spyPoint__": "HeatWatcher.makeRequest",
+  "data": null,
+  "url": "http://system.server.com/temperature"
+},
+{
+  "__spyPoint__": "HeatWatcher.getTemperature.result",
+  "result": 75.08333333333333
+},
+{
+  "__spyPoint__": "HeatWatcher.getCurrentTime"
+},
+{
+  "__spyPoint__": "HeatWatcher.getCurrentTime.result",
+  "result": 1.44556797E9
+},
+{
+  "__spyPoint__": "HeatWatcher.sleep",
+  "seconds": 60
+},
+{
+  "__spyPoint__": "HeatWatcher.getTemperature"
+},
+{
+  "__spyPoint__": "HeatWatcher.makeRequest",
+  "data": null,
+  "url": "http://system.server.com/temperature"
+},
+{
+  "__spyPoint__": "HeatWatcher.getTemperature.result",
+  "result": 75.58333333333333
+},
+{
+  "__spyPoint__": "HeatWatcher.getCurrentTime"
+},
+{
+  "__spyPoint__": "HeatWatcher.getCurrentTime.result",
+  "result": 1.44556803E9
+},
+{
+  "__spyPoint__": "HeatWatcher.sleep",
+  "seconds": 60
+},
+{
+  "__spyPoint__": "HeatWatcher.getTemperature"
+},
+{
+  "__spyPoint__": "HeatWatcher.makeRequest",
+  "data": null,
+  "url": "http://system.server.com/temperature"
+},
+{
+  "__spyPoint__": "HeatWatcher.getTemperature.result",
+  "result": 76.08333333333333
+},
+{
+  "__spyPoint__": "HeatWatcher.getCurrentTime"
+},
+{
+  "__spyPoint__": "HeatWatcher.getCurrentTime.result",
+  "result": 1.44556809E9
+},
+{
+  "__spyPoint__": "HeatWatcher.sleep",
+  "seconds": 60
+},
+{
+  "__spyPoint__": "HeatWatcher.getTemperature"
+},
+{
+  "__spyPoint__": "HeatWatcher.makeRequest",
+  "data": null,
+  "url": "http://system.server.com/temperature"
+},
+{
+  "__spyPoint__": "HeatWatcher.getTemperature.result",
+  "result": 76.58333333333333
+},
+{
+  "__spyPoint__": "HeatWatcher.getCurrentTime"
+},
+{
+  "__spyPoint__": "HeatWatcher.getCurrentTime.result",
+  "result": 1.44556815E9
+}
+]

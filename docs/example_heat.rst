@@ -63,7 +63,7 @@ How to use this example
              # OR
              RUBYLIB=../../lib rspec heat_watcher_spec.rb           
                         
-      .. container:: tab-section-JAVA
+      .. container:: tab-section-java
   
           .. code-block:: bash
   
@@ -94,7 +94,7 @@ The code to be tested
 
    .. container:: tab-section-JAVA
                
-      .. literalinclude:: ../jbond/src/main/java/tutorial/heat_watcher/HeatWatcher.java
+      .. literalinclude:: ../jbond/src/main/java/tutorial/heatwatcher/HeatWatcher.java
          :language: java
                     
                  
@@ -127,9 +127,9 @@ advance the mock time, as shown below:
          :start-after: rst_TimeMocker
          :end-before: rst_TemperatureMocker
 
-   .. container:: tab-section-JAVA
+   .. container:: tab-section-java
                       
-      .. literalinclude:: ../jbond/src/test/java/tutorial/heat_watcher/HeatWatcherTest.java
+      .. literalinclude:: ../jbond/src/test/java/tutorial/heatwatcher/HeatWatcherTest.java
          :language: java
          :start-after: rst_TimeMocker
          :end-before: rst_TemperatureMocker
@@ -156,7 +156,7 @@ certain rate for various time intervals, as shown below:
 
    .. container:: tab-section-JAVA
                       
-      .. literalinclude:: ../jbond/src/test/java/tutorial/heat_watcher/HeatWatcherTest.java
+      .. literalinclude:: ../jbond/src/test/java/tutorial/heatwatcher/HeatWatcherTest.java
          :language: java
          :start-after: rst_TemperatureMocker
 
@@ -179,8 +179,8 @@ out a utility function (``make_request``), changing behavior based on the parame
           :language: ruby
           :end-before: rst_TimeMocker
          
-   .. container:: tab-section-JAVA
+   .. container:: tab-section-java
                       
-      .. literalinclude:: ../jbond/src/test/java/tutorial/heat_watcher/HeatWatcherTest.java
+      .. literalinclude:: ../jbond/src/test/java/tutorial/heatwatcher/HeatWatcherTest.java
          :language: java
-         :end-before: private TimeMocker
+         :end-before: rst_TestEnd
