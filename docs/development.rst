@@ -56,7 +56,13 @@ To execute only a subset of the Python tests:
 
    bond> PYTHON_TEST_ARGS=tests.bond_test[.BondTest[.test_result]] make run_tests_py
 
-    
+
+To execute only a subset of the Java tests:
+
+.. code::
+
+    jbond> BOND_RECONCILE=console ./gradlew test -Dtest.single=HeatWatcherTest
+
 Deploying a new version
 --------------------------
 

@@ -585,6 +585,20 @@ BondTargetable``)
                 end
             end
         
+   .. container:: tab-section-JAVA
+
+        .. code-block:: java
+           :emphasize-lines: 3-5
+
+           public String make_request(String url) {
+              // Spy and check if mocked                  
+              Optional<String> result = Bond.obs("url", url).spy("make_request");               
+              if(result.isPresent()) {
+                 return result.get();
+              } 
+              // The actual production code for making a GET request
+              ...
+            }
 
 Just like ``bond.spy``, this annotation has effect only if ``bond.start_test`` has been called, meaning that
 this is a test run. One of the effects of this annotation is to inject a call to ``bond.spy`` with
@@ -641,6 +655,28 @@ agents for the ``make_request`` spy point that we have instrumented earlier.
    
                 call_my_code_that_will_make_request()
            end
+
+   .. container:: tab-section-JAVA
+
+        .. code-block:: java
+           :emphasize-lines: 3-13
+
+           @Test
+           public void test_with_mocking() {
+              // Deploy an agent to intercept the /books request                   
+              SpyAgent make_request_books_agent = new SpyAgent()
+                     .withFilterKeyEndsWith("url", "/books")
+                     .withResult(mock_book_response);
+              Bond.deployAgent("make_request", make_request_books_agent);
+           
+              // Deploy another agent to simulate error for a given book
+              SpyAgent make_request_book_missing_agent = new SpyAgent()
+                     .withFilterKeyContains("url", "/books/100")
+                     .withException(new HttpException(404));
+              Bond.deployAgent("make_request", make_request_book_missing_agent);
+              
+              call_my_code_that_will_make_request();
+
 
 In the above example the first agent will instruct the ``make_request`` spy point to
 skip the actual body of the method and return immediately a respose with status code

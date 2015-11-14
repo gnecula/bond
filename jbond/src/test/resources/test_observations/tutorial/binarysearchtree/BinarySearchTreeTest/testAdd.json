@@ -1,0 +1,26 @@
+[
+{
+  "__spyPoint__": "testAdd",
+  "tree": {
+    "data": 8,
+    "left": {
+      "data": 3,
+      "left": null,
+      "right": {
+        "data": 4,
+        "left": null,
+        "right": {
+          "data": 6,
+          "left": null,
+          "right": null
+        }
+      }
+    },
+    "right": {
+      "data": 12,
+      "left": null,
+      "right": null
+    }
+  }
+}
+]

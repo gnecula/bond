@@ -44,6 +44,7 @@ jar {
     }
 }
 
+
 uploadArchives {
     repositories {
         mavenCentral()

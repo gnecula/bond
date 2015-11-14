@@ -26,7 +26,7 @@ docs:
 	cd rbond && yardoc
 	mkdir -p docs/_build/html/rbond
 	rsync -ar rbond/doc/* docs/_build/html/rbond
-	cd jbond && gradlew javadoc
+	cd jbond && ./gradlew javadoc
 	mkdir -p docs/_build/html/jbond
 	rsync -ar jbond/build/docs/javadoc/* docs/_build/html/jbond
 

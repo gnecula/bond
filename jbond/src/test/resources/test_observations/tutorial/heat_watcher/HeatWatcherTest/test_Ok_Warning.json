@@ -1,0 +1,178 @@
+[
+{
+  "__spyPoint__": "HeatWatcher.get_temperature"
+},
+{
+  "__spyPoint__": "HeatWatcher.get_temperature.result",
+  "result": 70.0
+},
+{
+  "__spyPoint__": "HeatWatcher.get_current_time"
+},
+{
+  "__spyPoint__": "HeatWatcher.get_current_time.result",
+  "result": 1.4455677E9
+},
+{
+  "__spyPoint__": "HeatWatcher.sleep",
+  "seconds": 60
+},
+{
+  "__spyPoint__": "HeatWatcher.get_temperature"
+},
+{
+  "__spyPoint__": "HeatWatcher.get_temperature.result",
+  "result": 70.5
+},
+{
+  "__spyPoint__": "HeatWatcher.get_current_time"
+},
+{
+  "__spyPoint__": "HeatWatcher.get_current_time.result",
+  "result": 1.44556776E9
+},
+{
+  "__spyPoint__": "HeatWatcher.sleep",
+  "seconds": 60
+},
+{
+  "__spyPoint__": "HeatWatcher.get_temperature"
+},
+{
+  "__spyPoint__": "HeatWatcher.get_temperature.result",
+  "result": 71.52
+},
+{
+  "__spyPoint__": "HeatWatcher.get_current_time"
+},
+{
+  "__spyPoint__": "HeatWatcher.get_current_time.result",
+  "result": 1.44556782E9
+},
+{
+  "__spyPoint__": "HeatWatcher.send_alert",
+  "message": "Warning: Temperature is rising at "
+},
+{
+  "__spyPoint__": "HeatWatcher.make_request",
+  "data": "Warning: Temperature is rising at ",
+  "url": "http://backend.server.com/messages"
+},
+{
+  "__spyPoint__": "HeatWatcher.sleep",
+  "seconds": 10
+},
+{
+  "__spyPoint__": "HeatWatcher.get_temperature"
+},
+{
+  "__spyPoint__": "HeatWatcher.get_temperature.result",
+  "result": 71.54
+},
+{
+  "__spyPoint__": "HeatWatcher.get_current_time"
+},
+{
+  "__spyPoint__": "HeatWatcher.get_current_time.result",
+  "result": 1.44556783E9
+},
+{
+  "__spyPoint__": "HeatWatcher.send_alert",
+  "message": "Ok: Temperature is rising at "
+},
+{
+  "__spyPoint__": "HeatWatcher.make_request",
+  "data": "Ok: Temperature is rising at ",
+  "url": "http://backend.server.com/messages"
+},
+{
+  "__spyPoint__": "HeatWatcher.sleep",
+  "seconds": 60
+},
+{
+  "__spyPoint__": "HeatWatcher.get_temperature"
+},
+{
+  "__spyPoint__": "HeatWatcher.get_temperature.result",
+  "result": 71.66
+},
+{
+  "__spyPoint__": "HeatWatcher.get_current_time"
+},
+{
+  "__spyPoint__": "HeatWatcher.get_current_time.result",
+  "result": 1.44556789E9
+},
+{
+  "__spyPoint__": "HeatWatcher.sleep",
+  "seconds": 60
+},
+{
+  "__spyPoint__": "HeatWatcher.get_temperature"
+},
+{
+  "__spyPoint__": "HeatWatcher.get_temperature.result",
+  "result": 71.78
+},
+{
+  "__spyPoint__": "HeatWatcher.get_current_time"
+},
+{
+  "__spyPoint__": "HeatWatcher.get_current_time.result",
+  "result": 1.44556795E9
+},
+{
+  "__spyPoint__": "HeatWatcher.sleep",
+  "seconds": 60
+},
+{
+  "__spyPoint__": "HeatWatcher.get_temperature"
+},
+{
+  "__spyPoint__": "HeatWatcher.get_temperature.result",
+  "result": 71.9
+},
+{
+  "__spyPoint__": "HeatWatcher.get_current_time"
+},
+{
+  "__spyPoint__": "HeatWatcher.get_current_time.result",
+  "result": 1.44556801E9
+},
+{
+  "__spyPoint__": "HeatWatcher.sleep",
+  "seconds": 60
+},
+{
+  "__spyPoint__": "HeatWatcher.get_temperature"
+},
+{
+  "__spyPoint__": "HeatWatcher.get_temperature.result",
+  "result": 72.02
+},
+{
+  "__spyPoint__": "HeatWatcher.get_current_time"
+},
+{
+  "__spyPoint__": "HeatWatcher.get_current_time.result",
+  "result": 1.44556807E9
+},
+{
+  "__spyPoint__": "HeatWatcher.sleep",
+  "seconds": 60
+},
+{
+  "__spyPoint__": "HeatWatcher.get_temperature"
+},
+{
+  "__spyPoint__": "HeatWatcher.get_temperature.result",
+  "result": 72.14
+},
+{
+  "__spyPoint__": "HeatWatcher.get_current_time"
+},
+{
+  "__spyPoint__": "HeatWatcher.get_current_time.result",
+  "result": 1.44556813E9
+}
+]

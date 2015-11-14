@@ -8,3 +8,16 @@ dl.function {
 div.document {
     width: 1100px;
 }
+
+/* Unfortunately, bootstrap uses the "container" class. 
+   We have to restore some values 
+ */
+div.tab-section-group.container {
+    margin-left: -30px;
+}
+
+/* The nested containers */
+div.tab-section-group div.container {
+    width: 900px;
+    margin-left: 0px;
+}

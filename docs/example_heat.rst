@@ -1,6 +1,6 @@
 .. _examples:
 
-Part 3: An Example of Bond Usage
+Part 3: A Larger Example of Bond Usage
 -------------------------------------------
 
 We discuss here how you could use Bond to test a hypothetical example of a
@@ -63,6 +63,12 @@ How to use this example
              # OR
              RUBYLIB=../../lib rspec heat_watcher_spec.rb           
                         
+      .. container:: tab-section-JAVA
+  
+          .. code-block:: bash
+  
+             ./gradlew test -Dtest.single=HeatWatcherTest
+                        
 #. You can write more tests to test more complex scenarios.
 
 #. Finally, to fully experience the power of the Bond observations, make a change
@@ -86,6 +92,11 @@ The code to be tested
       .. literalinclude:: ../rbond/tutorials/heat_watcher/heat_watcher.rb
          :language: ruby
 
+   .. container:: tab-section-JAVA
+               
+      .. literalinclude:: ../jbond/src/main/java/tutorial/heat_watcher/HeatWatcher.java
+         :language: java
+                    
                  
 
 The tests using Bond
@@ -116,6 +127,13 @@ advance the mock time, as shown below:
          :start-after: rst_TimeMocker
          :end-before: rst_TemperatureMocker
 
+   .. container:: tab-section-JAVA
+                      
+      .. literalinclude:: ../jbond/src/test/java/tutorial/heat_watcher/HeatWatcherTest.java
+         :language: java
+         :start-after: rst_TimeMocker
+         :end-before: rst_TemperatureMocker
+
 
 In order to mock the temperature changes, we will implement a mock that can be
 programmed to start at a given temperature and change the temperature at a
@@ -136,6 +154,13 @@ certain rate for various time intervals, as shown below:
           :language: ruby
           :start-after: rst_TemperatureMocker
 
+   .. container:: tab-section-JAVA
+                      
+      .. literalinclude:: ../jbond/src/test/java/tutorial/heat_watcher/HeatWatcherTest.java
+         :language: java
+         :start-after: rst_TemperatureMocker
+
+
 Finally the actual tests. We show two different common ways of mocking: mocking out 
 higher-level functions that eventually make calls to outside services, and mocking
 out a utility function (``make_request``), changing behavior based on the parameters. 
@@ -154,3 +179,8 @@ out a utility function (``make_request``), changing behavior based on the parame
           :language: ruby
           :end-before: rst_TimeMocker
          
+   .. container:: tab-section-JAVA
+                      
+      .. literalinclude:: ../jbond/src/test/java/tutorial/heat_watcher/HeatWatcherTest.java
+         :language: java
+         :end-before: private TimeMocker

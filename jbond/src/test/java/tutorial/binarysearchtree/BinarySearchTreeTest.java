@@ -2,6 +2,7 @@ package tutorial.binarysearchtree;
 
 import bond.Bond;
 import bond.BondTestRule;
+import bond.BondTestRule;
 import org.junit.Rule;
 import org.junit.Test;
 
