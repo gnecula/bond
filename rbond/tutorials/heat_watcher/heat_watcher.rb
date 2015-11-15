@@ -5,6 +5,7 @@
 # See a full explanation of this example at
 # http://necula01.github.io/bond/example_heat.html
 #
+# rst_Start
 
 require 'bond'
 

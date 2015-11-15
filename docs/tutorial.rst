@@ -440,12 +440,12 @@ deep assertions about your test while keeping the assertion maintenance cost low
 
 
 You can control the reconciliation method using a parameter to ``bond.start_test`` in Python / a parameter to ``:include_context :bond`` in Ruby / the `withReconciliationMethod() <jbond/bond/BondTestRule.html#withReconciliationMethod-bond.reconcile.ReconcileType->`_ method on `BondTestRule <jbond/bond/BondTestRule.html>`_ in Java, or with the environment
-variable ``BOND_RECONCILE``, with possible values
+variable ``BOND_RECONCILE``, with possible values:
 
 * ``accept`` : accept the new observations and change the reference
 * ``abort`` : abort the test
 * ``console`` : show the above console interaction menu
-* ``kdiff3``: invoke the ``kdiff3`` merging tool.
+* ``kdiff3``: invoke the ``kdiff3`` merging tool (must have it installed and available in your ``PATH``)
 
 If the test fails, then you will still be shown the differences in the observations, but you will not have
 the choice to accept them as the new reference observations.
@@ -520,28 +520,24 @@ For a pattern to use when including Bond in production code, see :ref:`pattern_b
 Part 2: Mocking with Bond
 --------------------------------
 
-Note: This section applies to Python and Ruby only; Java does not (yet) support mocking.
-
-Sometimes you want not only to spy values from your production code,
-but also to replace some of those values. Spying and mocking together
-can be achieved if you place the ``bond.spy_point`` annotation on a
-function or a method in your production code.  Let's assume that the
-code to be tested (system under test) is expected to invoke a
-collaborator method called ``make_request``, whose
-purpose is to make HTTP requests to other services. You may want to
-spy how many times this method is called in your tests, and with what
-arguments, and possibly what it returns for each call. You also want
-your tests to be able to bypass the actual HTTP request and provide
-mock results for this function.  This can be achieved with the
-``bond.spy_point`` function annotation, as shown below: (note that for
-Ruby, any class or module which you wish to spy on must ``extend
-BondTargetable``)
-
 .. container:: tab-section-group
 
-   .. container:: tab-section-python
+    .. container:: tab-section-python
 
-      .. code-block:: python
+        Sometimes you want not only to spy values from your production code,
+        but also to replace some of those values. Spying and mocking together
+        can be achieved if you place the ``bond.spy_point`` annotation on a
+        function or a method in your production code.  Let's assume that the
+        code to be tested (system under test) is expected to invoke a
+        collaborator method called ``make_request``, whose
+        purpose is to make HTTP requests to other services. You may want to
+        spy how many times this method is called in your tests, and with what
+        arguments, and possibly what it returns for each call. You also want
+        your tests to be able to bypass the actual HTTP request and provide
+        mock results for this function.  This can be achieved with the
+        ``bond.spy_point`` function annotation, as shown below: 
+
+        .. code-block:: python
             :emphasize-lines: 1
     
             @bond.spy_point()
@@ -557,11 +553,43 @@ BondTargetable``)
                 resp = urllib2.urlopen(url, data)
                 return (resp.getcode(), resp.read())
     
+        Just like ``bond.spy``, this annotation has effect only if ``bond.start_test`` has been called, 
+        meaning that this is a test run. One of the effects of this annotation is to inject a call 
+        to ``bond.spy`` with the method name as the spy point and the arguments as the observation, 
+        as shown in the code example above.
+
+        You can read more about ``bond.spy_point`` in the :ref:`API documentation <api_spy_point>`.
+        Read on to find out what else you can do with spy point annotations.
+
+        A spy point annotation on a method is also able to inject code to execute on every call to the
+        method. This code can do multiple things, and can be controlled from the test code:
+
+          * further decide on which invocations of the spy point they activate, based on various 
+            filters on the function arguments.
+          * spy the values of the arguments, and optionally the result also.
+          * control which arguments are spied and how the observations are formatted.
+          * execute additional test code on each call.
+          * bypass the actual body of the method and return a result prepared by the testing code, 
+            or throw an exception when the call is reached.
     
-   .. container:: tab-section-ruby
+    .. container:: tab-section-ruby
+
+        Sometimes you want not only to spy values from your production code,
+        but also to replace some of those values. Spying and mocking together
+        can be achieved if you place the ``bond.spy_point`` annotation on a
+        function or a method in your production code.  Let's assume that the
+        code to be tested (system under test) is expected to invoke a
+        collaborator method called ``make_request``, whose
+        purpose is to make HTTP requests to other services. You may want to
+        spy how many times this method is called in your tests, and with what
+        arguments, and possibly what it returns for each call. You also want
+        your tests to be able to bypass the actual HTTP request and provide
+        mock results for this function.  This can be achieved with the
+        ``bond.spy_point`` function annotation, as shown below (note that
+        any class or module which you wish to spy on must ``extend BondTargetable``):
 
         .. code-block:: ruby
-           :emphasize-lines: 3,5
+            :emphasize-lines: 3,5
     
             class MyClass
                 # Denotes this class as being able to be targetted by Bond
@@ -584,38 +612,57 @@ BondTargetable``)
                     return [resp.code, resp.message]           
                 end
             end
+
+        Just like ``bond.spy``, this annotation has effect only if ``bond.start_test`` has been called, 
+        meaning that this is a test run. One of the effects of this annotation is to inject a call 
+        to ``bond.spy`` with the method name as the spy point and the arguments as the observation, 
+        as shown in the code example above.
+
+        You can read more about ``bond.spy_point`` in the 
+        `API documentation <rbond/BondTargetable.html#spy_point-instance_method>`_.
+        Read on to find out what else you can do with spy point annotations.
+
+        A spy point annotation on a method is also able to inject code to execute on every call to the
+        method. This code can do multiple things, and can be controlled from the test code:
+
+          * further decide on which invocations of the spy point they activate, based on various 
+            filters on the function arguments.
+          * spy the values of the arguments, and optionally the result also.
+          * control which arguments are spied and how the observations are formatted.
+          * execute additional test code on each call.
+          * bypass the actual body of the method and return a result prepared by the testing code, 
+            or throw an exception when the call is reached.
         
-   .. container:: tab-section-JAVA
+    .. container:: tab-section-java
+
+        Sometimes you want not only to spy values from your production code,
+        but also to replace some of those values. Let's assume that the
+        code to be tested (system under test) is expected to invoke a
+        collaborator method called ``makeRequest``, whose
+        purpose is to make HTTP requests to other services. You may want to
+        spy how many times this method is called in your tests, and with what
+        arguments, and possibly what it returns for each call. You also want
+        your tests to be able to bypass the actual HTTP request and provide
+        mock results for this function. This can be achieved by calling ``Bond.spy``
+        at the start of the method you would like to mock, and if a result was returned
+        (which is guaranteed to be false if you are not currently testing), using that
+        result instead of the production code. Note that you can also use
+        `Bond.isActive() <jbond/bond/Bond.html#isActive-->`_ to achieve similar results
+        (see the `inline spy point example <patterns.html#inline-spy-and-mock-points>`_). 
+        For example: 
 
         .. code-block:: java
-           :emphasize-lines: 3-5
+            :emphasize-lines: 3-6
 
-           public String make_request(String url) {
+            public String makeRequest(String url) {
               // Spy and check if mocked                  
-              Optional<String> result = Bond.obs("url", url).spy("make_request");               
-              if(result.isPresent()) {
-                 return result.get();
+              Optional<String> result = Bond.obs("url", url).spy("makeRequest");               
+              if (result.isPresent()) {
+                return result.get();
               } 
               // The actual production code for making a GET request
               ...
             }
-
-Just like ``bond.spy``, this annotation has effect only if ``bond.start_test`` has been called, meaning that
-this is a test run. One of the effects of this annotation is to inject a call to ``bond.spy`` with
-the method name as the spy point and the arguments as the observation, as shown in the code
-example above.
-
-You can read more about ``bond.spy_point`` in the :ref:`API documentation <api_spy_point>`.
-Read on to find out what else you can do with spy point annotations.
-
-A spy point annotation on a method is also able to inject code to execute on every call to the
-method. This code can do multiple things, and can be controlled from the test code:
-
-* further decide on which invocations of the spy point they activate, based on various filters on the function arguments.
-* spy the values of the arguments, and optionally the result also.
-* control which arguments are spied and how the observations are formatted.
-* execute additional test code on each call.
-* bypass the actual body of the method and return a result prepared by the testing code, or throw an exception when the call is reached.
 
 The behavior of spy points can be controlled with agents that are deployed from the
 test code, as shown in the following example, where the test is deploying two
@@ -656,27 +703,26 @@ agents for the ``make_request`` spy point that we have instrumented earlier.
                 call_my_code_that_will_make_request()
            end
 
-   .. container:: tab-section-JAVA
+   .. container:: tab-section-java
 
         .. code-block:: java
            :emphasize-lines: 3-13
 
            @Test
-           public void test_with_mocking() {
+           public void testWithMocking() {
               // Deploy an agent to intercept the /books request                   
-              SpyAgent make_request_books_agent = new SpyAgent()
+              SpyAgent makeRequestBooksAgent = new SpyAgent()
                      .withFilterKeyEndsWith("url", "/books")
-                     .withResult(mock_book_response);
-              Bond.deployAgent("make_request", make_request_books_agent);
+                     .withResult(mockBookResponse);
+              Bond.deployAgent("makeRequest", makeRequestBooksAgent);
            
               // Deploy another agent to simulate error for a given book
-              SpyAgent make_request_book_missing_agent = new SpyAgent()
+              SpyAgent makeRequestBookMissingAgent = new SpyAgent()
                      .withFilterKeyContains("url", "/books/100")
                      .withException(new HttpException(404));
-              Bond.deployAgent("make_request", make_request_book_missing_agent);
+              Bond.deployAgent("makeRequest", makeRequestBookMissingAgent);
               
-              call_my_code_that_will_make_request();
-
+              callMyCodeThatWillMakeRequest();
 
 In the above example the first agent will instruct the ``make_request`` spy point to
 skip the actual body of the method and return immediately a respose with status code
@@ -688,8 +734,23 @@ The later deployed spy agents override previously deployed ones. This is useful 
 deploy a default agent, e.g., return success on every HTTP request, and then for specific tests,
 or during a test, you want to deploy a more specific agent that has another behavior.
 
-You can read more about ``bond.deploy_agent`` in the :ref:`API documentation <api_deploy_agent>`.
+.. container:: tab-section-group
 
+    .. container:: tab-section-python
+
+        You can read more about ``bond.deploy_agent`` in the :ref:`API documentation <api_deploy_agent>`.
+
+    .. container:: tab-section-ruby
+
+        You can read more about ``bond.deploy_agent`` in the 
+        `API documentation <rbond/Bond.html#deploy_agent-instance_method>`_.
+
+    .. container:: tab-section-java
+   
+        You can read more about ``Bond.deployAgent()`` in the 
+        `API documentation <jbond/bond/Bond.html#deployAgent-java.lang.String-bond.SpyAgent->`_. 
+
+|
 The following is the UML sequence diagram for using Bond for mocking:
 
 .. uml::

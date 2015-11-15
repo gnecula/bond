@@ -24,18 +24,16 @@ public class HeatWatcherTest {
 
     // Instantiate TemperatureMocker with starting temperature and
     // temperature rates, as pairs of timeSinceStart, tempIncrRatePerPinute
-    tempMocker = new TemperatureMocker(timeMocker,
-                                          70,
-                                          new double[]{0, 0.5, 60, 1.2, 110, 0.12});
+    tempMocker = new TemperatureMocker(timeMocker, 70,
+                                       new double[] {0, 0.5, 60, 1.2, 110, 0.12});
 
     // Deploy a Bond agent for getTemperature
     SpyAgent getTemperatureAgent = new SpyAgent()
-                                       .withResult(new Resulter() {
-
-                                         public Object accept(Map<String, Object> map) {
-                                           return tempMocker.getTemperature();
-                                         }
-                                       });
+        .withResult(new Resulter() {
+          public Double accept(Map<String, Object> map) {
+            return tempMocker.getTemperature();
+          }
+        });
     Bond.deployAgent("HeatWatcher.getTemperature", getTemperatureAgent);
 
     // Now invoke the code
@@ -54,22 +52,21 @@ public class HeatWatcherTest {
     tempMocker = new TemperatureMocker(timeMocker, 70, tempRates);
 
     // Do not deploy an agent for getTemperature, let it call makeRequest
-    SpyAgent make_request_messages_agent = new SpyAgent()
-                                               .withFilterKeyContains("url", "messages")
-                                               .withResult("ok");
-    Bond.deployAgent("HeatWatcher.makeRequest", make_request_messages_agent);
+    SpyAgent makeRequestMessagesAgent = new SpyAgent()
+        .withFilterKeyContains("url", "messages")
+        .withResult(HeatWatcher.AlertState.OK);
+    Bond.deployAgent("HeatWatcher.makeRequest", makeRequestMessagesAgent);
 
     // Deploy an agent for the makeRequest to return a temperature
-    SpyAgent make_request_temperature_agent = new SpyAgent()
-                                                  .withFilterKeyContains("url", "temperature")
-                                                  .withResult(new Resulter() {
-                                                    @Override
-                                                    public Object accept(Map<String, Object> map) {
-                                                      double temp = tempMocker.getTemperature();
-                                                      return "<temperature>" + temp + "</temperature>";
-                                                    }
-                                                  });
-    Bond.deployAgent("HeatWatcher.makeRequest", make_request_temperature_agent);
+    SpyAgent makeRequestTemperatureAgent = new SpyAgent()
+        .withFilterKeyContains("url", "temperature")
+        .withResult(new Resulter() {
+          public String accept(Map<String, Object> map) {
+            double temp = tempMocker.getTemperature();
+            return "<temperature>" + temp + "</temperature>";
+          }
+        });
+    Bond.deployAgent("HeatWatcher.makeRequest", makeRequestTemperatureAgent);
 
     // Now invoke the code
     HeatWatcher watcher = new HeatWatcher();
@@ -81,24 +78,22 @@ public class HeatWatcherTest {
   private void deployTimeMock() {
     // Default 10/23/2015 @ 2:35am (UTC)
     timeMocker = new TimeMocker(1445567700);
-    SpyAgent get_current_time_agent = new SpyAgent()
-                                          .withResult(new Resulter() {
-
-                                            public Object accept(Map<String, Object> map) {
-                                              return timeMocker.getCurrentTime();
-                                            }
-                                          });
-    Bond.deployAgent("HeatWatcher.getCurrentTime", get_current_time_agent);
+    SpyAgent getCurrentTimeAgent = new SpyAgent()
+        .withResult(new Resulter() {
+          public Double accept(Map<String, Object> map) {
+            return timeMocker.getCurrentTime();
+          }
+        });
+    Bond.deployAgent("HeatWatcher.getCurrentTime", getCurrentTimeAgent);
 
     // mock the sleep also
     SpyAgent sleepAgent = new SpyAgent()
-                              .withDoer(new Doer() {
-
-                                public void accept(Map<String, Object> map) {
-                                  int seconds = (Integer) map.get("seconds");
-                                  timeMocker.sleep(seconds);
-                                }
-                              });
+        .withDoer(new Doer() {
+          public void accept(Map<String, Object> map) {
+            int seconds = (Integer) map.get("seconds");
+            timeMocker.sleep(seconds);
+          }
+        });
     Bond.deployAgent("HeatWatcher.sleep", sleepAgent);
   }
 }

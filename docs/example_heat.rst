@@ -45,29 +45,29 @@ How to use this example
 #. You can run the tests, and you can observe in your debugger how the different
    functions are called.
 
-  .. container:: tab-section-group
-  
-      .. container:: tab-section-python
-  
-          .. code-block:: bash
+   .. container:: tab-section-group
  
-             ./run_tests.sh 
-             # OR
-             PYTHONPATH=../../ python heat_watcher_test.py
-  
-      .. container:: tab-section-ruby
-  
-          .. code-block:: bash
-  
-             ./run_tests.sh
-             # OR
-             RUBYLIB=../../lib rspec heat_watcher_spec.rb           
-                        
-      .. container:: tab-section-java
-  
-          .. code-block:: bash
-  
-             ./gradlew test -Dtest.single=HeatWatcherTest
+       .. container:: tab-section-python
+ 
+           .. code-block:: bash
+    
+               ./run_tests.sh 
+               # OR
+               PYTHONPATH=../../ python heat_watcher_test.py
+      
+       .. container:: tab-section-ruby
+     
+           .. code-block:: bash
+     
+               ./run_tests.sh
+               # OR
+               RUBYLIB=../../lib rspec heat_watcher_spec.rb           
+                           
+       .. container:: tab-section-java
+     
+           .. code-block:: bash
+     
+               ./gradlew test -Dtest.single=HeatWatcherTest
                         
 #. You can write more tests to test more complex scenarios.
 
@@ -86,16 +86,19 @@ The code to be tested
 
       .. literalinclude:: ../pybond/tutorials/heat_watcher/heat_watcher.py
          :language: python
+         :start-after: rst_Start
 
    .. container:: tab-section-ruby
                
       .. literalinclude:: ../rbond/tutorials/heat_watcher/heat_watcher.rb
          :language: ruby
+         :start-after: rst_Start
 
-   .. container:: tab-section-JAVA
+   .. container:: tab-section-java
                
       .. literalinclude:: ../jbond/src/main/java/tutorial/heatwatcher/HeatWatcher.java
          :language: java
+         :start-after: package tutorial.heatwatcher;
                     
                  
 
@@ -154,7 +157,7 @@ certain rate for various time intervals, as shown below:
           :language: ruby
           :start-after: rst_TemperatureMocker
 
-   .. container:: tab-section-JAVA
+   .. container:: tab-section-java
                       
       .. literalinclude:: ../jbond/src/test/java/tutorial/heatwatcher/HeatWatcherTest.java
          :language: java
