@@ -54,7 +54,7 @@ public class HeatWatcherTest {
     // Do not deploy an agent for getTemperature, let it call makeRequest
     SpyAgent makeRequestMessagesAgent = new SpyAgent()
         .withFilterKeyContains("url", "messages")
-        .withResult(HeatWatcher.AlertState.OK);
+        .withResult(HeatWatcher.AlertState.OK.toString());
     Bond.deployAgent("HeatWatcher.makeRequest", makeRequestMessagesAgent);
 
     // Deploy an agent for the makeRequest to return a temperature
