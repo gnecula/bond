@@ -12,7 +12,7 @@ run_tests_py:
 	$(MAKE) -C pybond run_tests BOND_RECONCILE=$(BOND_RECONCILE) 
 
 run_tests_rb:
-	cd rbond && BOND_RECONCILE=$(BOND_RECONCILE) rspec
+	cd rbond && BOND_RECONCILE=$(BOND_RECONCILE) rspec --pattern rspec/**/*_spec/rb
 
 run_tests_java:
 	cd jbond && BOND_RECONCILE=$(BOND_RECONCILE) ./gradlew test

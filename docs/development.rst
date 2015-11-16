@@ -14,17 +14,9 @@ You must install Sphinx and dependencies:
    brew install graphviz
    pip install sphinxcontrib-plantuml
    gem install yard
-   brew install gradle
 
 Then you can process the documentation
 
-.. code::
-
-   pip install -u Sphinx
-   pip install sphinxcontrib-plantuml
-
-Then
-   
 .. code::
 
    make docs           # makes all the docs
@@ -34,8 +26,28 @@ To push it to GitHub Pages:
 
 .. code::
 
-   make github_pages
+   GITHUB_USER=your_user_name make github_pages
+
    
+Dependencies
+-----------------
+
+.. container:: tab-section-group
+
+    .. container:: tab-section-python
+
+        You will need Python 2.7+ installed and available in your path. 
+
+    .. container:: tab-section-ruby
+ 
+        You will need Ruby 2.1+ installed and available in your path. ``rspec`` and ``gem`` need to be available as well. 
+
+    .. container:: tab-section-java
+
+        You will need Java 1.7+ installed and have ``JAVA_HOME`` set for gradle to use. 
+        gradle will be downloaded automatically through the use of gradle wrapper - all 
+        gradle commands should be run as ``./gradlew`` rather than ``gradle``. 
+
 
 Running tests
 -----------------
@@ -48,38 +60,62 @@ To run all the tests from the command line:
 
    bond> [BOND_RECONCILE=...] make run_tests
 
-To execute only tests for a single language, ``make`` using tasks ``run_tests_py``, ``run_tests_rb``, or ``run_tests_java``.. 
+To execute only tests for a single language, ``make`` using tasks ``run_tests_py``, ``run_tests_rb``, or ``run_tests_java``.
 
-To execute only a subset of the Python tests:
+.. container:: tab-section-group
 
-.. code::
+    .. container:: tab-section-python
 
-   bond> PYTHON_TEST_ARGS=tests.bond_test[.BondTest[.test_result]] make run_tests_py
+        To execute only a subset of the Python tests:
 
+        .. code::
 
-To execute only a subset of the Java tests:
+            bond> PYTHON_TEST_ARGS=tests.bond_test[.BondTest[.test_result]] make run_tests_py
 
-.. code::
+    .. container:: tab-section-ruby
 
-    jbond> BOND_RECONCILE=console ./gradlew test -Dtest.single=HeatWatcherTest
+        To execute only a subset of the Ruby tests:
+
+        .. code::
+
+            bond> cd rbond; rspec spec/test_file_spec.rb
+
+    .. container:: tab-section-java
+
+        To execute only a subset of the Java tests:
+
+        .. code::
+    
+            bond> cd jbond; ./gradlew test -Dtest.single=YourClassTest
+
 
 Deploying a new version
 --------------------------
 
-For Python
+.. container:: tab-section-group
 
-   - Increment the version number (``pybond/setup.py`` and ``pybond/bond/__init__.py``)
-   - Update docs/changelog.rst
-   - Test the submission to PyPi
+    .. container:: tab-section-python
 
-      - It is best to create an account on `https://testpypi.python.org/pypi`_
-      - Create the ``~/.pypirc`` as described at https://wiki.python.org/moin/TestPyPI
+        - Increment the version number (``pybond/setup.py`` and ``pybond/bond/__init__.py``)
+        - Update docs/changelog.rst
+        - Test the submission to PyPi
+
+        - It is best to create an account on `https://testpypi.python.org/pypi`_
+        - Create the ``~/.pypirc`` as described at https://wiki.python.org/moin/TestPyPI
 
         .. code::
 
            make pypi_test     # Create the package and test it
            make pypi_upload   # Upload to Test PyPi
 
+    .. container:: tab-section-ruby
 
+        .. include:: ../rbond/README.rst
+            :start-after: rst_newVersionInstructionsStart
+            :end-before: rst_newVersionInstructionsEnd
+
+    .. container:: tab-section-java
+
+        Coming soon!
          
          
