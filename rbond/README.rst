@@ -37,7 +37,7 @@ However, for the full suite of documentation including examples, you should buil
 project main directory (one level up), which will generate and integrate YARD documentation.
 To do this, simply run ``make docs`` from the main directory. 
 
-rst_newVersionInstructionsStart
+.. rst_newVersionInstructionsStart
 
 To install this gem onto your local machine, run ``bundle exec rake install``. To release a 
 new version, update the version number in ``bond/version.rb`` and the date in ``bond.gemspec``, 
@@ -55,7 +55,7 @@ file to `rubygems.org <https://rubygems.org>`_. For example:
     $ gem build bond.gemspec
     $ gem push bond-spy-1.0.2.gem
 
-rst_newVersionInstructionsEnd
+.. rst_newVersionInstructionsEnd
 
 Contributing
 -----------------------

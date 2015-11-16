@@ -34,7 +34,7 @@ public class BondTestRule implements TestRule {
 
   /**
    * Set the observation directory to be used for this test. If not set, the environment
-   * variable {@code BOND_OBS_DIR} will be used instead. If that is also not set, an
+   * variable {@code BOND_OBSERVATION_DIR} will be used instead. If that is also not set, an
    * Exception will be thrown.
    *
    * @param observationDirectory Directory to store test observations in

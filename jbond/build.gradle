@@ -20,7 +20,7 @@ dependencies {
 
 test {
     useJUnit() {
-        environment 'BOND_OBS_DIR', Paths.get(file("$projectDir").toString(),
+        environment 'BOND_OBSERVATION_DIR', Paths.get(file("$projectDir").toString(),
                 'src', 'test', 'resources', 'test_observations').toAbsolutePath()
     }
     testLogging {

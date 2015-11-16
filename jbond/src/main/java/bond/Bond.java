@@ -61,7 +61,7 @@ import java.util.Map;
  * environment variable - see {@link ReconcileType} for available types). The accepted set of
  * observations will be saved to a file located in the base observation directory (set via
  * {@link #setObservationDirectory(File)}, {@link BondTestRule#withObservationDirectory(File)},
- * or the {@code BOND_OBS_DIR} environment variable), with exact location determined by the name
+ * or the {@code BOND_OBSERVATION_DIR} environment variable), with exact location determined by the name
  * of the test. Any periods in the test name will be translated into a directory hierarchy, and
  * any special (non-alphanumeric) characters will be replaced by underscores. For example, with
  * a test name of "bond.package.MyTest!", the observations will be saved at
@@ -312,11 +312,11 @@ public class Bond {
     if (_observationDirectory.isPresent()) {
       return _observationDirectory.get();
     } else {
-      String bondObsDirString = System.getenv("BOND_OBS_DIR");
+      String bondObsDirString = System.getenv("BOND_OBSERVATION_DIR");
       if (bondObsDirString == null) {
         throw new IllegalStateException("Must specify a directory to store Bond's observations! This can be " +
                                             "done using BondTestRule.withObservationDirectory() from your test, " +
-                                            "or by setting the BOND_OBS_DIR environment variable.");
+                                            "or by setting the BOND_OBSERVATION_DIR environment variable.");
       }
       return new File(bondObsDirString);
     }

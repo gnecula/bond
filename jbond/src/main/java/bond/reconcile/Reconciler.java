@@ -9,9 +9,7 @@ import difflib.Delta;
 import difflib.DiffUtils;
 import difflib.Patch;
 
-import java.io.Console;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -187,6 +185,7 @@ public abstract class Reconciler {
     }
     Console sysConsole = System.console();
     if (sysConsole == null) {
+      System.out.println("System console not found; using dialog boxes instead");
       return getUserInputFromDialog(extraPromptForDialog + "\n" + prompt, options);
     } else {
       return getUserInputFromConsole(prompt, options, singleCharOptions);

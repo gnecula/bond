@@ -14,10 +14,12 @@ div.document {
  */
 div.tab-section-group.container {
     margin-left: -30px;
+    margin-bottom: 30px;
 }
 
 /* The nested containers */
 div.tab-section-group div.container {
     width: 900px;
     margin-left: 0px;
+    padding-top: 10px;
 }

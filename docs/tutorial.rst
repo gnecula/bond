@@ -1,3 +1,4 @@
+.. _tutorial:
 
 ==========================
 Bond Tutorial
@@ -6,6 +7,7 @@ Bond Tutorial
 Bond was designed to simplify the **development and maintenance** of automated tests. There are two main uses
 of Bond: spying and mocking. These use cases are all supported by a total of four Bond functions. We'll discuss spying first.
 
+If you haven't done so already, you should read the :ref:`Getting Started guide <gettingstarted>`. 
 
 Part 1: Spying with Bond
 ----------------------------------
@@ -564,13 +566,13 @@ Part 2: Mocking with Bond
         A spy point annotation on a method is also able to inject code to execute on every call to the
         method. This code can do multiple things, and can be controlled from the test code:
 
-          * further decide on which invocations of the spy point they activate, based on various 
-            filters on the function arguments.
-          * spy the values of the arguments, and optionally the result also.
-          * control which arguments are spied and how the observations are formatted.
-          * execute additional test code on each call.
-          * bypass the actual body of the method and return a result prepared by the testing code, 
-            or throw an exception when the call is reached.
+        * further decide on which invocations of the spy point they activate, based on various 
+          filters on the function arguments.
+        * spy the values of the arguments, and optionally the result also.
+        * control which arguments are spied and how the observations are formatted.
+        * execute additional test code on each call.
+        * bypass the actual body of the method and return a result prepared by the testing code, 
+          or throw an exception when the call is reached.
     
     .. container:: tab-section-ruby
 
@@ -625,13 +627,13 @@ Part 2: Mocking with Bond
         A spy point annotation on a method is also able to inject code to execute on every call to the
         method. This code can do multiple things, and can be controlled from the test code:
 
-          * further decide on which invocations of the spy point they activate, based on various 
-            filters on the function arguments.
-          * spy the values of the arguments, and optionally the result also.
-          * control which arguments are spied and how the observations are formatted.
-          * execute additional test code on each call.
-          * bypass the actual body of the method and return a result prepared by the testing code, 
-            or throw an exception when the call is reached.
+        * further decide on which invocations of the spy point they activate, based on various 
+          filters on the function arguments.
+        * spy the values of the arguments, and optionally the result also.
+        * control which arguments are spied and how the observations are formatted.
+        * execute additional test code on each call.
+        * bypass the actual body of the method and return a result prepared by the testing code, 
+          or throw an exception when the call is reached.
         
     .. container:: tab-section-java
 
@@ -750,7 +752,6 @@ or during a test, you want to deploy a more specific agent that has another beha
         You can read more about ``Bond.deployAgent()`` in the 
         `API documentation <jbond/bond/Bond.html#deployAgent-java.lang.String-bond.SpyAgent->`_. 
 
-|
 The following is the UML sequence diagram for using Bond for mocking:
 
 .. uml::

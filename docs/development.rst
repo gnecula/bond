@@ -31,23 +31,8 @@ To push it to GitHub Pages:
    
 Dependencies
 -----------------
-
-.. container:: tab-section-group
-
-    .. container:: tab-section-python
-
-        You will need Python 2.7+ installed and available in your path. 
-
-    .. container:: tab-section-ruby
- 
-        You will need Ruby 2.1+ installed and available in your path. ``rspec`` and ``gem`` need to be available as well. 
-
-    .. container:: tab-section-java
-
-        You will need Java 1.7+ installed and have ``JAVA_HOME`` set for gradle to use. 
-        gradle will be downloaded automatically through the use of gradle wrapper - all 
-        gradle commands should be run as ``./gradlew`` rather than ``gradle``. 
-
+See the :ref:`Getting Started guide <gettingstarted>` to ensure you have all of the necessary dependencies. 
+                    
 
 Running tests
 -----------------
