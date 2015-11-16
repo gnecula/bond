@@ -3,8 +3,10 @@ import java.nio.file.Paths
 apply plugin: 'java'
 apply plugin: 'idea'
 apply plugin: 'eclipse'
+apply plugin: 'maven-publish'
 
 sourceCompatibility = 1.7
+group = 'io.github.necula01.bond'
 version = '0.1.0'
 
 repositories {
@@ -44,8 +46,14 @@ jar {
     }
 }
 
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId 'bond'
 
-uploadArchives {
+            from components.java
+        }
+    }
     repositories {
         mavenCentral()
     }
