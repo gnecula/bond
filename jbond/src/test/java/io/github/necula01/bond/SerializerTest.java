@@ -1,9 +1,15 @@
 package io.github.necula01.bond;
 
 import com.google.common.collect.Sets;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonPrimitive;
+import com.google.gson.JsonSerializationContext;
+import com.google.gson.JsonSerializer;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.lang.reflect.Type;
 import java.util.*;
 
 
@@ -11,6 +17,8 @@ public class SerializerTest {
 
   @Rule
   public BondTestRule btr = new BondTestRule();
+
+  private Serializer serializer;
 
   private class StringObject {
     private String str;
@@ -28,7 +36,12 @@ public class SerializerTest {
       return -1 * o1.compareTo(o2);
     }
   };
-  
+
+  @Before
+  public void setup() {
+    serializer = new Serializer();
+  }
+
   @Test
   public void testMapSorting() {
     Map<String, String> stringOnlyHashMap = new HashMap<>();
@@ -42,8 +55,8 @@ public class SerializerTest {
     stringObjectHashMap.put(new StringObject("a"), "foo");
     stringObjectHashMap.put(new StringObject("z"), "baz");
     stringObjectHashMap.put(new StringObject("g"), "test");
-    Bond.obs("stringOnlyHashMap", Serializer.serialize(stringOnlyHashMap))
-        .obs("stringObjectHashMap", Serializer.serialize(stringObjectHashMap))
+    Bond.obs("stringOnlyHashMap", serializer.serialize(stringOnlyHashMap))
+        .obs("stringObjectHashMap", serializer.serialize(stringObjectHashMap))
         .spy("hash maps");
     
     Map<String, String> stringOnlyTreeMap = new TreeMap<>(REVERSE_SORT_COMPARATOR);
@@ -51,7 +64,7 @@ public class SerializerTest {
     stringOnlyTreeMap.put("a", "foo");
     stringOnlyTreeMap.put("z", "baz");
     stringOnlyTreeMap.put("g", "test");
-    Bond.obs("stringOnlyTreeMap", Serializer.serialize(stringOnlyTreeMap)).spy("tree maps");
+    Bond.obs("stringOnlyTreeMap", serializer.serialize(stringOnlyTreeMap)).spy("tree maps");
   }
   
   @Test
@@ -60,8 +73,8 @@ public class SerializerTest {
 
     Set<StringObject> stringObjectHashSet = Sets.newHashSet(new StringObject("b"), 
         new StringObject("a"), new StringObject("z"), new StringObject("g"));
-    Bond.obs("stringHashSet", Serializer.serialize(stringHashSet))
-        .obs("stringObjectHashSet", Serializer.serialize(stringObjectHashSet))
+    Bond.obs("stringHashSet", serializer.serialize(stringHashSet))
+        .obs("stringObjectHashSet", serializer.serialize(stringObjectHashSet))
         .spy("hash sets");
 
     Set<String> stringOnlyTreeSet = new TreeSet<>(REVERSE_SORT_COMPARATOR);
@@ -69,7 +82,7 @@ public class SerializerTest {
     stringOnlyTreeSet.add("a");
     stringOnlyTreeSet.add("z");
     stringOnlyTreeSet.add("g");
-    Bond.obs("stringOnlyTreeSet", Serializer.serialize(stringOnlyTreeSet)).spy("tree sets");
+    Bond.obs("stringOnlyTreeSet", serializer.serialize(stringOnlyTreeSet)).spy("tree sets");
   }
 
   private class NestingObject {
@@ -97,8 +110,45 @@ public class SerializerTest {
 
     Set<Object> objectSet = Sets.newHashSet(stringHashSet, stringHashMap, no);
 
-    Bond.obs("objectMap", Serializer.serialize(objectMap))
-        .obs("objectSet", Serializer.serialize(objectSet)).spy();
+    Bond.obs("objectMap", serializer.serialize(objectMap))
+        .obs("objectSet", serializer.serialize(objectSet)).spy();
   }
 
+  @Test
+  public void testRestrictedDoublePrecision() {
+    serializer = serializer.withDoublePrecision(3);
+    Bond.obs("pi", serializer.serialize(Math.PI)).spy();
+  }
+
+  @Test
+  public void testRestrictedFloatPrecision() {
+    serializer = serializer.withFloatPrecision(5);
+    Bond.obs("1.23456789f", serializer.serialize(1.23456789f)).spy();
+  }
+
+  @Test
+  public void testOverwriteOldDoublePrecision() {
+    serializer = serializer.withDoublePrecision(2);
+    serializer = serializer.withDoublePrecision(7);
+    Bond.obs("pi", serializer.serialize(Math.PI)).spy();
+  }
+
+  @Test
+  public void testCustomTypeAdapter() {
+    serializer = serializer.withTypeAdapter(StringObject.class, new JsonSerializer<StringObject>() {
+      @Override
+      public JsonElement serialize(StringObject strObj, Type type, JsonSerializationContext jsc) {
+        return new JsonPrimitive(strObj.toString() + ", with custom serialization!");
+      }
+    });
+
+    Bond.obs("StringObject", serializer.serialize(new StringObject("foobar"))).spy();
+  }
+
+  @Test
+  public void testUseToStringSerialization() {
+    serializer = serializer.withToStringSerialization(StringObject.class);
+
+    Bond.obs("StringObject.toString()", serializer.serialize(new StringObject("foobar"))).spy();
+  }
 }

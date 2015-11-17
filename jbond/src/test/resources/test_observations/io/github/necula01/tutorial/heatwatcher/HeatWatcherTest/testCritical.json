@@ -133,7 +133,7 @@
 },
 {
   "__spyPoint__": "HeatWatcher.getTemperature.result",
-  "result": 74.08333333333333
+  "result": 74.083333
 },
 {
   "__spyPoint__": "HeatWatcher.getCurrentTime"
@@ -165,7 +165,7 @@
 },
 {
   "__spyPoint__": "HeatWatcher.getTemperature.result",
-  "result": 74.58333333333333
+  "result": 74.583333
 },
 {
   "__spyPoint__": "HeatWatcher.getCurrentTime"
@@ -188,7 +188,7 @@
 },
 {
   "__spyPoint__": "HeatWatcher.getTemperature.result",
-  "result": 75.08333333333333
+  "result": 75.083333
 },
 {
   "__spyPoint__": "HeatWatcher.getCurrentTime"
@@ -211,7 +211,7 @@
 },
 {
   "__spyPoint__": "HeatWatcher.getTemperature.result",
-  "result": 75.58333333333333
+  "result": 75.583333
 },
 {
   "__spyPoint__": "HeatWatcher.getCurrentTime"
@@ -234,7 +234,7 @@
 },
 {
   "__spyPoint__": "HeatWatcher.getTemperature.result",
-  "result": 76.08333333333333
+  "result": 76.083333
 },
 {
   "__spyPoint__": "HeatWatcher.getCurrentTime"
@@ -257,7 +257,7 @@
 },
 {
   "__spyPoint__": "HeatWatcher.getTemperature.result",
-  "result": 76.58333333333333
+  "result": 76.583333
 },
 {
   "__spyPoint__": "HeatWatcher.getCurrentTime"

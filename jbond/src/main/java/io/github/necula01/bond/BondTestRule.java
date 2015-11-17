@@ -7,6 +7,7 @@ import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
 import java.io.File;
+import java.lang.reflect.Type;
 
 /**
  * <p>A JUnit rule used to take care of setup and cleanup when using Bond with JUnit.
@@ -31,6 +32,9 @@ public class BondTestRule implements TestRule {
 
   private Optional<File> _observationDirectory = Optional.absent();
   private Optional<ReconcileType> _reconciliationMethod = Optional.absent();
+  private Serializer _serializer = new Serializer()
+                                       .withFloatPrecision(Bond.DEFAULT_FLOAT_DOUBLE_PRECISION)
+                                       .withDoublePrecision(Bond.DEFAULT_FLOAT_DOUBLE_PRECISION);
 
   /**
    * Set the observation directory to be used for this test. If not set, the environment
@@ -58,6 +62,78 @@ public class BondTestRule implements TestRule {
     return this;
   }
 
+  /**
+   * Set a custom serialization method for type.
+   * See {@link com.google.gson.GsonBuilder#registerTypeAdapter(Type, Object)}.
+   *
+   * @param type The type for this adapter to apply to
+   * @param typeAdapter The adapter with custom serialization logic
+   * @return This object to facilitate a builder-style pattern
+   */
+  public BondTestRule withTypeAdapter(Type type, Object typeAdapter) {
+    _serializer = _serializer.withTypeAdapter(type, typeAdapter);
+    return this;
+  }
+
+  /**
+   * Set a custom serialization method for baseType and its subtypes.
+   * See {@link com.google.gson.GsonBuilder#registerTypeHierarchyAdapter(Class, Object)}.
+   *
+   * @param baseType The baseType for this adapter to apply to
+   * @param typeAdapter The adapter with custom serialization logic
+   * @return This object to facilitate a builder-style pattern
+   */
+  public BondTestRule withTypeHierarchyAdapter(Class<?> baseType, Object typeAdapter) {
+    _serializer = _serializer.withTypeHierarchyAdapter(baseType, typeAdapter);
+    return this;
+  }
+
+  /**
+   * Specify that for objects of type clazz, simply call toString() on the object
+   * to serialize it instead of doing a full JSON serialization.
+   *
+   * @param clazz Type for this to apply to
+   * @param <T> Same as clazz
+   * @return This object to facilitate a builder-style pattern
+   */
+  public <T> BondTestRule withToStringSerialization(Class<T> clazz) {
+    _serializer = _serializer.withToStringSerialization(clazz);
+    return this;
+  }
+
+  /**
+   * Set the amount of precision to be used when serializing floats and doubles.
+   *
+   * @param places Number of places after the decimal to keep in serialized form
+   * @return This object to facilitate a builder-style pattern
+   */
+  public BondTestRule withFloatDoublePrecision(final int places) {
+    _serializer = _serializer.withFloatPrecision(places).withDoublePrecision(places);
+    return this;
+  }
+
+  /**
+   * Set the amount of precision to be used when serializing doubles.
+   *
+   * @param places Number of places after the decimal to keep in serialized form
+   * @return This object to facilitate a builder-style pattern
+   */
+  public BondTestRule withDoublePrecision(final int places) {
+    _serializer = _serializer.withDoublePrecision(places);
+    return this;
+  }
+
+  /**
+   * Set the amount of precision to be used when serializing floats.
+   *
+   * @param places Number of places after the decimal to keep in serialized form
+   * @return This object to facilitate a builder-style pattern
+   */
+  public BondTestRule withFloatPrecision(final int places) {
+    _serializer = _serializer.withFloatPrecision(places);
+    return this;
+  }
+
   @Override
   public Statement apply(final Statement statement, Description description) {
     final String testName = String.format("%s.%s", description.getTestClass().getCanonicalName(),
@@ -65,7 +141,7 @@ public class BondTestRule implements TestRule {
     return new Statement() {
       @Override
       public void evaluate() throws Throwable {
-        Bond.startTest(testName);
+        Bond.startTest(testName, _serializer);
         if (_observationDirectory.isPresent()) {
           Bond.setObservationDirectory(_observationDirectory.get());
         }

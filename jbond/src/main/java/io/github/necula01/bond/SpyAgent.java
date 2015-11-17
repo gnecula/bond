@@ -68,8 +68,9 @@ public class SpyAgent {
 
   /**
    * Limit the applicability of this agent to spy points whose observations include a key
-   * matching {@code key} whose value, when converted to a String via {@code toString}, contains
-   * {@code substring}.
+   * matching {@code key} whose value, when converted to a String via JSON serialization,
+   * contains {@code substring}. Note that this is the only FilterKey which uses JSON serialization
+   * instead of {@code toString}.
    *
    * @param key Key to look for in the observation
    * @param substring Substring to search for
@@ -79,7 +80,7 @@ public class SpyAgent {
     _filters.add(new Filter() {
       @Override
       public boolean accept(Map<String, Object> map) {
-        return map.containsKey(key) && map.get(key).toString().contains(substring);
+        return map.containsKey(key) && Bond.getSerializer().serialize(map.get(key)).contains(substring);
       }
     });
     return this;

@@ -9,6 +9,7 @@ import com.google.common.io.Files;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -69,12 +70,15 @@ import java.util.Map;
  */
 public class Bond {
 
+  static final int DEFAULT_FLOAT_DOUBLE_PRECISION = 6;
+
   private static final Splitter CLASS_SPLITTER = Splitter.on(".").trimResults();
   private static final Splitter LINE_SPLITTER = Splitter.on("\n");
 
   private static Optional<String> _currentTest = Optional.absent();
   private static Map<String, List<SpyAgent>> _agentMap = new HashMap<>();
   private static List<String> _observationJsons = new ArrayList<>();
+  private static Serializer _serializer = new Serializer();
   private static Optional<File> _observationDirectory = Optional.absent();
   private static Optional<ReconcileType> _reconciliationMethod = Optional.absent();
 
@@ -204,10 +208,26 @@ public class Bond {
    * @param testName Name of the current test.
    */
   static void startTest(String testName) {
+    startTest(testName, null);
+    _serializer = new Serializer()
+                      .withFloatPrecision(DEFAULT_FLOAT_DOUBLE_PRECISION)
+                      .withDoublePrecision(DEFAULT_FLOAT_DOUBLE_PRECISION);
+  }
+
+  /**
+   * Used to start Bond into testing mode. This is called internally
+   * by {@link BondTestRule}. Should be accompanied by a corresponding
+   * {@link #finishTest()}.
+   *
+   * @param serializer Custom Serializer to use during this test
+   * @param testName Name of the current test.
+   */
+  static void startTest(String testName, Serializer serializer) {
     clearSettings();
     _observationJsons = new ArrayList<>();
     _agentMap = new HashMap<>();
     _currentTest = Optional.of(testName);
+    _serializer = serializer;
   }
 
   /**
@@ -229,6 +249,66 @@ public class Bond {
    */
   public static void setReconciliationMethod(ReconcileType reconcileType) {
     _reconciliationMethod = Optional.fromNullable(reconcileType);
+  }
+
+  /**
+   * Set a custom serialization method for type.
+   * See {@link com.google.gson.GsonBuilder#registerTypeAdapter(Type, Object)}.
+   *
+   * @param type The type for this adapter to apply to
+   * @param typeAdapter The adapter with custom serialization logic
+   */
+  public static void registerTypeAdapter(Type type, Object typeAdapter) {
+    _serializer = _serializer.withTypeAdapter(type, typeAdapter);
+  }
+
+  /**
+   * Set a custom serialization method for baseType and its subtypes.
+   * See {@link com.google.gson.GsonBuilder#registerTypeHierarchyAdapter(Class, Object)}.
+   *
+   * @param baseType The baseType for this adapter to apply to
+   * @param typeAdapter The adapter with custom serialization logic
+   */
+  public static void registerTypeHierarchyAdapter(Class<?> baseType, Object typeAdapter) {
+    _serializer = _serializer.withTypeHierarchyAdapter(baseType, typeAdapter);
+  }
+
+  /**
+   * Specify that for objects of type clazz, simply call toString() on the object
+   * to serialize it instead of doing a full JSON serialization.
+   *
+   * @param clazz Type for this to apply to
+   * @param <T> Same as clazz
+   */
+  public <T> void setToStringSerialization(Class<T> clazz) {
+    _serializer = _serializer.withToStringSerialization(clazz);
+  }
+
+  /**
+   * Set the amount of precision to be used when serializing floats and doubles.
+   *
+   * @param places Number of places after the decimal to keep in serialized form
+   */
+  public static void setFloatDoublePrecision(final int places) {
+    _serializer = _serializer.withFloatPrecision(places).withDoublePrecision(places);
+  }
+
+  /**
+   * Set the amount of precision to be used when serializing doubles.
+   *
+   * @param places Number of places after the decimal to keep in serialized form
+   */
+  public static void setDoublePrecision(final int places) {
+    _serializer = _serializer.withDoublePrecision(places);
+  }
+
+  /**
+   * Set the amount of precision to be used when serializing floats.
+   *
+   * @param places Number of places after the decimal to keep in serialized form
+   */
+  public static void setFloatPrecision(final int places) {
+    _serializer = _serializer.withFloatPrecision(places);
   }
 
   /**
@@ -301,6 +381,15 @@ public class Bond {
 
     _currentTest = Optional.absent();
     return reconcileResult;
+  }
+
+  /**
+   * Get the currently applicable serializer.
+   *
+   * @return The Serializer which should be used currently.
+   */
+  static Serializer getSerializer() {
+    return _serializer;
   }
 
   /**

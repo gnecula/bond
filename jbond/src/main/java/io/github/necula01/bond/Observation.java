@@ -174,7 +174,7 @@ public class Observation {
       _observationMap.put("__spyPoint__", spyPointName);
     }
 
-    Bond.addObservation(Serializer.serialize(_observationMap));
+    Bond.addObservation(Bond.getSerializer().serialize(_observationMap));
   }
 
 }

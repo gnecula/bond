@@ -2,9 +2,14 @@ package io.github.necula01.bond;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonPrimitive;
+import com.google.gson.JsonSerializationContext;
+import com.google.gson.JsonSerializer;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.lang.reflect.Type;
 import java.util.Map;
 
 public class BondTest {
@@ -259,6 +264,24 @@ public class BondTest {
     } catch (BondTestException e) {
       Bond.obs("exceptionMessage", e.toString()).spy();
     }
+  }
+
+  @Test
+  public void testWithCustomDoublePrecision() {
+    Bond.setDoublePrecision(4);
+    Bond.obs("pi", Math.PI).spy();
+  }
+
+  @Test
+  public void testWithCustomTypeAdapter() {
+    Bond.registerTypeAdapter(SuperClass.class, new JsonSerializer<SuperClass>() {
+      @Override
+      public JsonElement serialize(SuperClass sc, Type type, JsonSerializationContext jsc) {
+        return new JsonPrimitive("SuperClass with custom serialization!");
+      }
+    });
+
+    Bond.obs("SuperClass", new SuperClass()).spy();
   }
 
   @Test
