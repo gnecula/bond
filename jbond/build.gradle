@@ -29,6 +29,7 @@ test {
         exceptionFormat = 'full'
         events "passed", "skipped", "failed", "standardOut", "standardError"
     }
+    classpath = project.sourceSets.test.runtimeClasspath + files("${projectDir}/main")
 }
 
 javadoc {
