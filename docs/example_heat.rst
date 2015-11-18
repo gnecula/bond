@@ -96,7 +96,8 @@ The code to be tested
 
    .. container:: tab-section-java
                
-      .. literalinclude:: ../jbond/src/main/java/tutorial/heatwatcher/HeatWatcher.java
+      .. literalinclude:: ../jbond/src/main/java/io/github/necula01/bond/tutorial/heatwatcher/HeatWatcher.java
+
          :language: java
          :start-after: package tutorial.heatwatcher;
                     
@@ -132,7 +133,7 @@ advance the mock time, as shown below:
 
    .. container:: tab-section-java
                       
-      .. literalinclude:: ../jbond/src/test/java/tutorial/heatwatcher/HeatWatcherTest.java
+      .. literalinclude:: ../jbond/src/test/java/io/github/necula01/tutorial/heatwatcher/HeatWatcherTest.java
          :language: java
          :start-after: rst_TimeMocker
          :end-before: rst_TemperatureMocker
@@ -159,7 +160,7 @@ certain rate for various time intervals, as shown below:
 
    .. container:: tab-section-java
                       
-      .. literalinclude:: ../jbond/src/test/java/tutorial/heatwatcher/HeatWatcherTest.java
+      .. literalinclude:: ../jbond/src/test/java/io/github/necula01/tutorial/heatwatcher/HeatWatcherTest.java
          :language: java
          :start-after: rst_TemperatureMocker
 
@@ -184,6 +185,6 @@ out a utility function (``make_request``), changing behavior based on the parame
          
    .. container:: tab-section-java
                       
-      .. literalinclude:: ../jbond/src/test/java/tutorial/heatwatcher/HeatWatcherTest.java
+      .. literalinclude:: ../jbond/src/test/java/io/github/necula01/tutorial/heatwatcher/HeatWatcherTest.java
          :language: java
          :end-before: rst_TestEnd
