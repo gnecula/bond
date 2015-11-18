@@ -99,7 +99,7 @@ Setting Up Dependencies
               <version>2.4</version>
               <configuration>
                 <environmentVariables>
-                  <BOND_OBSERVATION_DIR>${basedir}/test/resources/test_observations</BOND_OBSERVATION_DIR>
+                  <BOND_OBSERVATION_DIR>${basedir}/src/test/resources/test_observations</BOND_OBSERVATION_DIR>
                 </environmentVariables>
               </configuration>
             </plugin>
