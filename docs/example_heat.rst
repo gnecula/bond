@@ -96,10 +96,9 @@ The code to be tested
 
    .. container:: tab-section-java
                
-      .. literalinclude:: ../jbond/src/main/java/io/github/necula01/bond/tutorial/heatwatcher/HeatWatcher.java
-
+      .. literalinclude:: ../jbond/src/main/java/io/github/necula01/tutorial/heatwatcher/HeatWatcher.java
          :language: java
-         :start-after: package tutorial.heatwatcher;
+         :start-after: tutorial.heatwatcher;
                     
                  
 
