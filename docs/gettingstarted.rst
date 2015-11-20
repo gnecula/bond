@@ -78,7 +78,9 @@ Setting Up Dependencies
 
         If you are using Gradle, you will probably also want to set the observation directory 
         programmatically within your ``build.gradle`` (this example assumes your project has a standard 
-        Maven project structure, but you can customize it to your needs):
+        Maven project structure, but you can customize it to your needs). You'll learn more about this
+        later, but basically it defines the root directory to store the output of your tests in for use 
+        later. You want this near your tests:
 
         .. code-block:: groovy
 

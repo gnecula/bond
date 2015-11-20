@@ -40,7 +40,8 @@ How to use this example
 
 #. If you want to fully experience this example, you can copy and paste this
    code into your computer, or you can find it in the ``tutorials/heat_watcher``
-   directory of the `Bond sources <http://github.com/necula01/bond>`_.
+   directory (``tutorials/src/{main,test}/java/tutorial/heatwatcher`` for Java) 
+   of the `Bond sources <http://github.com/necula01/bond>`_.
 
 #. You can run the tests, and you can observe in your debugger how the different
    functions are called.
@@ -67,7 +68,12 @@ How to use this example
      
            .. code-block:: bash
      
-               ./gradlew test -Dtest.single=HeatWatcherTest
+               # within jbond root directory:
+               ./gradlew :tutorials:test -Dtest.single=HeatWatcherTest
+
+               # OR, within the tutorials module:
+               ./gradlew test -Dtest.single=HeatWatcherTest               
+               
                         
 #. You can write more tests to test more complex scenarios.
 
@@ -95,8 +101,8 @@ The code to be tested
          :start-after: rst_Start
 
    .. container:: tab-section-java
-               
-      .. literalinclude:: ../jbond/src/main/java/io/github/necula01/tutorial/heatwatcher/HeatWatcher.java
+
+      .. literalinclude:: ../jbond/tutorials/src/main/java/tutorial/heatwatcher/HeatWatcher.java
          :language: java
          :start-after: tutorial.heatwatcher;
                     
@@ -132,7 +138,11 @@ advance the mock time, as shown below:
 
    .. container:: tab-section-java
                       
+<<<<<<< Updated upstream
       .. literalinclude:: ../jbond/src/test/java/io/github/necula01/tutorial/heatwatcher/HeatWatcherTest.java
+=======
+      .. literalinclude:: ../jbond/tutorials/src/test/java/tutorial/heatwatcher/HeatWatcherTest.java
+>>>>>>> Stashed changes
          :language: java
          :start-after: rst_TimeMocker
          :end-before: rst_TemperatureMocker
@@ -159,7 +169,7 @@ certain rate for various time intervals, as shown below:
 
    .. container:: tab-section-java
                       
-      .. literalinclude:: ../jbond/src/test/java/io/github/necula01/tutorial/heatwatcher/HeatWatcherTest.java
+      .. literalinclude:: ../jbond/tutorials/src/test/java/tutorial/heatwatcher/HeatWatcherTest.java
          :language: java
          :start-after: rst_TemperatureMocker
 
@@ -184,6 +194,7 @@ out a utility function (``make_request``), changing behavior based on the parame
          
    .. container:: tab-section-java
                       
-      .. literalinclude:: ../jbond/src/test/java/io/github/necula01/tutorial/heatwatcher/HeatWatcherTest.java
+      .. literalinclude:: ../jbond/tutorials/src/test/java/tutorial/heatwatcher/HeatWatcherTest.java
          :language: java
+         :start-after: tutorial.heatwatcher
          :end-before: rst_TestEnd

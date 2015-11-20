@@ -1,9 +1,0 @@
-[
-{
-  "__spyPoint__": "myPoint",
-  "key": "val"
-},
-{
-  "exceptionMessage": "io.github.necula01.bond.IllegalSpyAgentException: Requested a return value / exception type for myPoint which is not compatible with the agent deployed!"
-}
-]

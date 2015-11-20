@@ -1,61 +1,37 @@
 import java.nio.file.Paths
 
-apply plugin: 'java'
-apply plugin: 'idea'
-apply plugin: 'eclipse'
-apply plugin: 'maven-publish'
-
-sourceCompatibility = 1.7
-group = 'io.github.necula01.bond'
-version = '0.1.0'
-
-repositories {
-    mavenCentral()
+allprojects {
+    apply plugin: 'idea'
+    apply plugin: 'eclipse'
 }
 
-dependencies {
-    compile 'com.google.guava:guava:18.0'
-    compile 'com.google.code.gson:gson:2.4'
-    compile 'com.googlecode.java-diff-utils:diffutils:1.2.1'
-    compile 'junit:junit:4.12'
-}
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'maven-publish'
+    sourceCompatibility = 1.7
+    group = 'org.necula.bond'
+    version = '0.1.0'
 
-test {
-    useJUnit() {
-        environment 'BOND_OBSERVATION_DIR', Paths.get(file("$projectDir").toString(),
-                'src', 'test', 'resources', 'test_observations').toAbsolutePath()
-    }
-    testLogging {
-        exceptionFormat = 'full'
-        events "passed", "skipped", "failed", "standardOut", "standardError"
-    }
-    classpath = project.sourceSets.test.runtimeClasspath + files("${projectDir}/main")
-}
-
-javadoc {
-    options.addStringOption('noqualifier', 'java.lang:com.google.common.base:org.junit')
-    options.links 'http://docs.oracle.com/javase/7/docs/api/',
-            'http://docs.guava-libraries.googlecode.com/git-history/release/javadoc/',
-            'http://google.github.io/gson/apidocs/',
-            'http://junit.org/javadoc/latest/'
-}
-
-jar {
-    manifest {
-        attributes('Implementation-Title': 'Bond',
-                   'Implementation-Version': version)
-    }
-}
-
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            artifactId 'bond'
-
-            from components.java
-        }
-    }
     repositories {
         mavenCentral()
+    }
+
+    dependencies {
+        compile 'com.google.guava:guava:18.0'
+        compile 'com.google.code.gson:gson:2.4'
+        compile 'com.googlecode.java-diff-utils:diffutils:1.2.1'
+        compile 'junit:junit:4.12'
+    }
+
+    test {
+        useJUnit() {
+            environment 'BOND_OBSERVATION_DIR', Paths.get(file("$projectDir").toString(),
+                    'src', 'test', 'resources', 'test_observations').toAbsolutePath()
+        }
+        testLogging {
+            exceptionFormat = 'full'
+            events "passed", "skipped", "failed", "standardOut", "standardError"
+        }
+        classpath = project.sourceSets.test.runtimeClasspath + files("${projectDir}/main")
     }
 }

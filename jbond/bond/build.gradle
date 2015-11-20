@@ -1,0 +1,27 @@
+javadoc {
+    options.addStringOption('noqualifier', 'java.lang:com.google.common.base:org.junit')
+    options.links 'http://docs.oracle.com/javase/7/docs/api/',
+            'http://docs.guava-libraries.googlecode.com/git-history/release/javadoc/',
+            'http://google.github.io/gson/apidocs/',
+            'http://junit.org/javadoc/latest/'
+}
+
+jar {
+    manifest {
+        attributes('Implementation-Title': 'Bond',
+                'Implementation-Version': version)
+    }
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId 'bond'
+
+            from components.java
+        }
+    }
+    repositories {
+        mavenCentral()
+    }
+}

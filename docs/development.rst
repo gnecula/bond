@@ -71,7 +71,7 @@ To execute only tests for a single language, ``make`` using tasks ``run_tests_py
 
         .. code::
     
-            bond> cd jbond; ./gradlew test -Dtest.single=YourClassTest
+            bond> cd jbond; ./gradlew :bond:test -Dtest.single=YourClassTest
 
 
 Deploying a new version
