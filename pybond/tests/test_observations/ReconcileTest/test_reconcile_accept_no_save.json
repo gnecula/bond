@@ -29,7 +29,7 @@
 },
 {
     "__spy_point__": "bond_reconcile._print", 
-    "what": "Not saving reference observation file for test 1: Don't want to save"
+    "what": "Not saving reference observation file for test 1: Don't want to save. Pretend there was an error"
 },
 {
     "__spy_point__": "invoke_top_reconcile_results", 

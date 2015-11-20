@@ -53,7 +53,6 @@ class BondTest(unittest.TestCase):
 
     def setUp(self):
         setup_bond_self_test(self)
-        self.assertTrue(bond.TESTING)
         self.assertTrue(bond.active())
 
     def test_spy_basic(self):

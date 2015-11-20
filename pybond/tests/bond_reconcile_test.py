@@ -155,7 +155,7 @@ class ReconcileTest(unittest.TestCase):
     def test_reconcile_accept_no_save(self):
         "Test with the accept tool and no_save"
         self.helper_test_reconcile(reconcile='accept',
-                                   no_save="Don't want to save")
+                                   no_save="Don't want to save. Pretend there was an error")
 
     def test_reconcile_abort(self):
         self.helper_test_reconcile(reconcile='abort')
@@ -174,7 +174,7 @@ class ReconcileTest(unittest.TestCase):
 
     def test_reconcile_console0_no_save_diff(self):
         "Test with console tool, answer: d, to get the diff, then y, but no_save"
-        self.console_reply = ['d', 'y']  # Do accept
+        self.console_reply = ['d', 'e', 'y']  # Do accept
         self.helper_test_reconcile(reconcile='console',
                                    no_save='No saving, period.')
 

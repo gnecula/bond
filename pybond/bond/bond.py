@@ -6,10 +6,6 @@ import os
 import json
 
 
-# We use this global to signal that we are in Bond spying mode, i.e., start_test has been
-# called.
-TESTING = False  ## DEPRECATED
-
 # Special result from spy when no agent matches, or no agent provides a result
 AGENT_RESULT_NONE = '_bond_agent_result_none'
 
@@ -387,8 +383,6 @@ class Bond:
         :param kwargs:
         :return:
         """
-        global TESTING   ## DEPRECATED
-        TESTING = True
 
         self.observations = []
         self.spy_agents = {}
@@ -518,14 +512,13 @@ class Bond:
         :return:
         """
         try:
-            global TESTING
-            TESTING = False
-
             # Were there failures and errors in this test?
             test_failed = self.test_framework_bridge.test_failed()
             # Save the observations
             if test_failed:
-                no_save = 'Test had failures'
+                # Show the failures and errors now
+                print(test_failed)
+                no_save = test_failed
             else:
                 no_save = None
 
@@ -767,7 +760,7 @@ class TestFrameworkBridge:
 
     def test_failed(self):
         """
-        Return true if the test has failed
+        Return an error message if the test has failed
         :return:
         """
         assert False, "Must override"
@@ -786,7 +779,8 @@ class TestFrameworkBridgeUnittest(TestFrameworkBridge):
 
         # We remember the start counter for failures and errors
         # This is the best way I know how to tell that a test has failed
-        self.start_count_failures_and_errors =  self._count_failures_and_errors()
+        self.start_count_failures = len(self.current_python_test._resultForDoCleanups.failures)
+        self.start_count_errors = len(self.current_python_test._resultForDoCleanups.errors)
 
 
     def test_failed(self):
@@ -794,11 +788,25 @@ class TestFrameworkBridgeUnittest(TestFrameworkBridge):
         Return true if the test has failed
         :return:
         """
-        return self._count_failures_and_errors() > self.start_count_failures_and_errors
+        failures_and_errors = self._get_failures_and_errors()
+        if failures_and_errors:
+            return "\n".join(failures_and_errors)
+        else:
+            return None
 
-    def _count_failures_and_errors(self):
-        return len(self.current_python_test._resultForDoCleanups.failures) + \
-               len(self.current_python_test._resultForDoCleanups.errors)
+
+    def _get_failures_and_errors(self):
+        """
+        Return a list of failures and errors so far
+        """
+        res = []
+        for fmsg in self.current_python_test._resultForDoCleanups.failures[self.start_count_failures:]:
+            res.append(fmsg[1])
+
+        for emsg in self.current_python_test._resultForDoCleanups.errors[self.start_count_errors:]:
+            res.append(emsg[1])
+        return res
+
 
 class TestFrameworkBridgePyTest(TestFrameworkBridge):
     """

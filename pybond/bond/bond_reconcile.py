@@ -235,10 +235,9 @@ class ReconcileToolConsole(ReconcileTool):
 
         while True:
             if no_save:
-                prompt = 'Observations are shown for {}. Saving them not allowed: {}.'.format(
+                prompt = 'Observations are shown for {}. Saving them not allowed because test failed.'.format(
                     test_name,
-                    no_save
-                ) + ' Use the diff option to show the differences. ([k]diff3 | [d]iff | *): '
+                ) + ' Use the diff option to show the differences. ([k]diff3 | [d]iff | [e] errors | *): '
             else:
                 # Show the diff
                 self.show_diff(test_name, diff_file)
@@ -252,6 +251,10 @@ class ReconcileToolConsole(ReconcileTool):
 
             if response == 'd' and no_save:
                 self.show_diff(test_name, diff_file)
+                continue
+
+            if response == 'e' and no_save:
+                ReconcileTool._print("Test {} had errors:\n{}".format(test_name, no_save))
                 continue
 
             if response == 'y' and not no_save:

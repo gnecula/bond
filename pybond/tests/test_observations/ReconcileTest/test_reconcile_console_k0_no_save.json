@@ -5,7 +5,7 @@
 },
 {
     "__spy_point__": "bond_reconcile._read_console", 
-    "prompt": "Observations are shown for test 1. Saving them not allowed: No saving, I say so. Use the diff option to show the differences. ([k]diff3 | [d]iff | *): "
+    "prompt": "Observations are shown for test 1. Saving them not allowed because test failed. Use the diff option to show the differences. ([k]diff3 | [d]iff | [e] errors | *): "
 },
 {
     "__spy_point__": "bond_reconcile._read_console.result", 
