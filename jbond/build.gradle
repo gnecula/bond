@@ -21,6 +21,9 @@ subprojects {
         compile 'com.google.code.gson:gson:2.4'
         compile 'com.googlecode.java-diff-utils:diffutils:1.2.1'
         compile 'junit:junit:4.12'
+        compile 'org.powermock:powermock-module-junit4:1.6.3'
+        compile 'org.powermock:powermock-api-mockito:1.6.3'
+        compile 'org.reflections:reflections:0.9.10'
     }
 
     test {
