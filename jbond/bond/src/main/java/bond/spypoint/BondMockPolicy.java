@@ -11,6 +11,7 @@ import org.reflections.scanners.ResourcesScanner;
 import org.reflections.scanners.SubTypesScanner;
 
 import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -34,32 +35,50 @@ public abstract class BondMockPolicy implements PowerMockPolicy {
   public void applyInterceptionPolicy(MockPolicyInterceptionSettings settings) {
     for (Class<?> clazz : getClassesFromPackage(getPackageName())) {
       for (Method m : getSpiedMethodsForClass(clazz)) {
-        final SpyPoint obs = m.getAnnotation(SpyPoint.class);
-        final Type[] parameterTypes = m.getParameterTypes();
-        settings.proxyMethod(m, getInvocationHandler(obs, parameterTypes));
+        settings.proxyMethod(m, getInvocationHandler(m));
       }
     }
   }
 
-  private InvocationHandler getInvocationHandler(final SpyPoint obs, final Type[] parameterTypes) {
+  private InvocationHandler getInvocationHandler(Method m) {
+    final SpyPoint obs = m.getAnnotation(SpyPoint.class);
+    final Type[] parameterTypes = m.getParameterTypes();
+    final String[] parameterNames = new String[parameterTypes.length];
+    try {
+      Method getParameterMethod = m.getClass().getMethod("getParameters");
+      Object[] parameters = (Object[]) getParameterMethod.invoke(m);
+      if (parameters.length != parameterNames.length) {
+        throw new RuntimeException("Parameter name array and type array lengths must match!");
+      }
+      for (int i = 0; i < parameters.length; i++) {
+        Object param = parameters[i];
+        Method getNameMethod = param.getClass().getMethod("getName");
+        Object paramName = getNameMethod.invoke(param);
+        parameterNames[i] = paramName.toString();
+      }
+    } catch (NoSuchMethodException|IllegalAccessException|InvocationTargetException|ClassCastException e) {
+      for (int i = 0; i < parameterNames.length; i++) {
+        parameterNames[i] = "param" + i;
+      }
+    }
     return new InvocationHandler() {
       @Override
       public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         String spyPointName = obs.spyPointName().equals(SpyPoint.DEFAULT_POINT_NAME)
                                   ? proxy.getClass().getSimpleName() + "." + method.getName()
                                   : obs.spyPointName();
-        Optional<Object> response;
+        Optional<?> response;
         if (parameterTypes.length == 0) {
-          response = Bond.spy(spyPointName);
+          response = Bond.spy(spyPointName, method.getReturnType());
         } else {
           // TODO what about varags? they just come through as an array I'm assuming?
-          Observation observation = Bond.obs("param0[" + parameterTypes[0] + "]", args[0]);
+          Observation observation = Bond.obs(getObservationKey(parameterNames[0], parameterTypes[0]), args[0]);
           for (int i = 1; i < parameterTypes.length; i++) {
-            observation = observation.obs(String.format("param%d[%s]", i, parameterTypes[i]), args[i]);
+            observation = observation.obs(getObservationKey(parameterNames[i], parameterTypes[i]), args[i]);
             // TODO have some sort of *conditional compilation* to get param names in Java 8 but not Java 7:
             // obsStrings[i] = String.format("%s=%s", params[i].getName(), methodIOM.getArguments()[i]);
           }
-          response = observation.spy(spyPointName);
+          response = observation.spy(spyPointName, method.getReturnType());
         }
         if (obs.requireMock()) {
           assert response.isPresent();
@@ -70,6 +89,10 @@ public abstract class BondMockPolicy implements PowerMockPolicy {
         return method.invoke(proxy, args);
       }
     };
+  }
+
+  private static String getObservationKey(String parameterName, Type parameterType) {
+    return String.format("%s[%s]", parameterName, ((Class) parameterType).getSimpleName());
   }
 
   private static Method[] getSpiedMethodsForClass(Class<?> clazz) {

@@ -98,7 +98,7 @@ public class Observation {
     }
     Optional<T> ret = (Optional<T>) spy(spyPointName);
     if (ret.isPresent()) {
-      if (!expectedType.isAssignableFrom(ret.get().getClass())) {
+      if (!isTypeCompatible(ret.get().getClass(), expectedType)) {
         throw new IllegalSpyAgentException("Requested a return value for " + spyPointName +
             " which is not compatible with the return type of the agent deployed!");
       }
@@ -106,6 +106,20 @@ public class Observation {
     } else {
       return Optional.absent();
     }
+  }
+
+  private static boolean isTypeCompatible(Class<?> providedType, Class<?> expectedType) {
+    if (expectedType.isAssignableFrom(providedType)) {
+      return true;
+    }
+    Class<?>[] unboxedTypes = {byte.class, short.class, char.class, int.class, long.class, float.class, double.class, boolean.class};
+    Class<?>[] boxedTypes = {Byte.class, Short.class, Character.class, Integer.class, Long.class, Float.class, Double.class, Boolean.class};
+    for (int i = 0; i < unboxedTypes.length; i++) {
+      if (providedType == boxedTypes[i] && expectedType == unboxedTypes[i]) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
