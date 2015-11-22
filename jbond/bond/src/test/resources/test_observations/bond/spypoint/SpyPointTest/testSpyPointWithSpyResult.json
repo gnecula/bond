@@ -1,0 +1,9 @@
+[
+{
+  "__spyPoint__": "TestDependency.annotatedMethodSpyResult"
+},
+{
+  "__spyPoint__": "TestDependency.annotatedMethodSpyResult.result",
+  "result": 42
+}
+]

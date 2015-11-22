@@ -1,0 +1,9 @@
+[
+{
+  "__spyPoint__": "TestDependency.annotatedMethodRequireMock"
+},
+{
+  "__spyPoint__": "catch",
+  "exception": "java.lang.IllegalStateException: You *must* mock out spy point: TestDependency.annotatedMethodRequireMock"
+}
+]

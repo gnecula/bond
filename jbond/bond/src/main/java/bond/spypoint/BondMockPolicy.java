@@ -14,9 +14,7 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public abstract class BondMockPolicy implements PowerMockPolicy {
 
@@ -45,6 +43,8 @@ public abstract class BondMockPolicy implements PowerMockPolicy {
     final Type[] parameterTypes = m.getParameterTypes();
     final String[] parameterNames = new String[parameterTypes.length];
     try {
+      // If we're in Java 8 and compilation occurred with the -parameters flag, we
+      // can use reflection to get the names of the parameters.
       Method getParameterMethod = m.getClass().getMethod("getParameters");
       Object[] parameters = (Object[]) getParameterMethod.invoke(m);
       if (parameters.length != parameterNames.length) {
@@ -71,33 +71,46 @@ public abstract class BondMockPolicy implements PowerMockPolicy {
         if (parameterTypes.length == 0) {
           response = Bond.spy(spyPointName, method.getReturnType());
         } else {
-          // TODO what about varags? they just come through as an array I'm assuming?
           Observation observation = Bond.obs(getObservationKey(parameterNames[0], parameterTypes[0]), args[0]);
           for (int i = 1; i < parameterTypes.length; i++) {
             observation = observation.obs(getObservationKey(parameterNames[i], parameterTypes[i]), args[i]);
-            // TODO have some sort of *conditional compilation* to get param names in Java 8 but not Java 7:
-            // obsStrings[i] = String.format("%s=%s", params[i].getName(), methodIOM.getArguments()[i]);
           }
           response = observation.spy(spyPointName, method.getReturnType());
         }
-        if (obs.requireMock()) {
-          assert response.isPresent();
+        if (obs.requireMock() && !response.isPresent()) {
+          throw new IllegalStateException("You *must* mock out spy point: " + spyPointName);
         }
+        Object retValue;
         if (response.isPresent()) {
-          return response.get();
+          retValue = response.get();
+        } else {
+          retValue = method.invoke(proxy, args);
         }
-        return method.invoke(proxy, args);
+        if (obs.spyResult()) {
+          Bond.obs("result", retValue).spy(spyPointName + ".result");
+        }
+        return retValue;
       }
     };
   }
 
   private static String getObservationKey(String parameterName, Type parameterType) {
-    return String.format("%s[%s]", parameterName, ((Class) parameterType).getSimpleName());
+    if (parameterType instanceof Class) {
+      return String.format("%s[%s]", parameterName, ((Class) parameterType).getSimpleName());
+    } else {
+      // This case should never happen, but just in case...
+      return parameterName;
+    }
   }
 
   private static Method[] getSpiedMethodsForClass(Class<?> clazz) {
-    List<Method> annotatedMethods = new ArrayList<>();
+    Set<Method> annotatedMethods = new HashSet<>();
     for (Method method : clazz.getMethods()) {
+      if (method.isAnnotationPresent(SpyPoint.class)) {
+        annotatedMethods.add(method);
+      }
+    }
+    for (Method method : clazz.getDeclaredMethods()) {
       if (method.isAnnotationPresent(SpyPoint.class)) {
         annotatedMethods.add(method);
       }
