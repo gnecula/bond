@@ -19,18 +19,18 @@ public class SpyPointTest {
 
   static class TestDependency {
     @SpyPoint
-    public int annotatedStandardMethod(Object arg1, String arg2) {
+    public int annotatedStandardMethod(Object arg0, String arg1) {
       return 42;
     }
 
     @SpyPoint
-    public Object annotatedMethodVarags(String arg1, String... args) {
+    public Object annotatedMethodVarags(String arg0, String... arg1) {
       return null;
     }
 
     @SpyPoint
-    public static String annotatedStaticMethod(String arg) {
-      return arg;
+    public static String annotatedStaticMethod(String arg0) {
+      return arg0;
     }
 
     @SpyPoint(spyPointName = "testName")
@@ -41,14 +41,14 @@ public class SpyPointTest {
       return 42;
     }
 
-    @SpyPoint(requireMock = true)
+    @SpyPoint(requireAgentResult = true)
     public String annotatedMethodRequireMock() {
       return "test return";
     }
 
-    public String methodWithDependency(String arg) {
+    public String methodWithDependency(String arg0) {
       TestSecondaryDependency tsd = new TestSecondaryDependency();
-      return tsd.annotatedMethod(arg);
+      return tsd.annotatedMethod(arg0);
     }
 
     public String methodCallingPrivate() {
@@ -64,7 +64,7 @@ public class SpyPointTest {
   static class TestSecondaryDependency {
 
     @SpyPoint
-    public String annotatedMethod(String arg1) {
+    public String annotatedMethod(String arg0) {
       return "foo";
     }
 
@@ -152,7 +152,7 @@ public class SpyPointTest {
 
 class SpyPointTestMockPolicy extends BondMockPolicy {
   @Override
-  public String getPackageName() {
-    return "bond.spypoint";
+  public String[] getPackageNames() {
+    return new String[] {"bond.spypoint"};
   }
 }

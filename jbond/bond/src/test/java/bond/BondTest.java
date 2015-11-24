@@ -43,9 +43,9 @@ public class BondTest {
 
     Bond.deployAgent("myPoint", agent);
 
-    Optional<String> notMatching1 = Bond.spy("myPoint", String.class);
-    Optional<String> matching = Bond.obs("key", "foobar").spy("myPoint", String.class);
-    Optional<String> notMatching2 = Bond.obs("key", "fo").spy("myPoint", String.class);
+    SpyResult<String> notMatching1 = Bond.spy("myPoint", String.class);
+    SpyResult<String> matching = Bond.obs("key", "foobar").spy("myPoint", String.class);
+    SpyResult<String> notMatching2 = Bond.obs("key", "fo").spy("myPoint", String.class);
 
     Bond.obs("notMatching1", notMatching1)
         .obs("matching", matching)
@@ -64,8 +64,8 @@ public class BondTest {
     Bond.deployAgent("myPoint", backupAgent);
     Bond.deployAgent("myPoint", primaryAgent);
 
-    Optional<String> primaryAgentResult = Bond.obs("key", "foobar").spy("myPoint", String.class);
-    Optional<String> backupAgentResult = Bond.obs("key", "notbar").spy("myPoint", String.class);
+    SpyResult<String> primaryAgentResult = Bond.obs("key", "foobar").spy("myPoint", String.class);
+    SpyResult<String> backupAgentResult = Bond.obs("key", "notbar").spy("myPoint", String.class);
 
     Bond.obs("primaryAgentResult", primaryAgentResult)
         .obs("backupAgentResult", backupAgentResult)
@@ -134,7 +134,7 @@ public class BondTest {
     Bond.deployAgent("myPoint", stringAgent);
     
     try {
-      Optional<Integer> agentResult = Bond.spy("myPoint", Integer.class);
+      SpyResult<Integer> agentResult = Bond.spy("myPoint", Integer.class);
       Bond.spy("past spy point");
     } catch (IllegalSpyAgentException e) {
       Bond.spy("catch clause");
@@ -145,12 +145,12 @@ public class BondTest {
 
     Bond.deployAgent("myPoint", subclassAgent);
 
-    Optional<SuperClass> agentResult = Bond.spy("myPoint", SuperClass.class);
+    SpyResult<SuperClass> agentResult = Bond.spy("myPoint", SuperClass.class);
 
     Bond.deployAgent("myPoint", superclassAgent);
 
     try {
-      Optional<SubClass> agentSubclassResult = Bond.spy("myPoint", SubClass.class);
+      SpyResult<SubClass> agentSubclassResult = Bond.spy("myPoint", SubClass.class);
       Bond.spy("past spy point");
     } catch (IllegalSpyAgentException e) {
       Bond.spy("catch clause");

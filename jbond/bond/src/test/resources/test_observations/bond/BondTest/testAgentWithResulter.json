@@ -8,10 +8,10 @@
 },
 {
   "agent result with foo": {
-    "reference": "foo result"
+    "value": "foo result"
   },
   "agent result without foo": {
-    "reference": "no foo result"
+    "value": "no foo result"
   }
 }
 ]

@@ -1,7 +1,5 @@
 package bond;
 
-import com.google.common.base.Optional;
-
 import java.util.*;
 
 /**
@@ -61,25 +59,24 @@ public class Observation {
    * @see Bond#spy(String)
    * @param spyPointName Name of the point being spied on.
    * @return The result of the agent deployed for this point, if any,
-   *         else {@link Optional#absent()}. Note that if an agent returns
-   *         null, this will return {@link Optional#absent()}.
+   *         else an absent {@link SpyResult}.
    */
-  public Optional<Object> spy(String spyPointName) {
+  public SpyResult<Object> spy(String spyPointName) {
     if (!Bond.isActive()) {
-      return Optional.absent();
+      return SpyResult.absent();
     }
     SpyAgent agent = Bond.getAgent(spyPointName, _observationMap);
     processObservation(spyPointName);
     if (agent != null) {
       return agent.performDoersGetReturn(_observationMap);
     } else {
-      return Optional.absent();
+      return SpyResult.absent();
     }
   }
 
   /**
    * Spies this point with the current observation, expecting a return type of
-   * {@code expectedType}. Has no effect and returns {@link Optional#absent()}
+   * {@code expectedType}. Has no effect and returns an absent {@link SpyResult}
    * if {@link Bond#isActive()} is false.
    *
    * @see Bond#spy(String, Class)
@@ -89,37 +86,22 @@ public class Observation {
    * @throws IllegalSpyAgentException If the result from the agent matching
    *         this spy point does not match expectedType.
    * @return The result of the agent deployed for this point, if any,
-   *         else {@link Optional#absent()}. Note that if an agent returns null,
-   *         this will return {@link Optional#absent()}.
+   *         else an absent {@link SpyResult}.
    */
-  public <T> Optional<T> spy(String spyPointName, Class<T> expectedType) {
+  public <T> SpyResult<T> spy(String spyPointName, Class<T> expectedType) {
     if (!Bond.isActive()) {
-      return Optional.absent();
+      return SpyResult.absent();
     }
-    Optional<T> ret = (Optional<T>) spy(spyPointName);
+    SpyResult<T> ret = (SpyResult<T>) spy(spyPointName);
     if (ret.isPresent()) {
-      if (!isTypeCompatible(ret.get().getClass(), expectedType)) {
+      if (!isTypeCompatible(ret.get(), expectedType)) {
         throw new IllegalSpyAgentException("Requested a return value for " + spyPointName +
             " which is not compatible with the return type of the agent deployed!");
       }
       return ret;
     } else {
-      return Optional.absent();
+      return SpyResult.absent();
     }
-  }
-
-  private static boolean isTypeCompatible(Class<?> providedType, Class<?> expectedType) {
-    if (expectedType.isAssignableFrom(providedType)) {
-      return true;
-    }
-    Class<?>[] unboxedTypes = {byte.class, short.class, char.class, int.class, long.class, float.class, double.class, boolean.class};
-    Class<?>[] boxedTypes = {Byte.class, Short.class, Character.class, Integer.class, Long.class, Float.class, Double.class, Boolean.class};
-    for (int i = 0; i < unboxedTypes.length; i++) {
-      if (providedType == boxedTypes[i] && expectedType == unboxedTypes[i]) {
-        return true;
-      }
-    }
-    return false;
   }
 
   /**
@@ -191,4 +173,30 @@ public class Observation {
     Bond.addObservation(Bond.getSerializer().serialize(_observationMap));
   }
 
+  /**
+   * Check if the providedValue is compatible (that is, able to be returned into a variable of)
+   * expectedType. If expectedType is {@code void}, this always returns true, useful for being able
+   * to specify any return type to mark a method returning {@code void} as mocked out.
+   *
+   * @param providedValue The value to be returned
+   * @param expectedType The expected type of that value
+   * @return true iff providedValue can be stored into expectedType
+   */
+  private static boolean isTypeCompatible(Object providedValue, Class<?> expectedType) {
+    if (expectedType == void.class) {
+      return true;
+    } else if (providedValue == null) {
+      return Object.class.isAssignableFrom(expectedType);
+    } else if (expectedType.isAssignableFrom(providedValue.getClass())) {
+      return true;
+    }
+    Class<?>[] unboxedTypes = {byte.class, short.class, char.class, int.class, long.class, float.class, double.class, boolean.class};
+    Class<?>[] boxedTypes = {Byte.class, Short.class, Character.class, Integer.class, Long.class, Float.class, Double.class, Boolean.class};
+    for (int i = 0; i < unboxedTypes.length; i++) {
+      if (providedValue.getClass() == boxedTypes[i] && expectedType == unboxedTypes[i]) {
+        return true;
+      }
+    }
+    return false;
+  }
 }

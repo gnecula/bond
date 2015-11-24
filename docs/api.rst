@@ -107,5 +107,6 @@ to start with:
 - `Bond class <jbond/bond/Bond.html>`_
 - `Observation class <jbond/bond/Observation.html>`_
 - `BondTestRule JUnit Rule <jbond/bond/BondTestRule.html>`_
-- `SpyAgent class <rbond/BondTargetable.html>`_
+- `SpyAgent class <jbond/bond/SpyAgent.html>`_
+- `SpyPoint annotation <jbond/bond/spypoint/SpyPoint.html>`_
  

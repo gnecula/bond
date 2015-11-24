@@ -1,12 +1,22 @@
 package tutorial.heatwatcher;
 
 import bond.*;
+import bond.spypoint.BondMockPolicy;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.MockPolicy;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.Map;
 
-
+// These three annotations are necessary to enable mocking of methods.
+// See http://necula01.github.io/bond/jbond/bond/spypoint/BondMockPolicy.html
+// for more detail
+@RunWith(PowerMockRunner.class)
+@PowerMockIgnore("javax.swing.*")
+@MockPolicy(TemperatureMocker.HeatWatcherMockPolicy.class)
 public class HeatWatcherTest {
 
   // This is how to enable Bond for this class
@@ -36,6 +46,10 @@ public class HeatWatcherTest {
         });
     Bond.deployAgent("HeatWatcher.getTemperature", getTemperatureAgent);
 
+    // Specify a result (even though it won't be used) to prevent the real function
+    // from being called
+    Bond.deployAgent("HeatWatcher.sendAlert", new SpyAgent().withResult(null));
+
     // Now invoke the code
     HeatWatcher watcher = new HeatWatcher();
     watcher.monitorLoop(timeMocker.getCurrentTime() + 400);
@@ -53,13 +67,13 @@ public class HeatWatcherTest {
 
     // Do not deploy an agent for getTemperature, let it call makeRequest
     SpyAgent makeRequestMessagesAgent = new SpyAgent()
-        .withFilterKeyContains("url", "messages")
+        .withFilterKeyContains("arg0[String]", "messages")
         .withResult(HeatWatcher.AlertState.OK.toString());
     Bond.deployAgent("HeatWatcher.makeRequest", makeRequestMessagesAgent);
 
     // Deploy an agent for the makeRequest to return a temperature
     SpyAgent makeRequestTemperatureAgent = new SpyAgent()
-        .withFilterKeyContains("url", "temperature")
+        .withFilterKeyContains("arg0[String]", "temperature")
         .withResult(new Resulter() {
           public String accept(Map<String, Object> map) {
             double temp = tempMocker.getTemperature();
@@ -70,7 +84,7 @@ public class HeatWatcherTest {
 
     // Now invoke the code
     HeatWatcher watcher = new HeatWatcher();
-    watcher.monitorLoop(timeMocker.getCurrentTime() + 400);
+    watcher.monitorLoop(timeMocker.getCurrentTime() + 210);
   }
   // rst_TestEnd
 
@@ -90,10 +104,10 @@ public class HeatWatcherTest {
     SpyAgent sleepAgent = new SpyAgent()
         .withDoer(new Doer() {
           public void accept(Map<String, Object> map) {
-            int seconds = (Integer) map.get("seconds");
+            int seconds = (Integer) map.get("arg0[int]");
             timeMocker.sleep(seconds);
           }
-        });
+        }).withResult(null);
     Bond.deployAgent("HeatWatcher.sleep", sleepAgent);
   }
 }
@@ -161,5 +175,12 @@ class TemperatureMocker {
       lastRate = rRate;
     }
     return temp + (timeSinceStart - lastTime) * lastRate / 60.0;
+  }
+
+  static class HeatWatcherMockPolicy extends BondMockPolicy {
+    @Override
+    public String[] getPackageNames() {
+      return new String[] {"tutorial"};
+    }
   }
 }

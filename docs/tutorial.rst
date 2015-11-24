@@ -645,26 +645,74 @@ Part 2: Mocking with Bond
         spy how many times this method is called in your tests, and with what
         arguments, and possibly what it returns for each call. You also want
         your tests to be able to bypass the actual HTTP request and provide
-        mock results for this function. This can be achieved by calling ``Bond.spy``
-        at the start of the method you would like to mock, and if a result was returned
-        (which is guaranteed to be false if you are not currently testing), using that
+        mock results for this function. This can be achieved with the
+        ``SpyPoint`` method annotation, as shown below:
+
+        .. code-block:: java
+            :emphasize-lines: 3
+
+            public class MyClass {
+    
+              @SpyPoint
+              // Among other things, has the effect of injecting a call to
+              //
+              //   Bond.obs("arg0[String]", url).spy("MyClass.makeRequest")
+              //
+              // In Java 7, names of parameters are not available, so they are
+              // spied as arg0, arg1, etc., along with their type. In Java 8,
+              // if you compile with the `-parameters` flag, their names will
+              // used instead. 
+              public String makeRequest(String url) {
+                // The actual production code for making a GET request
+              }
+
+        Just like ``Bond.spy``, this annotation has effect only if ``Bond.startTest`` has been called
+        (or ``BondTestRule`` has been used), meaning that this is a test run. Unfortunately, there are
+        some additional restrictions: you must also run your JUnit test using PowerMock with one of its
+        test runners. See `BondMockPolicy <jbond/bond/spypoint/BondMockPolicy.html>`_ for more details 
+        and specifics of how to set up your test for mocking, and 
+        `SpyPoint <jbond/bond/spypoint/SpyPoint.html>`_ for the options you can use on a ``@SpyPoint``. 
+        
+        One of the effects of this annotation is to inject a call to ``Bond.spy`` with the method name 
+        as the spy point and the arguments as the observation, as shown in the code example above.
+        A spy point annotation on a method is also able to inject code to execute on every call to the
+        method. This code can do multiple things, and can be controlled from the test code:
+
+        * further decide on which invocations of the spy point they activate, based on various 
+          filters on the function arguments.
+        * spy the values of the arguments, and optionally the result also.
+        * control which arguments are spied and how the observations are formatted.
+        * execute additional test code on each call.
+        * bypass the actual body of the method and return a result prepared by the testing code, 
+          or throw an exception when the call is reached.
+              
+        If you don't want to use PowerMock to run your tests, you can achieve a similar effect
+        by calling ``Bond.spy`` at the start of the method you would like to mock, and if a result 
+        was returned (which is guaranteed to be false if you are not currently testing), using that
         result instead of the production code. Note that you can also use
         `Bond.isActive() <jbond/bond/Bond.html#isActive-->`_ to achieve similar results
         (see the `inline spy point example <patterns.html#inline-spy-and-mock-points>`_). 
         For example: 
 
         .. code-block:: java
-            :emphasize-lines: 3-6
+            :emphasize-lines: 3-7
 
-            public String makeRequest(String url) {
-              // Spy and check if mocked                  
-              Optional<String> result = Bond.obs("url", url).spy("makeRequest");               
-              if (result.isPresent()) {
-                return result.get();
-              } 
-              // The actual production code for making a GET request
-              ...
+            public class MyClass {
+              public String makeRequest(String url) {
+                // Spy and check if mocked                  
+                SpyResult<String> result = Bond.obs("url", url)
+                                               .spy("MyClass.makeRequest", String.class);
+                if (result.isPresent()) {
+                  return result.get();
+                } 
+                // The actual production code for making a GET request
+              }
             }
+
+        Using ``spy`` to return a value will return a `SpyResult <jbond/bond/SpyResult.html>`_, on which
+        ``isPresent()`` will be true if a value was available for the given spy point name. You can then
+        use ``get`` to retrieve that value. 
+
 
 The behavior of spy points can be controlled with agents that are deployed from the
 test code, as shown in the following example, where the test is deploying two
@@ -714,23 +762,23 @@ agents for the ``make_request`` spy point that we have instrumented earlier.
            public void testWithMocking() {
               // Deploy an agent to intercept the /books request                   
               SpyAgent makeRequestBooksAgent = new SpyAgent()
-                     .withFilterKeyEndsWith("url", "/books")
+                     .withFilterKeyEndsWith("arg0[String]", "/books")
                      .withResult(mockBookResponse);
-              Bond.deployAgent("makeRequest", makeRequestBooksAgent);
+              Bond.deployAgent("MyClass.makeRequest", makeRequestBooksAgent);
            
               // Deploy another agent to simulate error for a given book
               SpyAgent makeRequestBookMissingAgent = new SpyAgent()
-                     .withFilterKeyContains("url", "/books/100")
+                     .withFilterKeyContains("arg0[String]", "/books/100")
                      .withException(new HttpException(404));
-              Bond.deployAgent("makeRequest", makeRequestBookMissingAgent);
+              Bond.deployAgent("MyClass.makeRequest", makeRequestBookMissingAgent);
               
               callMyCodeThatWillMakeRequest();
 
 In the above example the first agent will instruct the ``make_request`` spy point to
 skip the actual body of the method and return immediately a respose with status code
-200 and the body being some mocked data structure. The value provided as ``result``
-by the agent is used directly in place of the normal return of the method. The second
-agent simulates a 404 error when a particular url is encountered.
+200 (in Python/Ruby) and the body being some mocked data structure. The value provided 
+as ``result`` by the agent is used directly in place of the normal return of the method. 
+The second agent simulates a 404 error when a particular url is encountered.
 
 The later deployed spy agents override previously deployed ones. This is useful when you want to
 deploy a default agent, e.g., return success on every HTTP request, and then for specific tests,

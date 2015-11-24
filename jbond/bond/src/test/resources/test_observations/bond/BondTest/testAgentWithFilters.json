@@ -13,7 +13,7 @@
 {
   "__spyPoint__": "results",
   "matching": {
-    "reference": "result"
+    "value": "result"
   },
   "notMatching1": {},
   "notMatching2": {}

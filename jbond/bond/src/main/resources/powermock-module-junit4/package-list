@@ -1,0 +1,3 @@
+org.powermock.modules.junit4
+org.powermock.modules.junit4.internal.impl
+org.powermock.modules.junit4.internal.impl.testcaseworkaround

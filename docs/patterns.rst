@@ -153,10 +153,10 @@ the mock functionality to the agent, and thus to the testing code.
            } else {
              // This is executed only if you called Bond.startTest()
              // or used BondTestRule in JUnit
-             Optional<Integer> mockValue = Bond.obs("what", x).spy("mySpyPoint", Integer.class);
+             SpyResult<Integer> mockValue = Bond.obs("what", x).spy("mySpyPoint", Integer.class);
              // or 
-             Optional<Object> mockValue = Bond.obs("what", x).spy("mySpyPoint");
-             if (!Optional.isPresent()) {
+             SpyResult<Object> mockValue = Bond.obs("what", x).spy("mySpyPoint");
+             if (!mockValue.isPresent()) {
                throw new RuntimeException("When testing, you must mock mySpyPoint!");
              } 
              value = mockValue.get();

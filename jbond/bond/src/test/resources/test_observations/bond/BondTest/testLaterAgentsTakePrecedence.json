@@ -10,10 +10,10 @@
 {
   "__spyPoint__": "results",
   "backupAgentResult": {
-    "reference": "backup agent result"
+    "value": "backup agent result"
   },
   "primaryAgentResult": {
-    "reference": "primary agent result"
+    "value": "primary agent result"
   }
 }
 ]

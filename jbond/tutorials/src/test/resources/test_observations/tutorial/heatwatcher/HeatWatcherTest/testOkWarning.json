@@ -10,12 +10,8 @@
   "__spyPoint__": "HeatWatcher.getCurrentTime"
 },
 {
-  "__spyPoint__": "HeatWatcher.getCurrentTime.result",
-  "result": 1.4455677E9
-},
-{
   "__spyPoint__": "HeatWatcher.sleep",
-  "seconds": 60
+  "arg0[int]": 60
 },
 {
   "__spyPoint__": "HeatWatcher.getTemperature"
@@ -28,12 +24,8 @@
   "__spyPoint__": "HeatWatcher.getCurrentTime"
 },
 {
-  "__spyPoint__": "HeatWatcher.getCurrentTime.result",
-  "result": 1.44556776E9
-},
-{
   "__spyPoint__": "HeatWatcher.sleep",
-  "seconds": 60
+  "arg0[int]": 60
 },
 {
   "__spyPoint__": "HeatWatcher.getTemperature"
@@ -46,21 +38,12 @@
   "__spyPoint__": "HeatWatcher.getCurrentTime"
 },
 {
-  "__spyPoint__": "HeatWatcher.getCurrentTime.result",
-  "result": 1.44556782E9
-},
-{
   "__spyPoint__": "HeatWatcher.sendAlert",
-  "message": "WARNING: Temperature is rising at "
-},
-{
-  "__spyPoint__": "HeatWatcher.makeRequest",
-  "data": "WARNING: Temperature is rising at ",
-  "url": "http://backend.server.com/messages"
+  "arg0[String]": "WARNING: Temperature is rising at 1.0 deg/min"
 },
 {
   "__spyPoint__": "HeatWatcher.sleep",
-  "seconds": 10
+  "arg0[int]": 10
 },
 {
   "__spyPoint__": "HeatWatcher.getTemperature"
@@ -73,21 +56,12 @@
   "__spyPoint__": "HeatWatcher.getCurrentTime"
 },
 {
-  "__spyPoint__": "HeatWatcher.getCurrentTime.result",
-  "result": 1.44556783E9
-},
-{
   "__spyPoint__": "HeatWatcher.sendAlert",
-  "message": "OK: Temperature is rising at "
-},
-{
-  "__spyPoint__": "HeatWatcher.makeRequest",
-  "data": "OK: Temperature is rising at ",
-  "url": "http://backend.server.com/messages"
+  "arg0[String]": "OK: Temperature is rising at 0.1 deg/min"
 },
 {
   "__spyPoint__": "HeatWatcher.sleep",
-  "seconds": 60
+  "arg0[int]": 60
 },
 {
   "__spyPoint__": "HeatWatcher.getTemperature"
@@ -100,12 +74,8 @@
   "__spyPoint__": "HeatWatcher.getCurrentTime"
 },
 {
-  "__spyPoint__": "HeatWatcher.getCurrentTime.result",
-  "result": 1.44556789E9
-},
-{
   "__spyPoint__": "HeatWatcher.sleep",
-  "seconds": 60
+  "arg0[int]": 60
 },
 {
   "__spyPoint__": "HeatWatcher.getTemperature"
@@ -118,12 +88,8 @@
   "__spyPoint__": "HeatWatcher.getCurrentTime"
 },
 {
-  "__spyPoint__": "HeatWatcher.getCurrentTime.result",
-  "result": 1.44556795E9
-},
-{
   "__spyPoint__": "HeatWatcher.sleep",
-  "seconds": 60
+  "arg0[int]": 60
 },
 {
   "__spyPoint__": "HeatWatcher.getTemperature"
@@ -136,12 +102,8 @@
   "__spyPoint__": "HeatWatcher.getCurrentTime"
 },
 {
-  "__spyPoint__": "HeatWatcher.getCurrentTime.result",
-  "result": 1.44556801E9
-},
-{
   "__spyPoint__": "HeatWatcher.sleep",
-  "seconds": 60
+  "arg0[int]": 60
 },
 {
   "__spyPoint__": "HeatWatcher.getTemperature"
@@ -154,12 +116,8 @@
   "__spyPoint__": "HeatWatcher.getCurrentTime"
 },
 {
-  "__spyPoint__": "HeatWatcher.getCurrentTime.result",
-  "result": 1.44556807E9
-},
-{
   "__spyPoint__": "HeatWatcher.sleep",
-  "seconds": 60
+  "arg0[int]": 60
 },
 {
   "__spyPoint__": "HeatWatcher.getTemperature"
@@ -170,9 +128,5 @@
 },
 {
   "__spyPoint__": "HeatWatcher.getCurrentTime"
-},
-{
-  "__spyPoint__": "HeatWatcher.getCurrentTime.result",
-  "result": 1.44556813E9
 }
 ]

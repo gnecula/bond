@@ -10,7 +10,7 @@ import static org.junit.Assert.assertNull;
 
 public class BinarySearchTreeTest {
 
-  // If BOND_RECONCILE is set, we use Bond, else JUnit
+  // If BOND_RECONCILE is set, we use Bond, else JUnit asserts
   @Rule
   public BondTestRule btr = System.getenv("BOND_RECONCILE") == null ? null : new BondTestRule();
 

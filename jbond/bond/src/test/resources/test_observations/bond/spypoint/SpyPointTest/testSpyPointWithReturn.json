@@ -1,8 +1,8 @@
 [
 {
   "__spyPoint__": "TestDependency.annotatedStandardMethod",
-  "param0[Object]": 42,
-  "param1[String]": "foo"
+  "arg0[Object]": 42,
+  "arg1[String]": "foo"
 },
 {
   "ret": 7

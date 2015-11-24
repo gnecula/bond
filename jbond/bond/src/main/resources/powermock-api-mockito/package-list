@@ -1,0 +1,15 @@
+org.powermock.api.extension.listener
+org.powermock.api.extension.proxyframework
+org.powermock.api.mockito
+org.powermock.api.mockito.expectation
+org.powermock.api.mockito.internal
+org.powermock.api.mockito.internal.configuration
+org.powermock.api.mockito.internal.expectation
+org.powermock.api.mockito.internal.invocation
+org.powermock.api.mockito.internal.mockcreation
+org.powermock.api.mockito.internal.mockmaker
+org.powermock.api.mockito.internal.verification
+org.powermock.api.mockito.mockpolicies
+org.powermock.api.mockito.powermocklistener
+org.powermock.api.mockito.repackaged
+org.powermock.api.mockito.verification

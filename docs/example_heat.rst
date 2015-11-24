@@ -138,11 +138,7 @@ advance the mock time, as shown below:
 
    .. container:: tab-section-java
                       
-<<<<<<< Updated upstream
-      .. literalinclude:: ../jbond/src/test/java/io/github/necula01/tutorial/heatwatcher/HeatWatcherTest.java
-=======
       .. literalinclude:: ../jbond/tutorials/src/test/java/tutorial/heatwatcher/HeatWatcherTest.java
->>>>>>> Stashed changes
          :language: java
          :start-after: rst_TimeMocker
          :end-before: rst_TemperatureMocker

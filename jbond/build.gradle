@@ -23,6 +23,7 @@ subprojects {
         compile 'junit:junit:4.12'
         compile 'org.powermock:powermock-module-junit4:1.6.3'
         compile 'org.powermock:powermock-api-mockito:1.6.3'
+        compile 'org.powermock:powermock-core:1.6.3'
         compile 'org.reflections:reflections:0.9.10'
     }
 

@@ -1,0 +1,16 @@
+org.powermock.core
+org.powermock.core.classloader
+org.powermock.core.classloader.annotations
+org.powermock.core.spi
+org.powermock.core.spi.listener
+org.powermock.core.spi.support
+org.powermock.core.spi.testresult
+org.powermock.core.spi.testresult.impl
+org.powermock.core.testlisteners
+org.powermock.core.transformers
+org.powermock.core.transformers.impl
+org.powermock.mockpolicies
+org.powermock.mockpolicies.impl
+org.powermock.mockpolicies.support
+org.powermock.tests.utils
+org.powermock.tests.utils.impl

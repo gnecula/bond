@@ -1,7 +1,5 @@
 package bond;
 
-import com.google.common.base.Optional;
-
 import java.util.*;
 
 /**
@@ -22,11 +20,11 @@ import java.util.*;
  *
  *   // elsewhere ...
  *
- *   Optional&lt;String&gt; str =
+ *   SpyResult&lt;String&gt; str =
  *     Bond.obs("key", "substring").obs("key2", "substring").spy("mySpyPoint", String.class);
  *   // str will contain "agent result"
  *
- *   Optional&lt;String&gt; str2 =
+ *   SpyResult&lt;String&gt; str2 =
  *     Bond.obs("key", "substring").obs("key2", "foo").spy("mySpyPoint", String.class);
  *   // str will not contain any value
  * </code></pre>
@@ -256,7 +254,9 @@ public class SpyAgent {
    */
   public SpyAgent withResult(Resulter ret) {
     if (ret == null) {
-      throw new IllegalArgumentException("Cannot pass in null for resulter - it can't be called!");
+      // If null, just return that - it should have gone to the other
+      // withResult method
+      return withResult((Object) null);
     }
     clearResults();
     _resulter = ret;
@@ -279,8 +279,6 @@ public class SpyAgent {
     return true;
   }
 
-  // TODO right now impossible to differentiate between agent returning null
-  // and agent returning nothing at all - both are Option.absent
   /**
    * Activate all doers, and either throw an exception or return a result depending
    * on what was specified when the agent was created.
@@ -288,7 +286,7 @@ public class SpyAgent {
    * @param observation Set of (key, value) pairs comprising the current observation
    * @return The result that should be returned by the spy point
    */
-  Optional<Object> performDoersGetReturn(Map<String, Object> observation) {
+  SpyResult<Object> performDoersGetReturn(Map<String, Object> observation) {
     for (Doer doer : _doers) {
       doer.accept(observation);
     }
@@ -297,11 +295,11 @@ public class SpyAgent {
     } else if (_excepter != null) {
       throw _excepter.accept(observation);
     } else if (_hasResult) {
-      return Optional.fromNullable(_result);
+      return SpyResult.of(_result);
     } else if (_resulter != null) {
-      return Optional.fromNullable(_resulter.accept(observation));
+      return SpyResult.of(_resulter.accept(observation));
     }
-    return Optional.absent();
+    return SpyResult.absent();
   }
 
   /**

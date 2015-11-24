@@ -1,8 +1,8 @@
 [
 {
   "__spyPoint__": "TestDependency.annotatedMethodVarags",
-  "param0[String]": "arg1",
-  "param1[String[]]": [
+  "arg0[String]": "arg1",
+  "arg1[String[]]": [
     "arg2",
     "arg3"
   ]

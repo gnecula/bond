@@ -35,8 +35,8 @@ import java.util.Map;
  *
  * <pre><code>
  * Bond.obs("key", "value").obs("key2", "value2").spy();
- * Optional&lt;Object&gt; ret = Bond.obs("key", "value").spy("pointName");
- * Optional&lt;Integer&gt; ret = Bond.obs("key", "value").spy("pointName", Integer.class);
+ * SpyResult&lt;Object&gt; ret = Bond.obs("key", "value").spy("pointName");
+ * SpyResult&lt;Integer&gt; ret = Bond.obs("key", "value").spy("pointName", Integer.class);
  *
  * try {
  *   Bond.obs("key", "value").spyWithException("pointName", Exception.class);
@@ -92,10 +92,9 @@ public class Bond {
    *
    * @param spyPointName Name of the point being spied on.
    * @return The result of the agent deployed for this point, if any,
-   *         else {@link Optional#absent()}. Note that if an agent returns null,
-   *         this will return {@link Optional#absent()}.
+   *         else an absent {@link SpyResult}.
    */
-  public static Optional<Object> spy(String spyPointName) {
+  public static SpyResult<Object> spy(String spyPointName) {
     return new Observation().spy(spyPointName);
   }
 
@@ -108,8 +107,8 @@ public class Bond {
 
   /**
    * Spies this point with no observation, expecting a return type of
-   * {@code expectedType}. Has no effect and returns {@link Optional#absent()} if
-   * {@link #isActive()} is false.
+   * {@code expectedType}. Has no effect and returns an absent {@link SpyResult}
+   * if {@link #isActive()} is false.
    *
    * @param spyPointName Name of the point being spied on.
    * @param expectedType Type of value expected to be returned from
@@ -118,10 +117,9 @@ public class Bond {
    * @throws IllegalSpyAgentException If the result from the agent matching
    *         this spy point does not match expectedType.
    * @return The result of the agent deployed for this point, if any,
-   *         else {@link Optional#absent()}. Note that if an agent returns null,
-   *         this will return {@link Optional#absent()}.
+   *         else an absent {@link SpyResult}.
    */
-  public static <T> Optional<T> spy(String spyPointName, Class<T> expectedType) {
+  public static <T> SpyResult<T> spy(String spyPointName, Class<T> expectedType) {
     return new Observation().spy(spyPointName, expectedType);
   }
 

@@ -4,7 +4,10 @@ javadoc {
             'http://docs.guava-libraries.googlecode.com/git-history/release/javadoc/',
             'http://google.github.io/gson/apidocs/',
             'http://junit.org/javadoc/latest/'
-}
+    options.linksOffline 'http://static.javadoc.io/org.powermock/powermock-core/1.6.3/', 'src/main/resources/powermock-core'
+    options.linksOffline 'http://static.javadoc.io/org.powermock/powermock-api-mockito/1.6.3/', 'src/main/resources/powermock-api-mockito'
+    options.linksOffline 'http://static.javadoc.io/org.powermock/powermock-module-junit4/1.6.3/', 'src/main/resources/powermock-module-junit4'
+    }
 
 jar {
     manifest {
