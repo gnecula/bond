@@ -22,59 +22,29 @@ Setting Up Dependencies
 
         You will need Java 1.7+ installed.
 
-        You will also need to include Bond's dependencies in your project (as well as Bond, of course):
+        You will also need to include Bond as a dependency in your project:
 
         - Gradle
             .. code-block:: groovy
-                :emphasize-lines: 2
      
                 dependencies {
-                    compile: 'bond:bond:0.1'
-                    test 'com.google.guava:guava:18.0'
-                    test 'com.google.code.gson:gson:2.4'
-                    test 'com.googlecode.java-diff-utils:diffutils:1.2.1'
-                    test 'junit:junit:4.12'
+                    compile: 'org.necula.bond:bond:0.1.0'
                 }
 
         - Maven
             .. code-block:: xml
-                :emphasize-lines: 1-5
 
                 <dependency>
-                    <groupId>bond</groupId>
+                    <groupId>org.necula.bond</groupId>
                     <artifactId>bond</artifactId>
-                    <version>0.1</version>
+                    <version>0.1.0</version>
                 </dependency>                
-                <dependency>
-                    <groupId>com.google.guava</groupId>
-                    <artifactId>guava</artifactId>
-                    <version>18.0</version>
-                </dependency>
-                <dependency>
-                    <groupId>com.google.code.gson</groupId>
-                    <artifactId>gson</artifactId>
-                    <version>2.4</version>
-                </dependency>
-                <dependency>
-                    <groupId>com.googlecode.java-diff-utils</groupId>
-                    <artifactId>diffutils</artifactId>
-                    <version>1.2.1</version>
-                </dependency>
-                <dependency>
-                    <groupId>junit</groupId>
-                    <artifactId>junit</artifactId>
-                    <version>4.12</version>
-                </dependency>
 
         - Ivy
             .. code-block:: xml
-                :emphasize-lines: 1
 
-                <dependency org="bond" name="bond" rev="0.1" />
-                <dependency org="com.google.guava" name="guava" rev="18.0" />
-                <dependency org="com.google.code.gson" name="gson" rev="2.4" />
-                <dependency org="com.googlecode.java-diff-utils" name="diffutils" rev="1.2.1" />
-                <dependency org="junit" name="junit" rev="4.12" />
+                <dependency org="org.necula.bond" name="bond" rev="0.1.0" />
+
 
         If you are using Gradle, you will probably also want to set the observation directory 
         programmatically within your ``build.gradle`` (this example assumes your project has a standard 

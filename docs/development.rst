@@ -101,6 +101,7 @@ Deploying a new version
 
     .. container:: tab-section-java
 
-        Coming soon!
-         
-         
+        .. include:: ../jbond/README.rst
+            :start-after: rst_newVersionInstructionsStart
+            :end-before: rst_newVersionInstructionsEnd
+

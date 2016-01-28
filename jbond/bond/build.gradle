@@ -16,6 +16,91 @@ jar {
     }
 }
 
+task javadocJar(type: Jar) {
+    classifier = 'javadoc'
+    from javadoc
+}
+
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+artifacts {
+    archives javadocJar, sourcesJar
+}
+
+signing {
+    sign configurations.archives
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+
+            repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+                authentication(userName: ossrhUsername, password: ossrhPassword)
+            }
+
+            snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
+                authentication(userName: ossrhUsername, password: ossrhPassword)
+            }
+
+            pom.project {
+                name 'Bond Testing Library'
+                packaging 'jar'
+                artifactId 'bond'
+                description 'Bond is a small library that can be used to spy values and mock functions during tests. Spying is a replacement for writing the assertEquals in your test, which are tedious to write and even more tedious to update whem your test setup or code inevitably changes. With Bond, you separate what is being verified, e.g., the variable named output, from what value it should have. This way you can quickly spy several variables, even have structured values such as lists or dictionaries, and these values are saved into an observation log that is saved for future reference. If the test observations are different you have the option to interact with a console or visual tool to see what has changed, and whether the reference set of observations need to be updated.'
+                url 'https://github.com/necula01/bond'
+
+                scm {
+                    connection 'scm:git:git@github.com:necula01/bond.git'
+                    developerConnection 'scm:git:git@github.com:necula01/bond.git'
+                    url 'https://github.com/necula01/bond'
+                }
+
+                licenses {
+                    license {
+                        name 'The BSD 2-Clause License'
+                        url 'https://opensource.org/licenses/BSD-2-Clause'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id 'xkrogen'
+                        name 'Erik Krogen'
+                        email 'erikkrogen@gmail.com'
+                        organization 'UC Berkeley'
+                    }
+                    developer {
+                        id 'necula01'
+                        name 'George Necula'
+                        email 'necula@cs.berkeley.edu'
+                        organization 'UC Berkeley'
+                    }
+                }
+            }
+        }
+    }
+}
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.5.3"
+    }
+}
+
+apply plugin: 'io.codearte.nexus-staging'
+
+nexusStaging {
+    packageGroup = "org.necula"
+}
+
 publishing {
     publications {
         mavenJava(MavenPublication) {
