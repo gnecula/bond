@@ -74,6 +74,7 @@ to automate the process through Gradle.
     $ git commit -am "[jbond] Release version 1.0.2"
     $ git tag jbond-v1.0.2
     $ git push origin --tags
+    $ git push origin
     $ ./gradlew test
     $ ./gradlew uploadArchives
     $ ./gradlew closeAndPromoteRepository
@@ -83,5 +84,5 @@ to automate the process through Gradle.
 Contributing
 -----------------------
 
-Bug reports and pull requests are welcome on GitHub at `https://github.com/necula01/bond`_.
+Bug reports and pull requests are welcome on `GitHub <https://github.com/necula01/bond>`_.
 

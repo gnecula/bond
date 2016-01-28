@@ -52,6 +52,7 @@ file to `rubygems.org <https://rubygems.org>`_. For example:
     $ git commit -am "[rbond] Release version 1.0.2"
     $ git tag rbond-v1.0.2
     $ git push origin --tags
+    $ git push origin
     $ gem build bond.gemspec
     $ gem push bond-spy-1.0.2.gem
 
@@ -60,5 +61,5 @@ file to `rubygems.org <https://rubygems.org>`_. For example:
 Contributing
 -----------------------
 
-Bug reports and pull requests are welcome on GitHub at `https://github.com/necula01/bond`_.
+Bug reports and pull requests are welcome on `GitHub <https://github.com/necula01/bond>`_.
 
