@@ -11,7 +11,8 @@ Setting Up Dependencies
 
     .. container:: tab-section-python
 
-        You will need Python 2.7+ installed and available in your path. 
+        You will need Python 2.7+ installed and available in your path. Bond is available
+        on PyPI; you can simply run ``pip install bond`` to install it. 
 
     .. container:: tab-section-ruby
  

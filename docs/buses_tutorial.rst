@@ -85,6 +85,10 @@ modify to implement the project.
 - Note that for Java we have included both a pom.xml file for Maven and a build.gradle 
   file for Gradle; either build system will work and you don't need both. 
         
+- For Python and Ruby you will also need to install Bond (in Java this is taken care of 
+  automatically by Maven/Gradle). This can be done via ``pip install bond`` (Python) or
+  ``gem install bond-spy`` (Ruby). 
+
 - (Optional, but recommended) You should install the tool ``kdiff3`` if you
   have not installed it already. It is a generally good tool for any kind of
   merging, including using for ``git mergetool``. Make sure to add the
