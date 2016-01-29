@@ -15,6 +15,10 @@ Part 1: Spying with Bond
 Spying inside your test code
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Note: All of the code for this part of the tutorial can be found within the ``tutorials/binary_search_tree``
+directory (``tutorials/src/{main,test}/java/tutorial/binarysearchtree`` for Java) 
+of the `Bond sources <http://github.com/necula01/bond>`_.
+
 Spying with Bond is meant to replace writting the common equality assertion calls in your tests, i.e., the validation
 that some state variable has some expected value. These assertions are tedious to write, and even more tedious to
 update when your code or your test fixture changes and you need to update the test. For this reason, people

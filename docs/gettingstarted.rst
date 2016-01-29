@@ -28,7 +28,7 @@ Setting Up Dependencies
             .. code-block:: groovy
      
                 dependencies {
-                    compile: 'org.necula.bond:bond:0.1.0'
+                    compile 'org.necula.bond:bond:0.1.0'
                 }
 
         - Maven
@@ -53,6 +53,8 @@ Setting Up Dependencies
         later. You want this near your tests:
 
         .. code-block:: groovy
+
+            import java.nio.file.Paths
 
             test { // or any custom test task
                 useJUnit() { // or useTestNG()

@@ -16,7 +16,7 @@ import java.util.Map;
 // for more detail
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.swing.*")
-@MockPolicy(TemperatureMocker.HeatWatcherMockPolicy.class)
+@MockPolicy(HeatWatcherMockPolicy.class)
 public class HeatWatcherTest {
 
   // This is how to enable Bond for this class
@@ -33,7 +33,7 @@ public class HeatWatcherTest {
     deployTimeMock();
 
     // Instantiate TemperatureMocker with starting temperature and
-    // temperature rates, as pairs of timeSinceStart, tempIncrRatePerPinute
+    // temperature rates, as pairs of timeSinceStart, tempIncrRatePerMinute
     tempMocker = new TemperatureMocker(timeMocker, 70,
                                        new double[] {0, 0.5, 60, 1.2, 110, 0.12});
 
@@ -112,6 +112,12 @@ public class HeatWatcherTest {
   }
 }
 
+class HeatWatcherMockPolicy extends BondMockPolicy {
+  @Override
+  public String[] getPackageNames() {
+    return new String[] {"tutorial"};
+  }
+}
 
 // rst_TimeMocker
 // A class for mocking time
@@ -175,12 +181,5 @@ class TemperatureMocker {
       lastRate = rRate;
     }
     return temp + (timeSinceStart - lastTime) * lastRate / 60.0;
-  }
-
-  static class HeatWatcherMockPolicy extends BondMockPolicy {
-    @Override
-    public String[] getPackageNames() {
-      return new String[] {"tutorial"};
-    }
   }
 }

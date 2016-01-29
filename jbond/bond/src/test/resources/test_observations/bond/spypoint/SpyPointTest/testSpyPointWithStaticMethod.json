@@ -1,6 +1,6 @@
 [
 {
-  "__spyPoint__": "Class.annotatedStaticMethod",
+  "__spyPoint__": "TestDependency.annotatedStaticMethod",
   "arg0[String]": "foo"
 }
 ]

@@ -142,7 +142,7 @@ public abstract class BondMockPolicy implements PowerMockPolicy {
       @Override
       public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         String spyPointName = spyPoint.spyPointName().equals(SpyPoint.DEFAULT_POINT_NAME)
-                                  ? proxy.getClass().getSimpleName() + "." + method.getName()
+                                  ? method.getDeclaringClass().getSimpleName() + "." + method.getName()
                                   : spyPoint.spyPointName();
         SpyResult<?> response;
         if (parameterTypes.length == 0) {
