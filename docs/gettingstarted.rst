@@ -28,7 +28,7 @@ Setting Up Dependencies
             .. code-block:: groovy
      
                 dependencies {
-                    compile 'org.necula.bond:bond:0.1.0'
+                    compile 'org.necula.bond:bond:0.1.1'
                 }
 
         - Maven
@@ -37,13 +37,13 @@ Setting Up Dependencies
                 <dependency>
                     <groupId>org.necula.bond</groupId>
                     <artifactId>bond</artifactId>
-                    <version>0.1.0</version>
+                    <version>0.1.1</version>
                 </dependency>                
 
         - Ivy
             .. code-block:: xml
 
-                <dependency org="org.necula.bond" name="bond" rev="0.1.0" />
+                <dependency org="org.necula.bond" name="bond" rev="0.1.1" />
 
 
         If you are using Gradle, you will probably also want to set the observation directory 

@@ -109,4 +109,5 @@ to start with:
 - `BondTestRule JUnit Rule <jbond/bond/BondTestRule.html>`_
 - `SpyAgent class <jbond/bond/SpyAgent.html>`_
 - `SpyPoint annotation <jbond/bond/spypoint/SpyPoint.html>`_
+- `BondMockPolcy (setup for mocking) <jbond/bond/spypoint/BondMockPolicy.html>`_
  

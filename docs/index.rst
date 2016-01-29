@@ -16,6 +16,7 @@ Contents:
    api
    patterns
    development
+   buses_tutorial
 
 
 Indices and tables

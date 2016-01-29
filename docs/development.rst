@@ -85,7 +85,7 @@ Deploying a new version
         - Update docs/changelog.rst
         - Test the submission to PyPi
 
-        - It is best to create an account on `https://testpypi.python.org/pypi`_
+        - It is best to create an account on https://testpypi.python.org/pypi
         - Create the ``~/.pypirc`` as described at https://wiki.python.org/moin/TestPyPI
 
         .. code::
