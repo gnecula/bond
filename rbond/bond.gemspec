@@ -1,9 +1,9 @@
 require_relative 'lib/bond/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = 'bond-testing-erik'
+  spec.name          = 'bond-spy'
   spec.version       = Bond::VERSION
-  spec.date          = '2015-11-04'
+  spec.date          = '2016-01-28'
 
   spec.authors       = ['George Necula', 'Erik Krogen']
   spec.email         = ['necula@cs.berkeley.edu', 'erikkrogen@gmail.com']
