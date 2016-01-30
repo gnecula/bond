@@ -8,7 +8,7 @@ from bond_test import setup_bond_self_test
 class AnnotationTests(unittest.TestCase):
 
     def setUp(self):
-        setup_bond_self_test(self)
+        setup_bond_self_test(self, ())
 
     @bond.spy_point()
     def annotated_standard_method(self, arg1, arg2):
