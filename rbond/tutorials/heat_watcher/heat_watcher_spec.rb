@@ -89,28 +89,23 @@ class TemperatureMocker
   def initialize(time_mocker:, temp_start:, temp_rates: [])
     @time_mocker = time_mocker
     @start_time = time_mocker.time
-    @last_temp = temp_start       # last temp read
-    @last_temp_time = @start_time  # last temp read time
+    @temp_start = temp_start
     @temp_rates = temp_rates
   end
 
   def temperature
     now = @time_mocker.time
     time_since_start = now - @start_time
-    # See if we need to advance to the next temperature rate
-    if @temp_rates.length > 1 && time_since_start >= @temp_rates[1][0]
 
-      old_rate = @temp_rates.shift[1]
+    temp = @temp_start
+    last_time, last_rate = @temp_rates[0]
 
-      old_rate_time = @temp_rates[0][0]
-      @last_temp += (old_rate_time + @start_time - @last_temp_time) / 60.0 * old_rate
-      @last_temp_time = old_rate_time + @start_time
+    @temp_rates[1..-1].each do |r_time, r_rate|
+      break if time_since_start <= r_time
+      temp += (r_time - last_time) * last_rate / 60.0
+      last_time, last_rate = r_time, r_rate
     end
 
-    # The first pair is the one we use to get the rate
-    rate = @temp_rates.length > 0 ? @temp_rates[0][1] : 0
-    @last_temp += (now - @last_temp_time) / 60.0 * rate
-    @last_temp_time = now
-    @last_temp
+    temp + (time_since_start - last_time) * last_rate / 60.0
   end
 end

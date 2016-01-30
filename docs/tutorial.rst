@@ -53,7 +53,7 @@ You may write the following testing code:
    .. container:: tab-section-ruby
                
         .. code-block:: ruby
-            :emphasize-lines: 14-18
+            :emphasize-lines: 12-16
     
             # Using RSpec
             describe BST do

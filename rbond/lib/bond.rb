@@ -1,5 +1,5 @@
 require 'singleton'
-require 'json'
+require 'neatjson'
 require 'fileutils'
 require 'shellwords'
 
@@ -79,14 +79,18 @@ class Bond
   #     - `:abort` - don't accept any new changes
   #     - `:accept` - accept all new changes
   #     - `:kdiff3` - use the kdiff3 graphical merge tool to reconcile differences
+  # @param decimal_precision The precision to use when serializing Float and Double values.
+  #     If not specified, defaults to 4 decimal places.
   #
   def start_test(rspec_test, test_name: nil, spy_groups: nil,
-                 observation_directory: nil, reconcile: nil)
+                 observation_directory: nil, reconcile: nil,
+                 decimal_precision: nil)
 
     @observations = []
     @spy_agents = Hash.new { |hash, key|
       hash[key] = []
     }
+    @decimal_precision = 4 if decimal_precision.nil? else decimal_precision
     @observation_directory = nil
     @current_test = rspec_test
     @reconcile = reconcile
@@ -125,7 +129,7 @@ class Bond
     spy_point_name = spy_point_name.nil? ? nil : spy_point_name.to_s
 
     observation[:__spy_point__] = spy_point_name unless spy_point_name.nil?
-    observation = deep_clone_sort_hashes(observation)
+    observation = deep_clone(observation)
     active_agent = spy_point_name.nil? ? nil : @spy_agents[spy_point_name].find { |agent| agent.process?(observation) }
 
     res = :agent_result_none
@@ -272,29 +276,29 @@ class Bond
   # @return The formatted hash.
   def format_observation(observation, agent = nil)
     # TODO ETK actually have formatters
-    JSON.pretty_generate(observation, indent: ' '*4)
+    JSON.neat_generate(observation, sorted: true, decimals: @decimal_precision,
+                       indent: ' '*4, wrap: true, after_colon: 1)
   end
 
-  # Deep-clones an object while sorting any Hashes at any depth:
+  # Deep-clones an object
   #
-  # - Hash: Creates a new hash containing all of the old key-value
-  #         pairs sorted by key
-  # - Array: Creates a new array with the old contents *not* sorted
+  # - Hash: Creates a new hash containing all of the old key-value pairs
+  # - Array: Creates a new array with the old contents
   # - Other: Attempts to call Object#clone. If this fails (results in #TypeError)
   #          then the object is returned as-is (assumes that non-cloneable objects
   #          are immutable and thus don't need cloning)
   #
   # @param obj The object to be cloned.
-  # @return The deep-clone with hashes sorted.
-  def deep_clone_sort_hashes(obj)
+  # @return The deep-clone.
+  def deep_clone(obj)
     if obj.is_a?(Hash)
       {}.tap do |new|
-        obj.sort.each do |k, v|
-          new[k] = deep_clone_sort_hashes(v)
+        obj.each do |k, v|
+          new[k] = deep_clone(v)
         end
       end
-    elsif obj.is_a?(Array) # Don't sort arrays, just clone
-      obj.map { |x| deep_clone_sort_hashes(x) }
+    elsif obj.is_a?(Array)
+      obj.map { |x| deep_clone(x) }
     else
       begin
         obj.clone

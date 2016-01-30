@@ -28,11 +28,7 @@ describe Node do
   end
 
   it 'should correctly delete nodes from the BST' do
-    tree = Node.new(8)
-    tree.insert(12)
-    tree.insert(3)
-    tree.insert(4)
-    tree.insert(6)
+    tree = create_tree_1
 
     tree.delete(4)
 
