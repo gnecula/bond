@@ -1,0 +1,27 @@
+[
+{
+    "__spy_point__": "AnnotationTests.annotated_method_mixed_variable_args", 
+    "arg1": "val1", 
+    "arg2": "val2", 
+    "arg5": "val5", 
+    "my_args": [
+        "val3", 
+        "val4"
+    ]
+},
+{
+    "__spy_point__": "AnnotationTests.annotated_method_mixed_variable_args", 
+    "arg1": "val1", 
+    "arg2": "val2", 
+    "arg3": "val3", 
+    "arg4": "val4"
+},
+{
+    "__spy_point__": "AnnotationTests.annotated_method_mixed_variable_args", 
+    "arg1": "val1", 
+    "arg2": "val3", 
+    "my_args": [
+        "val4"
+    ]
+}
+]

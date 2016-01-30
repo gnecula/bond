@@ -1,0 +1,19 @@
+[
+{
+    "__spy_point__": "AnnotationTests.annotated_method_optional_args", 
+    "arg1": "val1", 
+    "arg3": "val3"
+},
+{
+    "__spy_point__": "AnnotationTests.annotated_method_optional_args", 
+    "arg1": "val1", 
+    "arg2": "val2", 
+    "arg3": "val3"
+},
+{
+    "__spy_point__": "AnnotationTests.annotated_method_optional_args", 
+    "arg1": "val1", 
+    "arg2": "val2", 
+    "arg3": "val3"
+}
+]

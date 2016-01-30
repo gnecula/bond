@@ -14,17 +14,28 @@ class AnnotationTests(unittest.TestCase):
     def annotated_standard_method(self, arg1, arg2):
         return 'return value'
 
-    @bond.spy_point(enabled_for_groups=('group1', 'group2'))
-    def annotated_standard_method_enabled_for_groups(self, arg1, arg2):
+    @bond.spy_point()
+    def annotated_method_var_args(self, arg1, arg2, *args):
         return 'return value'
 
-    @bond.spy_point(enabled_for_groups='group2')
-    def annotated_standard_method_enabled_for_single_group(self, arg1, arg2):
+    @bond.spy_point()
+    def annotated_method_optional_args(self, arg1, arg2=None, arg3=None):
+        return 'return value'
+
+    @bond.spy_point()
+    def annotated_method_kw_args(self, arg1, **kwargs):
+        return 'return value'
+
+    @bond.spy_point()
+    def annotated_method_mixed_args(self, arg1, arg2=None, **kwargs):
+        return 'return value'
+
+    @bond.spy_point()
+    def annotated_method_mixed_variable_args(self, arg1, arg2=None, *my_args, **my_kwargs):
         return 'return value'
 
     def test_standard_annotation(self):
         self.assertEquals('return value', self.annotated_standard_method(1, 2))
-
 
     def test_with_formatter(self):
         "Test the standard annotation with a formatter"
@@ -34,6 +45,38 @@ class AnnotationTests(unittest.TestCase):
         bond.deploy_agent('AnnotationTests.annotated_standard_method',
                           formatter=my_format)
         self.annotated_standard_method(8, 9)
+
+    def test_method_var_args(self):
+        self.annotated_method_var_args('val1', 'val2')
+        self.annotated_method_var_args('val1', 'val2', 'val3', 'val4')
+
+    def test_method_optional_args(self):
+        self.annotated_method_optional_args('val1', arg3='val3')
+        self.annotated_method_optional_args('val1', arg2='val2', arg3='val3')
+        self.annotated_method_optional_args('val1', arg3='val3', arg2='val2')
+
+    def test_method_kw_args(self):
+        self.annotated_method_kw_args('val1')
+        self.annotated_method_kw_args('val1', arg3='val3', arg2='val2')
+
+    def test_method_mixed_args(self):
+        self.annotated_method_mixed_args('val1')
+        self.annotated_method_mixed_args('val1', arg2='val2', arg3='val3')
+        self.annotated_method_mixed_args('val1', arg4='val4', arg3='val3')
+        self.annotated_method_mixed_args('val1', arg3='val3')
+
+    def test_method_mixed_variable_args(self):
+        self.annotated_method_mixed_variable_args('val1', 'val2', 'val3', 'val4', arg5='val5')
+        self.annotated_method_mixed_variable_args('val1', arg2='val2', arg3='val3', arg4='val4')
+        self.annotated_method_mixed_variable_args('val1', 'val3', 'val4')
+
+    @bond.spy_point(enabled_for_groups=('group1', 'group2'))
+    def annotated_standard_method_enabled_for_groups(self, arg1, arg2):
+        return 'return value'
+
+    @bond.spy_point(enabled_for_groups='group2')
+    def annotated_standard_method_enabled_for_single_group(self, arg1, arg2):
+        return 'return value'
 
     def test_with_groups_enabled(self):     
         "Test annotations enabled for specific groups, when the group is enabled, as a tuple"

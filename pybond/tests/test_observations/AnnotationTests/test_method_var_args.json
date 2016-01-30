@@ -1,0 +1,16 @@
+[
+{
+    "__spy_point__": "AnnotationTests.annotated_method_var_args", 
+    "arg1": "val1", 
+    "arg2": "val2"
+},
+{
+    "__spy_point__": "AnnotationTests.annotated_method_var_args", 
+    "arg1": "val1", 
+    "arg2": "val2", 
+    "args": [
+        "val3", 
+        "val4"
+    ]
+}
+]

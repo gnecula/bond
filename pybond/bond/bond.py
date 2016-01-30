@@ -294,7 +294,7 @@ def spy_point(spy_point_name=None,
                     return fn(*args, **kwargs)
 
             arginfo = inspect.getargspec(fn)
-            # TODO ETK this should be better: callargs = inspect.getcallargs(fn, *args, **kwargs)
+            callargs = inspect.getcallargs(fn, *args, **kwargs)
             if spy_point_name is None:
                 # We recognize instance methods by the first argument 'self'
                 # TODO: there must be a better way to do this
@@ -319,8 +319,12 @@ def spy_point(spy_point_name=None,
                 spy_point_name_local = spy_point_name
 
             observation_dictionary = {}
-            for idx, arg in enumerate(args):
-                observation_dictionary[arginfo.args[idx]] = arg
+
+            varargs_name = arginfo.varargs
+            for idx in range(0, min(len(args), len(arginfo.args))):
+                observation_dictionary[arginfo.args[idx]] = args[idx]
+            if varargs_name is not None and len(callargs[varargs_name]) != 0:
+                observation_dictionary[varargs_name] = callargs[varargs_name]
             for key, val in kwargs.iteritems():
                 observation_dictionary[key] = val
             observation_dictionary = {key: val for (key, val) in observation_dictionary.iteritems()
