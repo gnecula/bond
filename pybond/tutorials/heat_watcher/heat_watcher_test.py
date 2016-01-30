@@ -31,7 +31,7 @@ class HeatWatcherTest(unittest.TestCase):
         """
 
         self.deploy_time_mock()
-        temp_rates = [(0, 0.5), (60, 1.2), (110, 0.12)]
+        temp_rates = [(0, 0.5), (60, 1.3), (110, 0.1)]
         self.temp_mocker = TemperatureMocker(time_mocker=self.time_mocker,
                                              temp_start=70,
                                              temp_rates=temp_rates)

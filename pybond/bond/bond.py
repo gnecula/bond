@@ -4,6 +4,7 @@ import inspect
 import copy
 import os
 import json
+from json import encoder
 
 
 # Special result from spy when no agent matches, or no agent provides a result
@@ -20,7 +21,8 @@ def start_test(current_python_test,
                test_name=None,
                observation_directory=None,
                reconcile=None,
-               spy_groups=None):
+               spy_groups=None,
+               decimal_precision=None):
     """
     This function should be called in a ``unittest.TestCase`` before any
     of the other Bond functions can be used. This will initialize the Bond
@@ -59,16 +61,20 @@ def start_test(current_python_test,
                       enable all spy points that do not have an ``enable_for_groups``
                       attribute.
 
+    :param decimal_precision: (optional) the precision (number of decimal places) to use when
+           serializing float values. Defaults to 4.
 
     """
     Bond.instance().start_test(current_python_test, test_name=test_name,
                                observation_directory=observation_directory,
-                               reconcile=reconcile, spy_groups=spy_groups)
+                               reconcile=reconcile, spy_groups=spy_groups,
+                               decimal_precision=decimal_precision)
 
 
 def settings(observation_directory=None,
              reconcile=None,
-             spy_groups=None):
+             spy_groups=None,
+             decimal_precision=None):
     """
     Override settings that were set in :py:func:`start_test`. Only apply for the duration
     of a test, so this should be called after :py:func:`start_test`. This
@@ -95,10 +101,14 @@ def settings(observation_directory=None,
                       enable all spy points that do not have an ``enable_for_groups``
                       attribute.
 
+    :param decimal_precision: (optional) the precision (number of decimal places) to use when
+           serializing float values. Defaults to 4.
+
     """
     Bond.instance().settings(observation_directory=observation_directory,
                              reconcile=reconcile,
-                             spy_groups=spy_groups)
+                             spy_groups=spy_groups,
+                             decimal_precision=decimal_precision)
 
 
 def active():
@@ -254,9 +264,6 @@ def spy_point(spy_point_name=None,
     # TODO: Should we also have an excluded_from_groups parameter?
     # TODO right now excluding 'self' using excludedKeys, should attempt to find a better way?
     def wrap(fn):
-        # TODO: we get an error here if we do not specify spy_point_name and this is a staticmethod
-        # TODO: This is if we have @spy_point() @staticmethod
-        # ERIK: The @staticmethod should appear above @spy_point and that solves this issue
 
         # We have as little code here as possible, because this runs in production code
         # ^ not if we use the try/except on import idiom. But good to still work if bond is imported
@@ -395,6 +402,9 @@ class Bond:
         self.test_name = (self._settings.get('test_name') or
                           self.test_framework_bridge.full_test_name())
 
+        if self._settings['decimal_precision'] is None:
+            self._settings['decimal_precision'] = 4
+
         # Register us on test exit
         self.test_framework_bridge.on_finish_test(self._finish_test)
 
@@ -491,10 +501,15 @@ class Bond:
         if active_agent:
             active_agent.formatter(observation)
 
-        return json.dumps(observation,
-                          sort_keys=True,
-                          indent=4,
-                          default=self._custom_json_serializer)
+        original_float_repr = encoder.FLOAT_REPR
+        format_string = '.{}f'.format(self._settings['decimal_precision'])
+        encoder.FLOAT_REPR = lambda o: format(o, format_string)
+        ret = json.dumps(observation,
+                         sort_keys=True,
+                         indent=4,
+                         default=self._custom_json_serializer)
+        encoder.FLOAT_REPR = original_float_repr
+        return ret
 
     def _custom_json_serializer(self, obj):
         # TODO: figure out how to do this. Must be customizable from settings

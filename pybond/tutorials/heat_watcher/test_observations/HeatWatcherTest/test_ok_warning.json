@@ -4,7 +4,7 @@
 },
 {
     "__spy_point__": "HeatWatcher.get_temperature.result", 
-    "result": 70.0
+    "result": 70.0000
 },
 {
     "__spy_point__": "HeatWatcher.get_current_time"
@@ -18,7 +18,7 @@
 },
 {
     "__spy_point__": "HeatWatcher.get_temperature.result", 
-    "result": 70.5
+    "result": 70.5000
 },
 {
     "__spy_point__": "HeatWatcher.get_current_time"
@@ -32,14 +32,14 @@
 },
 {
     "__spy_point__": "HeatWatcher.get_temperature.result", 
-    "result": 71.52
+    "result": 71.6000
 },
 {
     "__spy_point__": "HeatWatcher.get_current_time"
 },
 {
     "__spy_point__": "HeatWatcher.send_alert", 
-    "message": "Warning: Temperature is rising at 1.0 deg/min"
+    "message": "Warning: Temperature is rising at 1.1 deg/min"
 },
 {
     "__spy_point__": "HeatWatcher.sleep", 
@@ -50,7 +50,7 @@
 },
 {
     "__spy_point__": "HeatWatcher.get_temperature.result", 
-    "result": 71.54
+    "result": 71.6167
 },
 {
     "__spy_point__": "HeatWatcher.get_current_time"
@@ -68,7 +68,7 @@
 },
 {
     "__spy_point__": "HeatWatcher.get_temperature.result", 
-    "result": 71.66
+    "result": 71.7167
 },
 {
     "__spy_point__": "HeatWatcher.get_current_time"
@@ -82,7 +82,7 @@
 },
 {
     "__spy_point__": "HeatWatcher.get_temperature.result", 
-    "result": 71.78
+    "result": 71.8167
 },
 {
     "__spy_point__": "HeatWatcher.get_current_time"
@@ -96,7 +96,7 @@
 },
 {
     "__spy_point__": "HeatWatcher.get_temperature.result", 
-    "result": 71.9
+    "result": 71.9167
 },
 {
     "__spy_point__": "HeatWatcher.get_current_time"
@@ -110,7 +110,7 @@
 },
 {
     "__spy_point__": "HeatWatcher.get_temperature.result", 
-    "result": 72.02
+    "result": 72.0167
 },
 {
     "__spy_point__": "HeatWatcher.get_current_time"
@@ -124,7 +124,7 @@
 },
 {
     "__spy_point__": "HeatWatcher.get_temperature.result", 
-    "result": 72.14
+    "result": 72.1167
 },
 {
     "__spy_point__": "HeatWatcher.get_current_time"
