@@ -3,6 +3,7 @@ from functools import wraps
 import inspect
 import copy
 import os
+import string
 import json
 from json import encoder
 
@@ -123,7 +124,8 @@ def active():
     """
     return Bond.instance().active()
 
-def spy(spy_point_name=None, **kwargs):
+
+def spy(spy_point_name=None, skip_save_observation=False, **kwargs):
     """
     This is the most frequently used Bond function. It will collect the key-value pairs passed
     in the argument list and will emit them to the spy observation log.
@@ -155,12 +157,19 @@ def spy(spy_point_name=None, **kwargs):
            this spy point later in your test. If you do use this parameter, then it will be observed
            with the key ``__spy_point__`` to ensure that it appears first in the sorted observation.
 
+    :param skip_save_observation: (optional) If True (defaults to False), don't actually save the
+           observation, just process any relevant agents. This is used internally to enable mocking-only
+           spy points. This will be overriden if a value of skip_save_observation is specified on an agent
+           that is active for this spy point, allowing this parameter to be used as an overridable default.
+
     :param kwargs: key-value pairs to be observed. This forms the observation dictionary that is
            serialized as the current observation.
 
     :return: the result from the agent, if any (see :py:func:`deploy_agent`), or ``bond.AGENT_RESULT_NONE``.
     """
-    return Bond.instance().spy(spy_point_name=spy_point_name, **kwargs)
+    return Bond.instance().spy(spy_point_name=spy_point_name,
+                               skip_save_observation=skip_save_observation,
+                               **kwargs)
 
 
 def deploy_agent(spy_point_name, **kwargs):
@@ -215,6 +224,11 @@ def deploy_agent(spy_point_name, **kwargs):
 
           * formatter : if specified, a function that is given the observation and can update it in place.
             The formatted observation is what gets serialized and saved.
+          * skip_save_observation : if specified and True, this causes no observation to be saved as a result
+            of the call to spy for which this agent is active. This can be useful to conditionally save
+            calls to e.g. certain functions whose call order may not be relevant. This will override any
+            value of ``mock_only`` specified on a :py:func:`spy_point` or value of ``skip_save_observation``
+            specified on a call to :py:func:`spy`, meaning you can also specify a value of False to override.
 
     :return: nothing
     """
@@ -223,6 +237,7 @@ def deploy_agent(spy_point_name, **kwargs):
 
 def spy_point(spy_point_name=None,
               enabled_for_groups=None,
+              mock_only=False,
               require_agent_result=False,
               excluded_keys=('self',),
               spy_result=False):
@@ -249,6 +264,11 @@ def spy_point(spy_point_name=None,
                            If you are writing a library that others are using, you should use a distinctive
                            spy group for your spy points, to avoid your library starting to spy if embedded
                            in some other test using Bond.
+    :param mock_only: (optional) If True (defaults to False), then don't record calls to this spy
+                           point as an observation. This allows you to use the spy point as a mock only
+                           without also recording the sequence of calls. If skip_save_observation is
+                           specified on an agent that is active for this spy point, that value will override
+                           this parameter (allowing mock_only to be used as an overridable default).
     :param require_agent_result: (optional) if True, and if this spy point is enabled, then there must be an
                            agent that provides a result, or else the invocation of the function aborts.
                            The agent may still provide ``AGENT_RESULT_CONTINUE`` to tell the spy point
@@ -331,6 +351,7 @@ def spy_point(spy_point_name=None,
                                       if key not in excluded_keys}
 
             response = the_bond.spy(spy_point_name=spy_point_name_local,
+                                    skip_save_observation=mock_only,
                                     **observation_dictionary)
             if require_agent_result:
                 assert response is not AGENT_RESULT_NONE, \
@@ -420,7 +441,7 @@ class Bond:
     def active(self):
         return (self.test_framework_bridge is not None)
 
-    def spy(self, spy_point_name=None, **kwargs):
+    def spy(self, spy_point_name=None, skip_save_observation=False, **kwargs):
         if not self.test_framework_bridge:
             # Don't do anything if we are not testing
             return None
@@ -450,6 +471,10 @@ class Bond:
             print("Observing: " + formatted + "\n")
             self.observations.append(formatted)
 
+        do_save_observation = not skip_save_observation
+        if active_agent is not None and active_agent.skip_save_observation is not None:
+            do_save_observation = not active_agent.skip_save_observation
+
         # Apply the doer if present
         try:
             res = AGENT_RESULT_NONE
@@ -459,7 +484,8 @@ class Bond:
 
                 res = active_agent.result(observation)  # This may throw an exception
         finally:
-            save_observation()
+            if do_save_observation:
+                save_observation()
 
         if res != AGENT_RESULT_NONE:
             print("   Result " + repr(res))
@@ -545,22 +571,12 @@ class Bond:
             fdir = os.path.dirname(fname)
             if not os.path.isdir(fdir):
                 os.makedirs(fdir)
-                top_git_ignore = os.path.join(self._observation_directory(), '.gitignore')
-                # TODO: This should be configurable, you may not use git
-                if not os.path.isfile(top_git_ignore):
-                    # Add the .gitignore file
-                    with open(top_git_ignore, 'w') as f:
-                        f.write("*_now.json\n*.diff\n")
 
             reference_file = fname + '.json'
-            current_file = fname + '_now.json'
+            current_lines = self._get_observations()
 
-            if os.path.isfile(current_file):
-                os.unlink(current_file)
-            self._save_observations(current_file)
-
-            # WE have to reconcile them
-            reconcile_res = self._reconcile_observations(reference_file, current_file, no_save=no_save)
+            # We have to reconcile them
+            reconcile_res = self._reconcile_observations(reference_file, current_lines, no_save=no_save)
 
             if not test_failed:
                 # If the test did not fail already, but it failed reconcile, fail the test
@@ -589,28 +605,25 @@ class Bond:
               "Use observation_directory parameter to start_test or settings")
         return Bond.DEFAULT_OBSERVATION_DIRECTORY
 
-    def _save_observations(self, file_name):
-        remaining = len(self.observations)
-        with open(file_name, 'w') as f:
-            f.write('[\n')
-            for obs in self.observations:
-                f.write(obs)
-                remaining -= 1
-                if remaining > 0:
-                    f.write(',\n')
-                else:
-                    f.write('\n')
-            f.write(']\n')
+    def _get_observations(self):
+        """
+        Return all of the observations as a list of lines that would be
+        printed out
+        """
+        if len(self.observations) == 0:
+            return ['[\n', ']\n']
+        else:
+            return ['[\n'] + [line + '\n' for line in string.split(',\n'.join(self.observations), '\n')] + [']\n']
 
     def _reconcile_observations(self,
                                 reference_file,
-                                current_file,
+                                current_lines,
                                 no_save=None):
         settings = dict(reconcile=self._settings.get('reconcile'))
         return bond_reconcile.reconcile_observations(settings,
                                                      test_name=self.test_name,
                                                      reference_file=reference_file,
-                                                     current_file=current_file,
+                                                     current_lines=current_lines,
                                                      no_save=no_save)
 
 
@@ -630,20 +643,23 @@ class SpyAgent:
         self.doers = []  # A list of things to do
         self.point_filter = None  # The filter for pointName, if present
         self.filters = []  # The generic filters
+        self.skip_save_observation = None
 
         for k in kwargs:
             if k == 'result':
-                self.result_spec = kwargs['result']
+                self.result_spec = kwargs[k]
             elif k == 'exception':
-                self.exception_spec = kwargs['exception']
+                self.exception_spec = kwargs[k]
             elif k == 'formatter':
-                self.formatter_spec = kwargs['formatter']
+                self.formatter_spec = kwargs[k]
             elif k == 'do':
                 doers = kwargs[k]
                 if isinstance(doers, list):
                     self.doers += doers
                 else:
                     self.doers.append(doers)
+            elif k == 'skip_save_observation':
+                self.skip_save_observation = kwargs[k]
             else:
                 # Must be a filter
                 fo = SpyAgentFilter(k, kwargs[k])

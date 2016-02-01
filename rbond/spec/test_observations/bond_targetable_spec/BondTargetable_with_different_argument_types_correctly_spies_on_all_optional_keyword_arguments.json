@@ -1,10 +1,10 @@
 [
 {
-  "__spy_point__": "TestClass#annotated_method_kw_params_optional"
+    "__spy_point__": "TestClass#annotated_method_kw_params_optional"
 },
 {
-  "__spy_point__": "TestClass#annotated_method_kw_params_optional",
-  "arg1": "value1",
-  "arg2": "value2"
+    "__spy_point__": "TestClass#annotated_method_kw_params_optional",
+    "arg1": "value1",
+    "arg2": "value2"
 }
 ]

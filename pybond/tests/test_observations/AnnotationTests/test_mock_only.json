@@ -1,0 +1,17 @@
+[
+{
+    "__spy_point__": "unmocked_return", 
+    "val": "normal value"
+},
+{
+    "__spy_point__": "mocked_return", 
+    "val": "mocked value"
+},
+{
+    "__spy_point__": "AnnotationTests.mock_only_method"
+},
+{
+    "__spy_point__": "mocked_return", 
+    "val": "mocked value"
+}
+]

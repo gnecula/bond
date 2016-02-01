@@ -160,6 +160,18 @@ class AnnotationTests(unittest.TestCase):
     def test_module_method(self):
         annotated_module_method(1)
 
+    @bond.spy_point(mock_only=True)
+    def mock_only_method(self):
+        return 'normal value'
+
+    def test_mock_only(self):
+        bond.spy('unmocked_return', val=self.mock_only_method())
+
+        bond.deploy_agent('AnnotationTests.mock_only_method', result='mocked value')
+        bond.spy('mocked_return', val=self.mock_only_method())
+
+        bond.deploy_agent('AnnotationTests.mock_only_method', skip_save_observation=False, result='mocked value')
+        bond.spy('mocked_return', val=self.mock_only_method())
 
 @bond.spy_point(spy_result=True)
 def annotated_module_method(arg1, arg2='2'):

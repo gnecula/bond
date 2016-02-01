@@ -1,31 +1,31 @@
 [
 {
-  "key1": {
-    "h1key1": [
-      "hello",
-      "world"
-    ],
-    "h1key2": "hi"
-  },
-  "key2": [
-    {
-      "key1": "baz",
-      "key2": "foo",
-      "key3": "bar"
+    "key1": {
+        "h1key1": [
+            "hello",
+            "world"
+        ],
+        "h1key2": "hi"
     },
-    "array3",
-    "array2"
-  ]
+    "key2": [
+        {
+            "key1": "baz",
+            "key2": "foo",
+            "key3": "bar"
+        },
+        "array3",
+        "array2"
+    ]
 },
 {
-  "__spy_point__": "point_name",
-  "key1": "value 1",
-  "key3": {
-    "key1": "bar",
-    "key2": "foo",
+    "__spy_point__": "point_name",
+    "key1": "value 1",
     "key3": {
-      "hkey": "hello world"
+        "key1": "bar",
+        "key2": "foo",
+        "key3": {
+            "hkey": "hello world"
+        }
     }
-  }
 }
 ]

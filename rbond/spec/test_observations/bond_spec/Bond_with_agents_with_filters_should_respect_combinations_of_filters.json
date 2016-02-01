@@ -1,37 +1,37 @@
 [
 {
-  "__spy_point__": "my_point",
-  "req_key": "foo",
-  "req_key2": "bar",
-  "req_key3": "value"
+    "__spy_point__": "my_point",
+    "req_key": "foo",
+    "req_key2": "bar",
+    "req_key3": "value"
 },
 {
-  "result": "agent_result_none"
+    "result": "agent_result_none"
 },
 {
-  "__spy_point__": "my_point",
-  "req_key": "foo",
-  "req_key2": "value",
-  "req_key3": "foovaluebar"
+    "__spy_point__": "my_point",
+    "req_key": "foo",
+    "req_key2": "value",
+    "req_key3": "foovaluebar"
 },
 {
-  "result": "mocked"
+    "result": "mocked"
 },
 {
-  "__spy_point__": "my_point",
-  "req_key": "foo",
-  "req_key2": "value",
-  "req_key3": "lacking"
+    "__spy_point__": "my_point",
+    "req_key": "foo",
+    "req_key2": "value",
+    "req_key3": "lacking"
 },
 {
-  "result": "agent_result_none"
+    "result": "agent_result_none"
 },
 {
-  "__spy_point__": "my_point",
-  "req_key2": "value",
-  "req_key3": "value"
+    "__spy_point__": "my_point",
+    "req_key2": "value",
+    "req_key3": "value"
 },
 {
-  "result": "agent_result_none"
+    "result": "agent_result_none"
 }
 ]

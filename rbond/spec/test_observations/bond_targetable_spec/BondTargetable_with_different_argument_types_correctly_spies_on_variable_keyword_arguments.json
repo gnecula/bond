@@ -1,22 +1,22 @@
 [
 {
-  "__spy_point__": "TestClass#annotated_method_variable_kw_args",
-  "arg1": "value1"
+    "__spy_point__": "TestClass#annotated_method_variable_kw_args",
+    "arg1": "value1"
 },
 {
-  "__spy_point__": "TestClass#annotated_method_variable_kw_args",
-  "arg1": "value1",
-  "arg2": "value2"
+    "__spy_point__": "TestClass#annotated_method_variable_kw_args",
+    "arg1": "value1",
+    "arg2": "value2"
 },
 {
-  "__spy_point__": "TestClass#annotated_method_variable_kw_args",
-  "arg1": "value1",
-  "arg3": "value3"
+    "__spy_point__": "TestClass#annotated_method_variable_kw_args",
+    "arg1": "value1",
+    "arg3": "value3"
 },
 {
-  "__spy_point__": "TestClass#annotated_method_variable_kw_args",
-  "arg1": "value1",
-  "arg3": "value3",
-  "arg4": "value4"
+    "__spy_point__": "TestClass#annotated_method_variable_kw_args",
+    "arg1": "value1",
+    "arg3": "value3",
+    "arg4": "value4"
 }
 ]

@@ -1,13 +1,13 @@
 [
 {
-  "__spy_point__": "internal",
-  "val": 10
+    "__spy_point__": "internal",
+    "val": 10
 },
 {
-  "__spy_point__": "my_point",
-  "my_key": 10
+    "__spy_point__": "my_point",
+    "my_key": 10
 },
 {
-  "side_effect_value": 10
+    "side_effect_value": 10
 }
 ]

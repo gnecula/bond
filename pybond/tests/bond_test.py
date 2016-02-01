@@ -13,7 +13,6 @@ def setup_bond_self_test(test_instance, spy_groups=None):
     :return:
     """
 
-
     # Since we use Bond both as a system-under-test and as a testing library, we
     # have to be careful with mocking. We want to mock the reconcile prompts in the
     # system under test, but not in the testing Bond.
@@ -101,7 +100,6 @@ class BondTest(unittest.TestCase):
         # Otherwise, the test will try to reconcile with it
         shutil.rmtree(test_dir)
 
-
     def test_spy_not_testing(self):
         "Trying to spy when not in testing mode"
 
@@ -115,7 +113,7 @@ class BondTest(unittest.TestCase):
         bond.spy('second_observation', val=2)
 
         # Just before the test ends, we restore current_python_test
-        bond_instance.test_framework_bridge = old_test_framework_bridge # Has to allow the test to continue
+        bond_instance.test_framework_bridge = old_test_framework_bridge  # Has to allow the test to continue
 
     def test_formatter(self):
         "Apply the formatter"
@@ -129,7 +127,7 @@ class BondTest(unittest.TestCase):
                           cmd__startswith="myfun",
                           result=lambda obs: obs)
 
-        # Now the spying. Theresult should be the modified observation
+        # Now the spying. The result should be the modified observation
         bond.spy('spy result', res=bond.spy('fun1', cmd="myfun3"))
 
     def test_result(self):
@@ -150,10 +148,10 @@ class BondTest(unittest.TestCase):
         self.assertEquals(bond.AGENT_RESULT_NONE, bond.spy(spy_point_name='nofun', cmd="myfun2"))
         self.assertEquals(123, bond.spy('fun1', cmd="myfun3"))
 
-
     def test_doers(self):
         "Test the doer aspect of the bond mocking"
         results = []
+
         def my_formatter(obs):
             obs['cmd'] += ' : formatted'
 
@@ -171,6 +169,23 @@ class BondTest(unittest.TestCase):
 
         self.assertSequenceEqual(['2: myfun1',
                                   '1: myfun3'], results)
+
+    def test_skip_save_observation(self):
+        "Test the ability to specify skipping saving observations and overriding it"
+
+        bond.spy('skipped_spy_point', skip_save_observation=True, key='val')
+
+        bond.deploy_agent('skipped_spy_point', result='Mock Value')
+        ret = bond.spy('skipped_spy_point', skip_save_observation=True, key='val')
+        bond.spy('skipped_return_value', val=ret)
+
+        bond.deploy_agent('normal_spy_point', skip_save_observation=False, result='Mock Value')
+        ret = bond.spy('normal_spy_point', skip_save_observation=True, key='val')
+        bond.spy('not_skipped_return_value', val=ret)
+
+        bond.deploy_agent('skipped_spy_point', skip_save_observation=True, result='Mock Value')
+        ret = bond.spy('skipped_spy_point', key='val')
+        bond.spy('skipped_return_value', val=ret)
 
     def test_exception(self):
         "A test that throws exceptions"
@@ -192,11 +207,9 @@ class BondTest(unittest.TestCase):
                           exception=lambda obs: Exception("some exception: "+obs['cmd']))
         self.assertRaises(Exception, lambda :  bond.spy(spy_point_name='fun1', cmd="myfun2"))
 
-
     def test_no_spy_groups(self):
         # Update the settings
         bond.settings(spy_groups=None)
-
 
     def test_no_observation_directory(self):
         # Update the settings

@@ -3,8 +3,9 @@
 from __future__ import print_function
 
 import os
-import re
-import shutil
+import difflib
+import string
+import random
 import sys
 
 try:
@@ -23,6 +24,8 @@ class ReconcileTool:
     """
     Base class for reconcile tools
     """
+
+    TMP_FILE_BASE_NAME = '/tmp/bond_tmp_'
 
     @staticmethod
     def select(reconcile_tool=None):
@@ -63,6 +66,7 @@ class ReconcileTool:
     @spy_point(enabled_for_groups='bond_self_test',
                require_agent_result=True,
                spy_result=True)
+    # TODO this could probably be improved to be more like the one in JBond
     def _read_console(prompt):
         """
         A function to read from the console
@@ -81,23 +85,26 @@ class ReconcileTool:
         print(what)
 
     @staticmethod
-    def _quick_diff(reference_file, current_file, diff_file):
+    @spy_point(enabled_for_groups='bond_self_test', mock_only=True)
+    def _random_string():
         """
-        Compute a diff between files and save it into a diff_file.
-        Return True if there are no diffs
+        Generate a short random string
         """
-        # TODO: implicit dependency on a 'diff' command line tool with the same usage syntax that you're expecting
-        return (0 == ReconcileTool._invoke_command('diff -u -b "{0}" "{1}" >"{2}"'.format(reference_file,
-                                                                                      current_file,
-                                                                                      diff_file)))
+        return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(8))
 
     @staticmethod
-    def _aux_file_name(current_file,
-                       flavor):
+    def _tmp_file_name(flavor):
         """
-        The name of the auxiliary (e.g., diff, merged) file to use
+        The name of the temporary file to use with a flavor-specific
+        (e.g. diff, curr, ref) ending.
         """
-        return current_file + "." + flavor
+        # We include a short random string to avoid potential collisions
+        return ReconcileTool.TMP_FILE_BASE_NAME + ReconcileTool._random_string() + "." + flavor
+
+    @staticmethod
+    @spy_point(enabled_for_groups='bond_self_test')
+    def _compute_diff(reference_lines, current_lines):
+        return list(difflib.unified_diff(reference_lines, current_lines, 'reference', 'current'))
 
     def __init__(self):
         pass
@@ -105,66 +112,60 @@ class ReconcileTool:
     def reconcile(self,
                   test_name,
                   reference_file,
-                  current_file,
+                  current_lines,
                   no_save=None):
         """
         Reconcile the differences
         @param test_name: the name of the test (for messages)
         @param reference_file: the name of the reference observation file
-        @param current_file: the name of the current observation file
+        @param current_lines: a list of the lines which make up the current set of observations
         :param no_save: if present, then disallows saving a new reference file.
                This parameter should be a string explaining why saving is disallowed.
         """
 
-        if not os.path.isfile(reference_file):
+        if os.path.isfile(reference_file):
+            with open(reference_file, 'r') as f:
+                reference_lines = f.readlines()
+        else:
             # if we do not have the reference file, pretend we have an empty one
             ReconcileTool._print('WARNING: No reference observation file found for {}: {}'.format(test_name, reference_file))
-
-            with open(reference_file, 'w') as f:
-                pass
-            # We continue
+            reference_lines = list()
 
         # Compute a quick difference
-        diff_file = self._aux_file_name(current_file, "diff")
-        try:
-            if self._quick_diff(reference_file, current_file, diff_file):
-                # There are no differences
-                return True
+        unified_diff = self._compute_diff(reference_lines, current_lines)
 
-            # There are differences
-            merged_file = self.invoke_tool(test_name,
-                                           reference_file,
-                                           current_file,
-                                           diff_file,
-                                           no_save=no_save)
-            if merged_file is not None:
-                # Accepted differences
-                if no_save:
-                    ReconcileTool._print("Not saving reference observation file for {}: {}".format(test_name,
-                                                                                                   no_save))
-                else:
-                    ReconcileTool._print('Saving updated reference observation file for {}'.format(test_name))
-                    shutil.move(merged_file, reference_file)
-                return True
+        if len(unified_diff) == 0:
+            # There are no differences
+            return True
+
+        # There are differences
+        merged_lines = self.invoke_tool(test_name,
+                                        reference_lines,
+                                        current_lines,
+                                        unified_diff,
+                                        no_save=no_save)
+        if merged_lines is not None:
+            # Accepted differences
+            if no_save:
+                ReconcileTool._print("Not saving reference observation file for {}: {}".format(test_name,
+                                                                                               no_save))
             else:
-                return False
-
-        finally:
-            # Delete the files
-            if os.path.isfile(diff_file):
-                os.unlink(diff_file)
-            if os.path.isfile(current_file):
-                os.unlink(current_file)
+                ReconcileTool._print('Saving updated reference observation file for {}'.format(test_name))
+                if os.path.isfile(reference_file):
+                    os.unlink(reference_file)
+                with open(reference_file, 'w') as f:
+                    f.writelines(merged_lines)
+            return True
+        else:
+            return False
 
     def show_diff(self,
                   test_name,
-                  diff_file):
+                  unified_diff):
         """
-        Show the diff, and return it
+        Show the lines of the diff, and return it as a string
         """
-        diffs = ''
-        with open(diff_file, 'r') as f:
-            diffs = f.read()
+        diffs = ''.join(unified_diff)
         if diffs:
             ReconcileTool._print('There were differences in observations for {}: '.format(test_name))
             ReconcileTool._print(diffs)
@@ -175,14 +176,14 @@ class ReconcileTool:
         return diffs
 
     def invoke_tool(self, test_name,
-                    reference_file,
-                    current_file,
-                    diff_file,
+                    reference_lines,
+                    current_lines,
+                    unified_diff,
                     no_save=None):
         """
         Invoke the actual tool
         @param
-        @return either False, for a failed merge, or the name of the file to use as the new reference
+        @return either False, for a failed merge, or a list of the new lines to use as the reference
         """
         assert False, 'Must override'
 
@@ -194,12 +195,12 @@ class ReconcileToolAbort(ReconcileTool):
 
     def invoke_tool(self,
                     test_name,
-                    reference_file,
-                    current_file,
-                    diff_file,
+                    reference_lines,
+                    current_lines,
+                    unified_diff,
                     no_save=None):
         if not no_save:
-            self.show_diff(test_name, diff_file)
+            self.show_diff(test_name, unified_diff)
         ReconcileTool._print('Aborting (reconcile=abort) due to differences for test {}'.format(test_name))
         return None
 
@@ -211,14 +212,14 @@ class ReconcileToolAccept(ReconcileTool):
 
     def invoke_tool(self,
                     test_name,
-                    reference_file,
-                    current_file,
-                    diff_file,
+                    reference_lines,
+                    current_lines,
+                    unified_diff,
                     no_save=None):
-        diffs = self.show_diff(test_name, diff_file)
+        self.show_diff(test_name, unified_diff)
         if not no_save:
             ReconcileTool._print('Accepting (reconcile=accept) differences for test {}'.format(test_name))
-        return current_file
+        return current_lines
 
 
 class ReconcileToolConsole(ReconcileTool):
@@ -228,9 +229,9 @@ class ReconcileToolConsole(ReconcileTool):
 
     def invoke_tool(self,
                     test_name,
-                    reference_file,
-                    current_file,
-                    diff_file,
+                    reference_lines,
+                    current_lines,
+                    unified_diff,
                     no_save=None):
 
         while True:
@@ -240,26 +241,26 @@ class ReconcileToolConsole(ReconcileTool):
                 ) + ' Use the diff option to show the differences. ([k]diff3 | [d]iff | [e] errors | *): '
             else:
                 # Show the diff
-                self.show_diff(test_name, diff_file)
+                self.show_diff(test_name, unified_diff)
                 prompt = 'Do you want to accept the changes ({}) ? ( [y]es | [k]diff3 | *): '.format(test_name)
 
             response = ReconcileTool._read_console(prompt)
 
-            if response == 'k':
-                return ReconcileToolKdiff3().invoke_tool(test_name, reference_file, current_file, diff_file,
+            if response == 'k' or response == 'kdiff3':
+                return ReconcileToolKdiff3().invoke_tool(test_name, reference_lines, current_lines, unified_diff,
                                                          no_save=no_save)
 
-            if response == 'd' and no_save:
-                self.show_diff(test_name, diff_file)
+            if (response == 'd' or response == 'diff') and no_save:
+                self.show_diff(test_name, unified_diff)
                 continue
 
-            if response == 'e' and no_save:
+            if (response == 'e' or response == 'errors') and no_save:
                 ReconcileTool._print("Test {} had errors:\n{}".format(test_name, no_save))
                 continue
 
-            if response == 'y' and not no_save:
+            if (response == 'y' or response == 'yes') and not no_save:
                 ReconcileTool._print('Accepting differences for test {}'.format(test_name))
-                return current_file
+                return current_lines
 
             if not no_save:
                 ReconcileTool._print('Rejecting differences for test {}'.format(test_name))
@@ -274,57 +275,72 @@ class ReconcileToolKdiff3(ReconcileTool):
 
     def invoke_tool(self,
                     test_name,
-                    reference_file,
-                    current_file,
-                    diff_file,
+                    reference_lines,
+                    current_lines,
+                    unified_diff,
                     no_save=None):
 
-        if no_save:
-            response = ReconcileTool._read_console(
-                "\n!!! MERGING NOT ALLOWED for {}: {}. Want to start kdiff3? ([y] | *): ".format(test_name,
-                                                                                                 no_save))
-            if response != "y":
+        # Save the current lines out to a temporary file to use with kdiff3
+        current_file = self._tmp_file_name('curr')
+        reference_file = self._tmp_file_name('ref')
+        try:
+            with open(current_file, 'w') as f:
+                f.writelines(current_lines)
+            with open(reference_file, 'w') as f:
+                f.writelines(reference_lines)
+
+            merged_file = None
+            if no_save:
+                response = ReconcileTool._read_console(
+                    "\n!!! MERGING NOT ALLOWED for {}: {}. Want to start kdiff3? ([y]es | *): ".format(test_name,
+                                                                                                       no_save))
+                if response != "y" and response != 'yes':
+                    return None
+
+                cmd = ('kdiff3 "{reference_file}" --L1 "{test_name}_REFERENCE" '
+                       '"{current_file}" --L2 "{test_name}_CURRENT" ').format(
+                    reference_file=reference_file,
+                    current_file=current_file,
+                    test_name=test_name)
+                ReconcileTool._invoke_command(cmd)
                 return None
 
-            cmd = ('kdiff3 "{reference_file}" --L1 "{test_name}_REFERENCE" '
-                   '"{current_file}" --L2 "{test_name}_CURRENT" ').format(
-                reference_file=reference_file,
-                current_file=current_file,
-                test_name=test_name)
-        else:
-            merged_file = self._aux_file_name(current_file, 'merged')
-
-            cmd = ('kdiff3 -m "{reference_file}" --L1 "{test_name}_REFERENCE" '
-                   '"{current_file}" --L2 "{test_name}_CURRENT" '
-                   ' -o "{merged_file}"').format(reference_file=reference_file,
-                                                 current_file=current_file,
-                                                 merged_file=merged_file,
-                                                 test_name=test_name)
-
-        print(cmd)
-        code = ReconcileTool._invoke_command(cmd)
-        if no_save:
-            return None
-        else:
-            if code == 0 :
-                # Merged ok
-                return merged_file
             else:
-                if os.path.isfile(merged_file):
-                    os.unlink(merged_file)
-                return None
+                merged_file = self._tmp_file_name('merged')
+                cmd = ('kdiff3 -m "{reference_file}" --L1 "{test_name}_REFERENCE" '
+                       '"{current_file}" --L2 "{test_name}_CURRENT" '
+                       ' -o "{merged_file}"').format(reference_file=reference_file,
+                                                     current_file=current_file,
+                                                     merged_file=merged_file,
+                                                     test_name=test_name)
+
+                code = ReconcileTool._invoke_command(cmd)
+                if code == 0:
+                    # Merged ok
+                    with open(merged_file, 'r') as f:
+                        merged_lines = f.readlines()
+                    return merged_lines
+                else:
+                    return None
+        finally:
+            if os.path.isfile(current_file):
+                os.unlink(current_file)
+            if os.path.isfile(reference_file):
+                os.unlink(reference_file)
+            if merged_file is not None and os.path.isfile(merged_file):
+                os.unlink(merged_file)
 
 
 def reconcile_observations(settings,
                            test_name,
                            reference_file,
-                           current_file,
+                           current_lines,
                            no_save=None):
     """
     Reconcile the observations
     :param settings: a settings object
     :param reference_file: the reference file
-    :param current_file: the current file with observations
+    :param current_lines: a list of all of the lines in the current set of observations
     :param no_save: If present, then saving of new references is not allowed. This parameter
             should be a short string explaining why saving is not allowed.
     :return:
@@ -333,7 +349,7 @@ def reconcile_observations(settings,
     reconcile_tool = ReconcileTool.select(settings.get('reconcile'))
     return reconcile_tool.reconcile(test_name,
                                     reference_file,
-                                    current_file,
+                                    current_lines,
                                     no_save=no_save)
 
 
@@ -361,6 +377,9 @@ if __name__ == '__main__':
         print('The current file does not exist: {}'.format(opts.current), file=sys.stderr)
         sys.exit(1)
 
+    with open(opts.current, 'r') as f:
+        current_lines = f.readlines()
+    os.unlink(opts.current)
 
     # Guess the test name from the current file
     if opts.test:
@@ -378,7 +397,7 @@ if __name__ == '__main__':
     if reconcile_observations(main_settings,
                               main_test_name,
                               opts.reference,
-                              opts.current,
+                              current_lines,
                               no_save=opts.no_save):
         sys.exit(0)
     else:

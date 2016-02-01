@@ -4,8 +4,9 @@
     "what": "WARNING: No reference observation file found for test 1: /tmp/bondObservations Dir/reference.json"
 },
 {
-    "__spy_point__": "bond_reconcile._invoke_command", 
-    "cmd": "diff -u -b \"/tmp/bondObservations Dir/reference.json\" \"/tmp/bondObservations Dir/reference_now.json\" >\"/tmp/bondObservations Dir/reference_now.json.diff\""
+    "__spy_point__": "bond_reconcile._compute_diff", 
+    "current_lines": "\n[\n{\n   \"__spy_point__\" : \"point 1\",\n   val\" : 12345\n}\n]\n", 
+    "reference_lines": ""
 },
 {
     "__spy_point__": "bond_reconcile._print", 
@@ -14,8 +15,8 @@
 {
     "__spy_point__": "bond_reconcile._print", 
     "what": [
-        "--- /tmp/bondObservations Dir/reference.json\tdate", 
-        "+++ /tmp/bondObservations Dir/reference_now.json\tdate", 
+        "--- reference", 
+        "+++ current", 
         "@@ -0,0 +1,7 @@", 
         "+", 
         "+[", 
@@ -49,7 +50,7 @@
 },
 {
     "__spy_point__": "invoke_top_reconcile_results", 
-    "obsevation_dir": {
+    "observation_dir": {
         "reference.json": [
             "", 
             "[", 

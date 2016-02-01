@@ -47,7 +47,6 @@ modify to implement the project.
 
 - This tutorial has been developed on Mac OS X and Linux. You can probably use Windows with 
   an installation of ``python`` / ``ruby`` / ``mvn`` or ``gradle`` (for Java), but we have not tested this.
-  You will need at least the ``diff`` command line tool. Your mileage may vary.
   
 - Download the support files
 
@@ -83,7 +82,7 @@ modify to implement the project.
        - Tests for the Buses app
 
 - Note that for Java we have included both a pom.xml file for Maven and a build.gradle 
-  file for Gradle; either build system will work and you don't need both. 
+  file for Gradle; either build system will work and you don't need both.
         
 - For Python and Ruby you will also need to install Bond (in Java this is taken care of 
   automatically by Maven/Gradle). This can be done via ``pip install bond`` (Python) or

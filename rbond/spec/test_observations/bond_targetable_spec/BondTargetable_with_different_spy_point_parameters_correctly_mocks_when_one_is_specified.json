@@ -1,10 +1,10 @@
 [
 {
-  "__spy_point__": "mock_required",
-  "arg1": 5
+    "__spy_point__": "mock_required",
+    "arg1": 5
 },
 {
-  "__spy_point__": "return_value",
-  "return": "new return"
+    "__spy_point__": "return_value",
+    "return": "new return"
 }
 ]

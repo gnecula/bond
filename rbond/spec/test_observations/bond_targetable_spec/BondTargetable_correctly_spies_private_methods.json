@@ -1,6 +1,6 @@
 [
 {
-  "__spy_point__": "TestClass#annotated_private_method",
-  "arg1": "value"
+    "__spy_point__": "TestClass#annotated_private_method",
+    "arg1": "value"
 }
 ]

@@ -353,8 +353,8 @@ Reconciling Bond observations
 Following along the previous example, when a test run finishes it compares the set of
 spied observations with the saved reference ones. If there are no differences,
 testing proceeds as before. If there are differences, there are multiple possible
-reconciliation methods. By default, you will be presented with the a console
-``diff`` of the changes and a small reconciliation menu, as shown below:
+reconciliation methods. By default, you will be presented with a diff of the changes 
+and a small reconciliation menu, as shown below:
 
 .. container:: tab-section-group
 
@@ -362,8 +362,8 @@ reconciliation methods. By default, you will be presented with the a console
 
         .. code-block:: diff
 
-            --- tutorials/binary_search_tree/test_observations/NodeTest/test_bst.json
-            +++ tutorials/binary_search_tree/test_observations/NodeTest/test_bst_now.json
+            --- reference
+            +++ current
             @@ -6,8 +6,8 @@
                      "left": {
                          "data": 3,
@@ -383,8 +383,8 @@ reconciliation methods. By default, you will be presented with the a console
 
         .. code-block:: diff
 
-            --- test_observations/bst_spec/Node_should_add_nodes_to_the_BST_correctly__testing_with_Bond.json
-            +++ test_observations/bst_spec/Node_should_add_nodes_to_the_BST_correctly__testing_with_Bond_now.json
+            --- reference
+            +++ current
             @@ -6,8 +6,8 @@
                  "left": {
                    "data": 3,

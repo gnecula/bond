@@ -1,23 +1,23 @@
 [
 {
-  "__spy_point__": "my_point",
-  "obs_name": "foo"
+    "__spy_point__": "my_point",
+    "obs_name": "foo"
 },
 {
-  "result": 2
+    "result": 2
 },
 {
-  "__spy_point__": "my_point",
-  "obs_name": "bar"
+    "__spy_point__": "my_point",
+    "obs_name": "bar"
 },
 {
-  "result": "agent_result_none"
+    "result": "agent_result_none"
 },
 {
-  "__spy_point__": "my_point",
-  "obs_name": "foo"
+    "__spy_point__": "my_point",
+    "obs_name": "foo"
 },
 {
-  "result": 3
+    "result": 3
 }
 ]
