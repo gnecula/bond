@@ -62,4 +62,14 @@ public @interface SpyPoint {
    * @return whether or not mocking is required for this spy point
    */
   boolean requireAgentResult() default false;
+
+  /**
+   * If true: this spy point will be "mocking-only", meaning calls to this spy point
+   * will not be recorded as observations; all other agent actions will still apply.
+   * This can be useful if you want to mock a method but are not interested in the order
+   * of calls to that method, e.g. a method that generates a random string.
+   *
+   * @return whether or not this spy point is mocking-only.
+   */
+  boolean mockOnly() default false;
 }

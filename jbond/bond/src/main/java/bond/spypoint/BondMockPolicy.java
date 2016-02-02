@@ -146,13 +146,13 @@ public abstract class BondMockPolicy implements PowerMockPolicy {
                                   : spyPoint.spyPointName();
         SpyResult<?> response;
         if (parameterTypes.length == 0) {
-          response = Bond.spy(spyPointName, method.getReturnType());
+          response = Bond.spy(spyPointName, method.getReturnType(), spyPoint.mockOnly());
         } else {
           Observation observation = Bond.obs(getObservationKey(parameterNames[0], parameterTypes[0]), args[0]);
           for (int i = 1; i < parameterTypes.length; i++) {
             observation = observation.obs(getObservationKey(parameterNames[i], parameterTypes[i]), args[i]);
           }
-          response = observation.spy(spyPointName, method.getReturnType());
+          response = observation.spy(spyPointName, method.getReturnType(), spyPoint.mockOnly());
         }
         if (spyPoint.requireAgentResult() && !response.isPresent()) {
           throw new IllegalStateException("You *must* mock out spy point: " + spyPointName);

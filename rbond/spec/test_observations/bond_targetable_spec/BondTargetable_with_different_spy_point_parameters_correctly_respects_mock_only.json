@@ -1,0 +1,17 @@
+[
+{
+    "__spy_point__": "unmocked_return",
+    "val": "return"
+},
+{
+    "__spy_point__": "mocked_return",
+    "val": "mocked return"
+},
+{
+    "__spy_point__": "mock_only"
+},
+{
+    "__spy_point__": "mocked_return",
+    "val": "mocked return"
+}
+]

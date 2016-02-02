@@ -1,8 +1,5 @@
 [
 {
-    "__spy_point__": "HeatWatcher.get_temperature"
-},
-{
     "__spy_point__": "HeatWatcher.make_request", 
     "url": "http://system.server.com/temperature"
 },
@@ -11,14 +8,8 @@
     "result": 70.0000
 },
 {
-    "__spy_point__": "HeatWatcher.get_current_time"
-},
-{
     "__spy_point__": "HeatWatcher.sleep", 
     "seconds": 60
-},
-{
-    "__spy_point__": "HeatWatcher.get_temperature"
 },
 {
     "__spy_point__": "HeatWatcher.make_request", 
@@ -29,14 +20,8 @@
     "result": 70.5000
 },
 {
-    "__spy_point__": "HeatWatcher.get_current_time"
-},
-{
     "__spy_point__": "HeatWatcher.sleep", 
     "seconds": 60
-},
-{
-    "__spy_point__": "HeatWatcher.get_temperature"
 },
 {
     "__spy_point__": "HeatWatcher.make_request", 
@@ -45,9 +30,6 @@
 {
     "__spy_point__": "HeatWatcher.get_temperature.result", 
     "result": 73.0000
-},
-{
-    "__spy_point__": "HeatWatcher.get_current_time"
 },
 {
     "__spy_point__": "HeatWatcher.send_alert", 
@@ -65,9 +47,6 @@
     "seconds": 10
 },
 {
-    "__spy_point__": "HeatWatcher.get_temperature"
-},
-{
     "__spy_point__": "HeatWatcher.make_request", 
     "url": "http://system.server.com/temperature"
 },
@@ -76,14 +55,8 @@
     "result": 73.5000
 },
 {
-    "__spy_point__": "HeatWatcher.get_current_time"
-},
-{
     "__spy_point__": "HeatWatcher.sleep", 
     "seconds": 10
-},
-{
-    "__spy_point__": "HeatWatcher.get_temperature"
 },
 {
     "__spy_point__": "HeatWatcher.make_request", 
@@ -94,14 +67,8 @@
     "result": 74.0000
 },
 {
-    "__spy_point__": "HeatWatcher.get_current_time"
-},
-{
     "__spy_point__": "HeatWatcher.sleep", 
     "seconds": 10
-},
-{
-    "__spy_point__": "HeatWatcher.get_temperature"
 },
 {
     "__spy_point__": "HeatWatcher.make_request", 
@@ -110,9 +77,6 @@
 {
     "__spy_point__": "HeatWatcher.get_temperature.result", 
     "result": 74.0833
-},
-{
-    "__spy_point__": "HeatWatcher.get_current_time"
 },
 {
     "__spy_point__": "HeatWatcher.send_alert", 
@@ -130,17 +94,11 @@
     "seconds": 60
 },
 {
-    "__spy_point__": "HeatWatcher.get_temperature"
-},
-{
     "__spy_point__": "HeatWatcher.make_request", 
     "url": "http://system.server.com/temperature"
 },
 {
     "__spy_point__": "HeatWatcher.get_temperature.result", 
     "result": 74.5833
-},
-{
-    "__spy_point__": "HeatWatcher.get_current_time"
 }
 ]

@@ -67,7 +67,7 @@ class HeatWatcher
   end
 
   # Spy this function, want to spy the result
-  bond.spy_point(spy_result: true)
+  bond.spy_point(spy_result: true, mock_only: true)
   # Read the temperature from a sensor
   def get_temperature
     resp_code, temp_data =
@@ -78,7 +78,7 @@ class HeatWatcher
     match[1].to_f
   end
 
-  bond.spy_point
+  bond.spy_point(mock_only: true)
   # Read the current time
   def get_current_time
       Time.now.to_i

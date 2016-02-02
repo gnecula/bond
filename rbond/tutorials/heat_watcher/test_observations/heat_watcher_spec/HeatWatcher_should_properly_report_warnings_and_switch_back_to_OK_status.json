@@ -1,41 +1,23 @@
 [
 {
-    "__spy_point__": "HeatWatcher#get_temperature"
-},
-{
     "__spy_point__": "HeatWatcher#get_temperature.result",
     "result": 70
 },
 {
-    "__spy_point__": "HeatWatcher#get_current_time"
-},
-{
     "__spy_point__": "HeatWatcher#sleep",
     "seconds": 60
-},
-{
-    "__spy_point__": "HeatWatcher#get_temperature"
 },
 {
     "__spy_point__": "HeatWatcher#get_temperature.result",
     "result": 70.5000
 },
 {
-    "__spy_point__": "HeatWatcher#get_current_time"
-},
-{
     "__spy_point__": "HeatWatcher#sleep",
     "seconds": 60
 },
 {
-    "__spy_point__": "HeatWatcher#get_temperature"
-},
-{
     "__spy_point__": "HeatWatcher#get_temperature.result",
     "result": 71.6000
-},
-{
-    "__spy_point__": "HeatWatcher#get_current_time"
 },
 {
     "__spy_point__": "HeatWatcher#send_alert",
@@ -46,14 +28,8 @@
     "seconds": 10
 },
 {
-    "__spy_point__": "HeatWatcher#get_temperature"
-},
-{
     "__spy_point__": "HeatWatcher#get_temperature.result",
     "result": 71.6167
-},
-{
-    "__spy_point__": "HeatWatcher#get_current_time"
 },
 {
     "__spy_point__": "HeatWatcher#send_alert",
@@ -64,69 +40,39 @@
     "seconds": 60
 },
 {
-    "__spy_point__": "HeatWatcher#get_temperature"
-},
-{
     "__spy_point__": "HeatWatcher#get_temperature.result",
     "result": 71.7167
 },
 {
-    "__spy_point__": "HeatWatcher#get_current_time"
-},
-{
     "__spy_point__": "HeatWatcher#sleep",
     "seconds": 60
-},
-{
-    "__spy_point__": "HeatWatcher#get_temperature"
 },
 {
     "__spy_point__": "HeatWatcher#get_temperature.result",
     "result": 71.8167
 },
 {
-    "__spy_point__": "HeatWatcher#get_current_time"
-},
-{
     "__spy_point__": "HeatWatcher#sleep",
     "seconds": 60
-},
-{
-    "__spy_point__": "HeatWatcher#get_temperature"
 },
 {
     "__spy_point__": "HeatWatcher#get_temperature.result",
     "result": 71.9167
 },
 {
-    "__spy_point__": "HeatWatcher#get_current_time"
-},
-{
     "__spy_point__": "HeatWatcher#sleep",
     "seconds": 60
-},
-{
-    "__spy_point__": "HeatWatcher#get_temperature"
 },
 {
     "__spy_point__": "HeatWatcher#get_temperature.result",
     "result": 72.0167
 },
 {
-    "__spy_point__": "HeatWatcher#get_current_time"
-},
-{
     "__spy_point__": "HeatWatcher#sleep",
     "seconds": 60
 },
 {
-    "__spy_point__": "HeatWatcher#get_temperature"
-},
-{
     "__spy_point__": "HeatWatcher#get_temperature.result",
     "result": 72.1167
-},
-{
-    "__spy_point__": "HeatWatcher#get_current_time"
 }
 ]

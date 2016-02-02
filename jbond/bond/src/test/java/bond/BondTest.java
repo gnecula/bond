@@ -267,6 +267,25 @@ public class BondTest {
   }
 
   @Test
+  public void testSkipSaveObservation() {
+    Bond.obs("key", "val").spy("skippedSkyPoint", true);
+
+    Bond.deployAgent("skippedSpyPoint", new SpyAgent().withResult("Mock Value"));
+    SpyResult<String> ret = Bond.obs("key", "val").spy("skippedSpyPoint", String.class, true);
+    Bond.obs("val", ret.get()).spy("skippedReturnValue");
+
+    Bond.deployAgent("normalSpyPoint",
+        new SpyAgent().withResult("Mock Value").withSkipSaveObservation(false));
+    ret = Bond.obs("key", "val").spy("normalSpyPoint", String.class, true);
+    Bond.obs("val", ret.get()).spy("normalReturnValue");
+
+    Bond.deployAgent("skippedSpyPoint",
+        new SpyAgent().withResult("Mock Value").withSkipSaveObservation(true));
+    ret = Bond.obs("key", "val").spy("skippedSpyPoint", String.class);
+    Bond.obs("val", ret.get()).spy("skippedReturnValue");
+  }
+
+  @Test
   public void testWithCustomDoublePrecision() {
     Bond.setDoublePrecision(4);
     Bond.obs("pi", Math.PI).spy();

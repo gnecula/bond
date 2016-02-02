@@ -69,7 +69,7 @@ class HeatWatcher:
 
 
     # Spy this function, want to spy the result
-    @bond.spy_point(spy_result=True)
+    @bond.spy_point(spy_result=True, mock_only=True)
     def get_temperature(self):
         """
         Read the temperature from a sensor
@@ -82,7 +82,7 @@ class HeatWatcher:
             'Error while parsing temperature from: {}'.format(temp_data)
         return float(match.group(1))
 
-    @bond.spy_point()
+    @bond.spy_point(mock_only=True)
     def get_current_time(self):
         """
         Read the current time

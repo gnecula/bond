@@ -46,15 +46,21 @@ module BondTargetable
   #     names to exclude from the spy. Can be useful if you don't care about the value of some argument.
   # @param spy_result [Boolean] If true, spy on the return value. The spy point name will be
   #     `{spy_point_name}.result` and the key name will be `result`.
+  # @param mock_only [Boolean] If true, don't record calls to this method as observations.
+  #     This allows for the ability to mock a method without observing all of its calls, useful
+  #     if mocking e.g. a small utility method whose call order is unimportant. This can be
+  #     overridden by using the `skip_save_observation` parameter when deploying an agent
+  #     ({Bond#deploy_agent}).
   # @api public
   def spy_point(spy_point_name: nil, require_agent_result: false, excluded_keys: [],
-                spy_result: false)
+                spy_result: false, mock_only: false)
     @__last_annotation_args = {
         spy_point_name: spy_point_name,
         require_agent_result: require_agent_result,
         # Allow for a single key or an array of them, and map to_s in case they were passed as symbols
         excluded_keys: [*excluded_keys].map(&:to_s),
-        spy_result: spy_result
+        spy_result: spy_result,
+        mock_only: mock_only
     }
   end
 
@@ -147,7 +153,7 @@ module BondTargetable
       observation[name] = value unless options[:excluded_keys].include?(name.to_s)
     end
 
-    ret = Bond.instance.spy(spy_point_name, observation)
+    ret = Bond.instance.spy(spy_point_name, options[:mock_only], observation)
     if options[:require_agent_result] && ret == :agent_result_none
       raise "#{spy_point_name} requires mocking but received :agent_result_none"
     end

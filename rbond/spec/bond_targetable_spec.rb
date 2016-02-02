@@ -45,6 +45,9 @@ describe BondTargetable do
     bond.spy_point(spy_point_name: 'spy_return', spy_result: true)
     def annotated_method_spy_return(arg1) 'return' end
 
+    bond.spy_point(spy_point_name: 'mock_only', mock_only: true)
+    def annotated_method_mock_only; 'return' end
+
     bond.spy_point
     def annotated_method_with_block(arg1, &blk) yield; end
 
@@ -141,6 +144,16 @@ describe BondTargetable do
     it 'correctly spies the return value when mocking' do
       bond.deploy_agent('spy_return', result: 'new return')
       tc.annotated_method_spy_return('arg_value')
+    end
+
+    it 'correctly respects mock_only' do
+      bond.spy('unmocked_return', val: tc.annotated_method_mock_only)
+
+      bond.deploy_agent('mock_only', result: 'mocked return')
+      bond.spy('mocked_return', val: tc.annotated_method_mock_only)
+
+      bond.deploy_agent('mock_only', skip_save_observation: false, result: 'mocked return')
+      bond.spy('mocked_return', val: tc.annotated_method_mock_only)
     end
   end
 

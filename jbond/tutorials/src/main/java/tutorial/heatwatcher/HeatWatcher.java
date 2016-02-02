@@ -85,7 +85,7 @@ public class HeatWatcher {
   }
 
   // Read the temperature from a sensor
-  @SpyPoint(spyResult = true)
+  @SpyPoint(spyResult = true, mockOnly = true)
   double getTemperature() {
     String tempData = makeRequest("http://system.server.com/temperature", null);
     Pattern tempPattern = Pattern.compile("<temperature>([0-9.]+)</temperature>");
@@ -98,7 +98,7 @@ public class HeatWatcher {
   }
 
   // Get the current time, in Unix epoch seconds
-  @SpyPoint
+  @SpyPoint(mockOnly = true)
   double getCurrentTime() {
     return ((double) System.currentTimeMillis() / 1000.0);
   }

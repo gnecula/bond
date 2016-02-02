@@ -120,10 +120,13 @@ class Bond
   # @param spy_point_name [#to_s] The name of this spy point. Will be used to subsequently
   #     refer to this point for, e.g., {#deploy_agent}. This name also gets printed as
   #     part of the observation with the key `__spy_point__`.
+  # @param skip_save_observation [Boolean] Whether or not to skip recording the observation
+  #     created during this call to spy; other agent actions are enabled regardless. This is
+  #     used by {BondTargetable#spy_point} to enable `mock_only` spy points.
   # @param observation Keyword arguments which should be observed.
   # @return if an agent has been set for this spy point, this will return whatever value
   #     is specified by that agent. Otherwise, returns `:agent_result_none`.
-  def spy(spy_point_name=nil, **observation)
+  def spy(spy_point_name=nil, skip_save_observation=false, **observation)
     return :agent_result_none unless active? # If we're not testing, don't do anything
 
     spy_point_name = spy_point_name.nil? ? nil : spy_point_name.to_s
@@ -132,6 +135,11 @@ class Bond
     observation = deep_clone(observation)
     active_agent = spy_point_name.nil? ? nil : @spy_agents[spy_point_name].find { |agent| agent.process?(observation) }
 
+    do_save_observation = !skip_save_observation
+    unless active_agent.nil? or active_agent.skip_save_observation.nil?
+      do_save_observation = !active_agent.skip_save_observation
+    end
+
     res = :agent_result_none
     begin
       unless active_agent.nil?
@@ -139,10 +147,12 @@ class Bond
         res = active_agent.result(observation)
       end
     ensure
-      formatted = format_observation(observation, active_agent)
-      @observations <<= formatted
-      #TODO ETK printing
-      puts "Observing: #{formatted} #{", returning <#{res.to_s}>" if res != :agent_result_none}"
+      if do_save_observation
+        formatted = format_observation(observation, active_agent)
+        @observations <<= formatted
+        #TODO ETK printing
+        puts "Observing: #{formatted} #{", returning <#{res.to_s}>" if res != :agent_result_none}"
+      end
     end
 
     res
@@ -357,10 +367,17 @@ class SpyAgent
   #           formatting.
   #
   #     - Keys that control how the observation is saved. This is processed after all
-  #       the above functions. **NOT YET AVAILABLE**
+  #       the above functions.
   #
   #         - `formatter: func` - If specified, a function that is given the observation and
   #           can update it in place. The formatted observation is what gets serialized and saved.
+  #           **NOT YET AVAILABLE**
+  #         - `skip_save_observation: Boolean` - If specified, determines whether or not the
+  #           observation will be saved after all of the agent's other actions have been processed.
+  #           Useful for hiding observations of a spy point that e.g. is sometimes useful but in some
+  #           tests is irrelevant and clutters up the observations. This value, if present, will override
+  #           the `skip_save_observation` parameter of {Bond#spy} and the `mock_only` parameter of
+  #           {BondTargetable#spy_point}.
   #
   def initialize(**opts)
     # TODO ETK needs formatters
@@ -368,6 +385,7 @@ class SpyAgent
     @exception_spec = nil
     @doers = []
     @filters = []
+    @skip_save_observation = nil
 
     opts.each do |k, v|
       case k.to_s # Convert to string in case it was passed as a symbol
@@ -377,11 +395,15 @@ class SpyAgent
           @exception_spec = v
         when 'do'
           @doers = [*v]
+        when 'skip_save_observation'
+          @skip_save_observation = v
         else # Must be a filter
           @filters <<= SpyAgentFilter.new(k.to_s, v)
       end
     end
   end
+
+  attr_reader :skip_save_observation
 
   # Checks if this agent should process this observation
   # @return true iff this agent should process this observation

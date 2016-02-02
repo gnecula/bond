@@ -99,6 +99,21 @@ public class Bond {
   }
 
   /**
+   * Spies this point with no observations.
+   *
+   * @param spyPointName Name of the point being spied on.
+   * @param skipSaveObservation If true, don't actually save the observation;
+   *                            all other relevant {@link SpyAgent} actions are still
+   *                            performed. This will be overridden by the
+   *                            {@code skipSaveObservation} field of a SpyAgent.
+   * @return The result of the agent deployed for this point, if any,
+   *         else an absent {@link SpyResult}.
+   */
+  public static SpyResult<Object> spy(String spyPointName, boolean skipSaveObservation) {
+    return new Observation().spy(spyPointName, skipSaveObservation);
+  }
+
+  /**
    * Spies this point with no observation and no name.
    */
   public static void spy() {
@@ -122,6 +137,30 @@ public class Bond {
   public static <T> SpyResult<T> spy(String spyPointName, Class<T> expectedType) {
     return new Observation().spy(spyPointName, expectedType);
   }
+
+  /**
+   * Spies this point with no observation, expecting a return type of
+   * {@code expectedType}. Has no effect and returns an absent {@link SpyResult}
+   * if {@link #isActive()} is false.
+   *
+   * @param spyPointName Name of the point being spied on.
+   * @param expectedType Type of value expected to be returned from
+   *                     any active {@link SpyAgent}.
+   * @param skipSaveObservation If true, don't actually save the observation;
+   *                            all other relevant {@link SpyAgent} actions are still
+   *                            performed. This will be overridden by the
+   *                            {@code skipSaveObservation} field of a SpyAgent.
+   * @param <T> Same as expectedType.
+   * @throws IllegalSpyAgentException If the result from the agent matching
+   *         this spy point does not match expectedType.
+   * @return The result of the agent deployed for this point, if any,
+   *         else an absent {@link SpyResult}.
+   */
+  public static <T> SpyResult<T> spy(String spyPointName, Class<T> expectedType, boolean skipSaveObservation) {
+    return new Observation().spy(spyPointName, expectedType, skipSaveObservation);
+  }
+
+
 
   /**
    * Spies this point with no observation, expecting an Exception to be thrown.

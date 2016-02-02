@@ -62,11 +62,29 @@ public class Observation {
    *         else an absent {@link SpyResult}.
    */
   public SpyResult<Object> spy(String spyPointName) {
+    return spy(spyPointName, false);
+  }
+
+  /**
+   * Spies with the currently built observation.
+   *
+   * @see Bond#spy(String, boolean)
+   * @param spyPointName Name of the point being spied on.
+   * @param skipSaveObservation If true, don't actually save the observation;
+   *                            all other relevant {@link SpyAgent} actions are still
+   *                            performed. This will be overridden by the
+   *                            {@code skipSaveObservation} field of a SpyAgent.
+   * @return The result of the agent deployed for this point, if any,
+   *         else an absent {@link SpyResult}.
+   */
+  public SpyResult<Object> spy(String spyPointName, boolean skipSaveObservation) {
     if (!Bond.isActive()) {
       return SpyResult.absent();
     }
     SpyAgent agent = Bond.getAgent(spyPointName, _observationMap);
-    processObservation(spyPointName);
+    if (shouldSaveObservation(skipSaveObservation, agent)) {
+      processObservation(spyPointName);
+    }
     if (agent != null) {
       return agent.performDoersGetReturn(_observationMap);
     } else {
@@ -89,10 +107,32 @@ public class Observation {
    *         else an absent {@link SpyResult}.
    */
   public <T> SpyResult<T> spy(String spyPointName, Class<T> expectedType) {
+    return spy(spyPointName, expectedType, false);
+  }
+
+  /**
+   * Spies this point with the current observation, expecting a return type of
+   * {@code expectedType}. Has no effect and returns an absent {@link SpyResult}
+   * if {@link Bond#isActive()} is false.
+   *
+   * @see Bond#spy(String, Class, boolean)
+   * @param spyPointName Name of the point being spied on
+   * @param expectedType Type of value expected to be returned from any active {@link SpyAgent}
+   * @param skipSaveObservation If true, don't actually save the observation;
+   *                            all other relevant {@link SpyAgent} actions are still
+   *                            performed. This will be overridden by the
+   *                            {@code skipSaveObservation} field of a SpyAgent.
+   * @param <T> Same as expectedType
+   * @throws IllegalSpyAgentException If the result from the agent matching
+   *         this spy point does not match expectedType.
+   * @return The result of the agent deployed for this point, if any,
+   *         else an absent {@link SpyResult}.
+   */
+  public <T> SpyResult<T> spy(String spyPointName, Class<T> expectedType, boolean skipSaveObservation) {
     if (!Bond.isActive()) {
       return SpyResult.absent();
     }
-    SpyResult<T> ret = (SpyResult<T>) spy(spyPointName);
+    SpyResult<T> ret = (SpyResult<T>) spy(spyPointName, skipSaveObservation);
     if (ret.isPresent()) {
       if (!isTypeCompatible(ret.get(), expectedType)) {
         throw new IllegalSpyAgentException("Requested a return value for " + spyPointName +
@@ -171,6 +211,22 @@ public class Observation {
     }
 
     Bond.addObservation(Bond.getSerializer().serialize(_observationMap));
+  }
+
+  /**
+   * Check whether the observation should be saved based on the specified values of
+   * {@code skipSaveObservation} and the agent.
+   *
+   * @param skipSaveObservation The skip value passed to {@link Bond#spy}.
+   * @param agent The agent, if any, which is applicable to this spy point.
+   * @return True iff the observation should be saved.
+   */
+  private boolean shouldSaveObservation(boolean skipSaveObservation, SpyAgent agent) {
+    if (agent != null && agent.getSkipSaveObservation().isPresent()) {
+      return !agent.getSkipSaveObservation().get();
+    } else {
+      return !skipSaveObservation;
+    }
   }
 
   /**

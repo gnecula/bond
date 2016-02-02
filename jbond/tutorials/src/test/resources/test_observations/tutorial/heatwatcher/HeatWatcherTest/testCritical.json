@@ -1,8 +1,5 @@
 [
 {
-  "__spyPoint__": "HeatWatcher.getTemperature"
-},
-{
   "__spyPoint__": "HeatWatcher.makeRequest",
   "arg0[String]": "http://system.server.com/temperature",
   "arg1[String]": null
@@ -12,14 +9,8 @@
   "result": 70.0
 },
 {
-  "__spyPoint__": "HeatWatcher.getCurrentTime"
-},
-{
   "__spyPoint__": "HeatWatcher.sleep",
   "arg0[int]": 60
-},
-{
-  "__spyPoint__": "HeatWatcher.getTemperature"
 },
 {
   "__spyPoint__": "HeatWatcher.makeRequest",
@@ -31,14 +22,8 @@
   "result": 70.5
 },
 {
-  "__spyPoint__": "HeatWatcher.getCurrentTime"
-},
-{
   "__spyPoint__": "HeatWatcher.sleep",
   "arg0[int]": 60
-},
-{
-  "__spyPoint__": "HeatWatcher.getTemperature"
 },
 {
   "__spyPoint__": "HeatWatcher.makeRequest",
@@ -48,9 +33,6 @@
 {
   "__spyPoint__": "HeatWatcher.getTemperature.result",
   "result": 73.0
-},
-{
-  "__spyPoint__": "HeatWatcher.getCurrentTime"
 },
 {
   "__spyPoint__": "HeatWatcher.sendAlert",
@@ -66,9 +48,6 @@
   "arg0[int]": 10
 },
 {
-  "__spyPoint__": "HeatWatcher.getTemperature"
-},
-{
   "__spyPoint__": "HeatWatcher.makeRequest",
   "arg0[String]": "http://system.server.com/temperature",
   "arg1[String]": null
@@ -78,14 +57,8 @@
   "result": 73.5
 },
 {
-  "__spyPoint__": "HeatWatcher.getCurrentTime"
-},
-{
   "__spyPoint__": "HeatWatcher.sleep",
   "arg0[int]": 10
-},
-{
-  "__spyPoint__": "HeatWatcher.getTemperature"
 },
 {
   "__spyPoint__": "HeatWatcher.makeRequest",
@@ -97,14 +70,8 @@
   "result": 74.0
 },
 {
-  "__spyPoint__": "HeatWatcher.getCurrentTime"
-},
-{
   "__spyPoint__": "HeatWatcher.sleep",
   "arg0[int]": 10
-},
-{
-  "__spyPoint__": "HeatWatcher.getTemperature"
 },
 {
   "__spyPoint__": "HeatWatcher.makeRequest",
@@ -114,9 +81,6 @@
 {
   "__spyPoint__": "HeatWatcher.getTemperature.result",
   "result": 74.083333
-},
-{
-  "__spyPoint__": "HeatWatcher.getCurrentTime"
 },
 {
   "__spyPoint__": "HeatWatcher.sendAlert",
@@ -132,9 +96,6 @@
   "arg0[int]": 60
 },
 {
-  "__spyPoint__": "HeatWatcher.getTemperature"
-},
-{
   "__spyPoint__": "HeatWatcher.makeRequest",
   "arg0[String]": "http://system.server.com/temperature",
   "arg1[String]": null
@@ -142,8 +103,5 @@
 {
   "__spyPoint__": "HeatWatcher.getTemperature.result",
   "result": 74.583333
-},
-{
-  "__spyPoint__": "HeatWatcher.getCurrentTime"
 }
 ]

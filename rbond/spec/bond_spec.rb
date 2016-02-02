@@ -146,6 +146,22 @@ describe Bond do
       bond.spy(result: bond.spy('my_point'))
     end
 
+    it 'should skip saving observations when specified' do
+      bond.spy('skipped_point', skip_save_observation = true, key: 'value')
+
+      bond.deploy_agent('skipped_point', result: 'Mock Value')
+      ret = bond.spy('skipped_point', skip = true, key: 'value')
+      bond.spy('skipped_return_value', val: ret)
+
+      bond.deploy_agent('normal_point', skip_save_observation: false, result: 'Mock Value')
+      ret = bond.spy('normal_point', skip_save_observation = true, key: 'value')
+      bond.spy('not_skipped_return_value', val: ret)
+
+      bond.deploy_agent('skipped_point', skip_save_observation: true, result: 'Mock Value')
+      ret = bond.spy('skipped_point', key: 'value')
+      bond.spy('skipped_return_value', val: ret)
+    end
+
   end
 
   # TODO

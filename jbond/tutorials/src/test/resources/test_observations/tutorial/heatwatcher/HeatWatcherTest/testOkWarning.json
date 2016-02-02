@@ -1,41 +1,23 @@
 [
 {
-  "__spyPoint__": "HeatWatcher.getTemperature"
-},
-{
   "__spyPoint__": "HeatWatcher.getTemperature.result",
   "result": 70.0
 },
 {
-  "__spyPoint__": "HeatWatcher.getCurrentTime"
-},
-{
   "__spyPoint__": "HeatWatcher.sleep",
   "arg0[int]": 60
-},
-{
-  "__spyPoint__": "HeatWatcher.getTemperature"
 },
 {
   "__spyPoint__": "HeatWatcher.getTemperature.result",
   "result": 70.5
 },
 {
-  "__spyPoint__": "HeatWatcher.getCurrentTime"
-},
-{
   "__spyPoint__": "HeatWatcher.sleep",
   "arg0[int]": 60
 },
 {
-  "__spyPoint__": "HeatWatcher.getTemperature"
-},
-{
   "__spyPoint__": "HeatWatcher.getTemperature.result",
   "result": 71.52
-},
-{
-  "__spyPoint__": "HeatWatcher.getCurrentTime"
 },
 {
   "__spyPoint__": "HeatWatcher.sendAlert",
@@ -46,14 +28,8 @@
   "arg0[int]": 10
 },
 {
-  "__spyPoint__": "HeatWatcher.getTemperature"
-},
-{
   "__spyPoint__": "HeatWatcher.getTemperature.result",
   "result": 71.54
-},
-{
-  "__spyPoint__": "HeatWatcher.getCurrentTime"
 },
 {
   "__spyPoint__": "HeatWatcher.sendAlert",
@@ -64,69 +40,39 @@
   "arg0[int]": 60
 },
 {
-  "__spyPoint__": "HeatWatcher.getTemperature"
-},
-{
   "__spyPoint__": "HeatWatcher.getTemperature.result",
   "result": 71.66
 },
 {
-  "__spyPoint__": "HeatWatcher.getCurrentTime"
-},
-{
   "__spyPoint__": "HeatWatcher.sleep",
   "arg0[int]": 60
-},
-{
-  "__spyPoint__": "HeatWatcher.getTemperature"
 },
 {
   "__spyPoint__": "HeatWatcher.getTemperature.result",
   "result": 71.78
 },
 {
-  "__spyPoint__": "HeatWatcher.getCurrentTime"
-},
-{
   "__spyPoint__": "HeatWatcher.sleep",
   "arg0[int]": 60
-},
-{
-  "__spyPoint__": "HeatWatcher.getTemperature"
 },
 {
   "__spyPoint__": "HeatWatcher.getTemperature.result",
   "result": 71.9
 },
 {
-  "__spyPoint__": "HeatWatcher.getCurrentTime"
-},
-{
   "__spyPoint__": "HeatWatcher.sleep",
   "arg0[int]": 60
-},
-{
-  "__spyPoint__": "HeatWatcher.getTemperature"
 },
 {
   "__spyPoint__": "HeatWatcher.getTemperature.result",
   "result": 72.02
 },
 {
-  "__spyPoint__": "HeatWatcher.getCurrentTime"
-},
-{
   "__spyPoint__": "HeatWatcher.sleep",
   "arg0[int]": 60
 },
 {
-  "__spyPoint__": "HeatWatcher.getTemperature"
-},
-{
   "__spyPoint__": "HeatWatcher.getTemperature.result",
   "result": 72.14
-},
-{
-  "__spyPoint__": "HeatWatcher.getCurrentTime"
 }
 ]

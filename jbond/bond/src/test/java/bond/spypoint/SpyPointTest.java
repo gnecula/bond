@@ -46,6 +46,11 @@ public class SpyPointTest {
       return "test return";
     }
 
+    @SpyPoint(mockOnly = true)
+    public String annotatedMethodMockOnly() {
+      return "test return";
+    }
+
     public String methodWithDependency(String arg0) {
       TestSecondaryDependency tsd = new TestSecondaryDependency();
       return tsd.annotatedMethod(arg0);
@@ -136,6 +141,19 @@ public class SpyPointTest {
     } catch (IllegalStateException e) {
       Bond.obs("exception", e.toString()).spy("catch");
     }
+  }
+
+  @Test
+  public void testSpyPointWithMockOnly() {
+    Bond.obs("val", dep.annotatedMethodMockOnly()).spy("unmockedReturn");
+
+    Bond.deployAgent("TestDependency.annotatedMethodMockOnly",
+        new SpyAgent().withResult("Mocked Value"));
+    Bond.obs("val", dep.annotatedMethodMockOnly()).spy("mockedReturn");
+
+    Bond.deployAgent("TestDependency.annotatedMethodMockOnly",
+        new SpyAgent().withResult("Mocked Value").withSkipSaveObservation(false));
+    Bond.obs("val", dep.annotatedMethodMockOnly()).spy("mockedReturn");
   }
 
   @Test

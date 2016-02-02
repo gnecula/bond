@@ -1,0 +1,17 @@
+[
+{
+  "__spyPoint__": "unmockedReturn",
+  "val": "test return"
+},
+{
+  "__spyPoint__": "mockedReturn",
+  "val": "Mocked Value"
+},
+{
+  "__spyPoint__": "TestDependency.annotatedMethodMockOnly"
+},
+{
+  "__spyPoint__": "mockedReturn",
+  "val": "Mocked Value"
+}
+]

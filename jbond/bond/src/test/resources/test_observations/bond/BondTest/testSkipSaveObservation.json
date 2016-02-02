@@ -1,0 +1,18 @@
+[
+{
+  "__spyPoint__": "skippedReturnValue",
+  "val": "Mock Value"
+},
+{
+  "__spyPoint__": "normalSpyPoint",
+  "key": "val"
+},
+{
+  "__spyPoint__": "normalReturnValue",
+  "val": "Mock Value"
+},
+{
+  "__spyPoint__": "skippedReturnValue",
+  "val": "Mock Value"
+}
+]

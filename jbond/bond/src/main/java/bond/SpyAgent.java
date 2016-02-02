@@ -1,5 +1,7 @@
 package bond;
 
+import com.google.common.base.Optional;
+
 import java.util.*;
 
 /**
@@ -40,6 +42,7 @@ public class SpyAgent {
   RuntimeException _exception;
   Excepter _excepter;
   boolean _hasResult = false;
+  Optional<Boolean> _skipSaveObservation = Optional.absent();
   Object _result;
   Resulter _resulter;
   List<Doer> _doers = new ArrayList<>();
@@ -261,6 +264,32 @@ public class SpyAgent {
     clearResults();
     _resulter = ret;
     return this;
+  }
+
+  /**
+   * Specify that this agent should override the {@code skipSaveObservation} settings
+   * when a point is spied on that this agent is applicable to. If true, the
+   * observation will not be saved (though other agent actions will still apply);
+   * if false, the observation will be saved even if {@code skipSaveObservation}
+   * was set to true on the call to {@link Bond#spy}.
+   *
+   * @param skip Whether or not to skip saving the observation.
+   * @return This {@code SpyAgent} to facilitate the builder pattern
+   */
+  public SpyAgent withSkipSaveObservation(boolean skip) {
+    _skipSaveObservation = Optional.of(skip);
+    return this;
+  }
+
+  /**
+   * Get the value of the skip setting; see {@link SpyAgent#withSkipSaveObservation(boolean)}.
+   *
+   * @return An absent {@code Optional} if no skip setting has been specified,
+   *         else a present {@code Optional} containing the value of the skip
+   *         setting.
+   */
+  public Optional<Boolean> getSkipSaveObservation() {
+    return _skipSaveObservation;
   }
 
   /**
