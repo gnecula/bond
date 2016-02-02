@@ -90,7 +90,7 @@ class Bond
     @spy_agents = Hash.new { |hash, key|
       hash[key] = []
     }
-    @decimal_precision = 4 if decimal_precision.nil? else decimal_precision
+    @decimal_precision = decimal_precision.nil? ? 4 : decimal_precision
     @observation_directory = nil
     @current_test = rspec_test
     @reconcile = reconcile
