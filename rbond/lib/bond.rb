@@ -184,28 +184,20 @@ class Bond
   #     (new changes are not accepted), returns `:bond_fail`. Else returns `:pass`
   def finish_test
     fname = observation_file_name
-    fdir = File.dirname(fname)
-    unless File.directory?(fdir)
-      FileUtils.mkdir_p(fdir)
-      top_git_ignore = File.join(observation_directory, '.gitignore')
-      unless File.file?(top_git_ignore)
-        # TODO ETK make this configurable in case you don't use git?
-        File.open(top_git_ignore, 'w') do |outfile|
-          outfile.print("*_now.json\n*.diff\n")
-        end
-      end
+    
+    if @current_test.exception.nil?
+      test_fail = nil
+    else
+      test_fail = "Test had failure(s): #{@current_test.exception}\n#{@current_test.exception.backtrace.join("\n")}"
     end
-
-    test_fail = !@current_test.exception.nil?
 
     ref_file = fname + '.json'
     cur_file = fname + '_now.json'
     File.delete(cur_file) if File.exists?(cur_file)
     save_observations(cur_file)
 
-    reconcile_result = reconcile_observations(ref_file, cur_file,
-                                              test_fail ? 'Test had failure(s)!' : nil)
-    return :test_fail if test_fail
+    reconcile_result = reconcile_observations(ref_file, cur_file, test_fail)
+    return :test_fail unless test_fail.nil?
     return reconcile_result
   ensure
     @current_test = nil
