@@ -35,6 +35,8 @@ public abstract class Reconciler {
         return new AcceptReconciler();
       case CONSOLE:
         return new ConsoleReconciler();
+      case DIALOG:
+        return new DialogReconciler();
       case KDIFF3:
         return new KDiff3Reconciler();
       default:
@@ -200,7 +202,7 @@ public abstract class Reconciler {
    *                default.
    * @return The selected option
    */
-  private String getUserInputFromDialog(String prompt, List<String> options) {
+  protected String getUserInputFromDialog(String prompt, List<String> options) {
     return ReconcileDialog.showDialogGetValue(prompt, options);
   }
 
@@ -215,7 +217,7 @@ public abstract class Reconciler {
    *                          itself.
    * @return The selected option
    */
-  private String getUserInputFromConsole(String prompt, List<String> options,
+  protected String getUserInputFromConsole(String prompt, List<String> options,
       List<String> singleCharOptions) {
     List<String> optionsWithSingleChar = new ArrayList<>();
     for (int i = 0; i < options.size(); i++) {
@@ -351,6 +353,11 @@ class AbortReconciler extends Reconciler {
  */
 class ConsoleReconciler extends Reconciler {
 
+  protected String input(String prompt, List<String> options,
+                         List<String> singleCharOptions, String extraPromptForDialog) {
+    return getUserInput(prompt, options, singleCharOptions, extraPromptForDialog);
+  }
+
   protected Optional<List<String>> reconcileDiffs(String testName, File referenceFile,
       List<String> currentLines, List<String> unifiedDiff, String noSaveMessage) throws IOException {
     String diffMessage = null;
@@ -360,13 +367,13 @@ class ConsoleReconciler extends Reconciler {
       if (noSaveMessage != null) {
         prompt = String.format("Observations are shown for %s. Saving them not allowed: %s\n",
             testName, noSaveMessage) + "Use the diff option to show the differences.";
-        response = getUserInput(prompt, Lists.newArrayList("kdiff3", "diff", "okay"),
+        response = input(prompt, Lists.newArrayList("kdiff3", "diff", "okay"),
             Lists.newArrayList("k", "d", "o"),
             diffMessage == null ? Joiner.on("\n").join(currentLines) : diffMessage);
       } else {
         printf(getDiffString(testName, unifiedDiff));
         prompt = String.format("Do you want to accept the changes (%s)?", testName);
-        response = getUserInput(prompt, Lists.newArrayList("kdiff3", "yes", "no"),
+        response = input(prompt, Lists.newArrayList("kdiff3", "yes", "no"),
             Lists.newArrayList("k", "y", "n"), getDiffString(testName, unifiedDiff));
       }
       switch (response) {
@@ -390,6 +397,19 @@ class ConsoleReconciler extends Reconciler {
       }
       return Optional.absent();
     }
+  }
+
+}
+
+/**
+ * A {@code Reconciler} which requests input from the user via a modal dialog box.
+ */
+class DialogReconciler extends ConsoleReconciler {
+
+  @Override
+  protected String input(String prompt, List<String> options,
+                         List<String> singleCharOptions, String extraPromptForDialog) {
+    return getUserInputFromDialog(extraPromptForDialog + "\n" + prompt, options);
   }
 
 }

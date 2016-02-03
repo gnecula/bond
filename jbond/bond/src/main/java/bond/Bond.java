@@ -459,7 +459,7 @@ public class Bond {
     } else {
       String reconciler = System.getenv("BOND_RECONCILE");
       if (reconciler == null || reconciler.equals("")) {
-        return ReconcileType.ABORT;
+        return ReconcileType.CONSOLE;
       }
       return ReconcileType.getFromName(reconciler);
     }

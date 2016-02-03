@@ -8,11 +8,15 @@ public enum ReconcileType {
   /**
    * Console-type reconciliation. The user will be asked to provide input
    * on what actions to take via the console, or, if none is present, through
-   * a modal dialog box.
+   * a modal dialog box (this is the default).
    */
   CONSOLE ("console"),
   /**
-   * Do not accept any new changes (fail-fast; this is the default).
+   * Reconcile using a modal dialog box.
+   */
+  DIALOG ("dialog"),
+  /**
+   * Do not accept any new changes.
    */
   ABORT ("abort"),
   /**

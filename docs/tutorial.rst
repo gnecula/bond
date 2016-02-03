@@ -377,7 +377,7 @@ and a small reconciliation menu, as shown below:
                          }
         
             There were differences in observations for NodeTest.test_bst:
-            Do you want to accept the changes (NodeTest.test_bst) ? ( [y]es | [k]diff3 | *):
+            Do you want to accept the changes (NodeTest.test_bst) ? ( [y]es | [k]diff3 | [n]o):
 
     .. container:: tab-section-ruby
 
@@ -398,7 +398,7 @@ and a small reconciliation menu, as shown below:
                    }
 
             There were differences in observations for bst_spec.Node_should_add_nodes_to_the_BST_correctly__testing_with_Bond: 
-            Do you want to accept the changes (bst_spec.Node_should_add_nodes_to_the_BST_correctly__testing_with_Bond) ? ( [y]es | [k]diff3 | *): 
+            Do you want to accept the changes (bst_spec.Node_should_add_nodes_to_the_BST_correctly__testing_with_Bond) ? ( [y]es | [k]diff3 | [n]o): 
 
 
     .. container:: tab-section-JAVA
@@ -450,7 +450,8 @@ variable ``BOND_RECONCILE``, with possible values:
 
 * ``accept`` : accept the new observations and change the reference
 * ``abort`` : abort the test
-* ``console`` : show the above console interaction menu
+* ``console`` : show the above console interaction menu, falling back to a dialog box if a console is not available
+* ``dialog`` : ask for user input via a popup dialog box 
 * ``kdiff3``: invoke the ``kdiff3`` merging tool (must have it installed and available in your ``PATH``)
 
 If the test fails, then you will still be shown the differences in the observations, but you will not have
