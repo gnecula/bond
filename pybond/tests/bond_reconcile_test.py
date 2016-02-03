@@ -41,7 +41,7 @@ class ReconcileTest(unittest.TestCase):
         bond.deploy_agent('bond_reconcile._random_string', result='random')
 
         self.console_reply = []  # List of strings to reply when we try to read from console
-        bond.deploy_agent('bond_reconcile._read_console',
+        bond.deploy_agent('bond_reconcile._get_user_input',
                           result=lambda obs: self.console_reply.pop(0) if self.console_reply
                           else bond.AGENT_RESULT_CONTINUE)
 
@@ -116,7 +116,7 @@ class ReconcileTest(unittest.TestCase):
 
     def test_no_reference(self, no_save=None):
         "Test with no reference file"
-        self.console_reply = ['y']  # Do accept
+        self.console_reply = ['yes']  # Do accept
         self.prepare_observations(reference_file_content=None)
         self.invoke_top_reconcile(reconcile='console',
                                   current_lines=self.reference_file_content_lines,
@@ -154,63 +154,65 @@ class ReconcileTest(unittest.TestCase):
         self.helper_test_reconcile(reconcile='abort')
 
     def test_reconcile_console0(self):
-        "Test with console tool, answer: y"
-        self.console_reply = ['y']  # Do accept
+        "Test with console tool, answer: yes"
+        self.console_reply = ['yes']  # Do accept
         self.helper_test_reconcile(reconcile='console')
 
     def test_reconcile_console0_no_save(self):
-        "Test with console tool, answer: y, but no_save"
-        self.console_reply = ['y']  # Do accept
+        "Test with console tool, answer: yes, but no_save"
+        self.console_reply = ['yes']  # Do accept
         self.helper_test_reconcile(reconcile='console',
                                    no_save='No saving, period.')
 
     def test_reconcile_console0_no_save_diff(self):
-        "Test with console tool, answer: d, to get the diff, then y, but no_save"
-        self.console_reply = ['d', 'e', 'y']  # Do accept
+        "Test with console tool, answer: diff, , then yes, but no_save"
+        self.console_reply = ['diff', 'errors', 'yes']  # Do accept
         self.helper_test_reconcile(reconcile='console',
                                    no_save='No saving, period.')
 
     def test_reconcile_console1(self):
-        self.console_reply = ['n']  # Do not accept
+        self.console_reply = ['no']  # Do not accept
         self.helper_test_reconcile(reconcile='console')
 
     def test_reconcile_console_k0(self):
-        "Test with console tool, answer=k, then Kdiff3 merges"
-        self.console_reply = ['k']  # Switch to kdiff3
+        "Test with console tool, answer=kdiff3, then Kdiff3 merges"
+        self.console_reply = ['kdiff3', 'continue']  # Switch to kdiff3
         self.kdiff3_result = 0    # Kdiff3 is happy
         self.helper_test_reconcile(reconcile='console')
 
     def test_reconcile_console_k0_no_save(self):
-        "Test with console tool, answer=k, then confirm, then Kdiff3 in diff mode"
-        self.console_reply = ['k', 'y']  # Switch to kdiff3, then confirm
+        "Test with console tool, answer=kdiff3, then confirm, then Kdiff3 in diff mode"
+        self.console_reply = ['kdiff3', 'yes', 'continue']  # Switch to kdiff3, then confirm
         self.kdiff3_result = 0    # Kdiff3 is happy
         self.helper_test_reconcile(reconcile='console', no_save='No saving, I say so')
 
     def test_reconcile_console_k0_no_save_deny(self):
-        "Test with console tool, answer=k, then deny Kdiff3"
-        self.console_reply = ['k', 'n']  # Switch to kdiff3, then deny
+        "Test with console tool, answer=kdiff3, then deny Kdiff3"
+        self.console_reply = ['kdiff3', 'no']  # Switch to kdiff3, then deny
         self.kdiff3_result = 0    # Kdiff3 is happy
         self.helper_test_reconcile(reconcile='console', no_save='No saving, I say so')
 
     def test_reconcile_console_k1(self):
-        self.console_reply = ['k']  # Switch to kdiff3
+        self.console_reply = ['kdiff3', 'continue']  # Switch to kdiff3
         self.kdiff3_result = 1    # Kdiff3 is NOT happy
         self.helper_test_reconcile(reconcile='console')
 
     def test_reconcile_kdiff3_0(self):
+        self.console_reply = ['continue']
         self.kdiff3_result = 0    # Kdiff3 is happy
         self.helper_test_reconcile(reconcile='kdiff3')
 
     def test_reconcile_kdiff3_0_no_save(self):
-        self.console_reply = ['y']  # Confirm kdiff3
+        self.console_reply = ['yes', 'continue']  # Confirm kdiff3
         self.kdiff3_result = 0    # Kdiff3 is happy
         self.helper_test_reconcile(reconcile='kdiff3', no_save='not needed')
 
     def test_reconcile_kdiff3_1(self):
+        self.console_reply = ['continue']
         self.kdiff3_result = 1    # Kdiff3 is NOT happy
         self.helper_test_reconcile(reconcile='kdiff3')
 
     def test_reconcile_kdiff3_1_no_save(self):
-        self.console_reply = ['y']  # Confirm kdiff3
+        self.console_reply = ['yes', 'continue']  # Confirm kdiff3
         self.kdiff3_result = 1    # Kdiff3 is NOT happy
         self.helper_test_reconcile(reconcile='kdiff3', no_save='not needed')

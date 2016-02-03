@@ -5,20 +5,30 @@
     "reference_lines": "\n[\n{\n   \"__spy_point__\" : \"point 1\",\n   val\" : 12345\n}\n]\n"
 },
 {
-    "__spy_point__": "bond_reconcile._read_console", 
-    "prompt": "Observations are shown for test 1. Saving them not allowed because test failed. Use the diff option to show the differences. ([k]diff3 | [d]iff | [e] errors | *): "
+    "__spy_point__": "bond_reconcile._get_user_input", 
+    "options": [
+        "kdiff3", 
+        "diff", 
+        "errors", 
+        "continue"
+    ], 
+    "prompt": "Observations are shown for test 1. Saving them not allowed because test failed. Use the diff option to show the differences."
 },
 {
-    "__spy_point__": "bond_reconcile._read_console.result", 
-    "result": "k"
+    "__spy_point__": "bond_reconcile._get_user_input.result", 
+    "result": "kdiff3"
 },
 {
-    "__spy_point__": "bond_reconcile._read_console", 
-    "prompt": "\n!!! MERGING NOT ALLOWED for test 1: No saving, I say so. Want to start kdiff3? ([y]es | *): "
+    "__spy_point__": "bond_reconcile._get_user_input", 
+    "options": [
+        "yes", 
+        "no"
+    ], 
+    "prompt": "\n!!! MERGING NOT ALLOWED for test 1: No saving, I say so. Want to start kdiff3?"
 },
 {
-    "__spy_point__": "bond_reconcile._read_console.result", 
-    "result": "y"
+    "__spy_point__": "bond_reconcile._get_user_input.result", 
+    "result": "yes"
 },
 {
     "__spy_point__": "bond_reconcile._invoke_command", 

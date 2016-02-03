@@ -5,12 +5,18 @@
     "reference_lines": "\n[\n{\n   \"__spy_point__\" : \"point 1\",\n   val\" : 12345\n}\n]\n"
 },
 {
-    "__spy_point__": "bond_reconcile._read_console", 
-    "prompt": "Observations are shown for test 1. Saving them not allowed because test failed. Use the diff option to show the differences. ([k]diff3 | [d]iff | [e] errors | *): "
+    "__spy_point__": "bond_reconcile._get_user_input", 
+    "options": [
+        "kdiff3", 
+        "diff", 
+        "errors", 
+        "continue"
+    ], 
+    "prompt": "Observations are shown for test 1. Saving them not allowed because test failed. Use the diff option to show the differences."
 },
 {
-    "__spy_point__": "bond_reconcile._read_console.result", 
-    "result": "d"
+    "__spy_point__": "bond_reconcile._get_user_input.result", 
+    "result": "diff"
 },
 {
     "__spy_point__": "bond_reconcile._print", 
@@ -37,24 +43,36 @@
     "what": "There were differences in observations for test 1: "
 },
 {
-    "__spy_point__": "bond_reconcile._read_console", 
-    "prompt": "Observations are shown for test 1. Saving them not allowed because test failed. Use the diff option to show the differences. ([k]diff3 | [d]iff | [e] errors | *): "
+    "__spy_point__": "bond_reconcile._get_user_input", 
+    "options": [
+        "kdiff3", 
+        "diff", 
+        "errors", 
+        "continue"
+    ], 
+    "prompt": "Observations are shown for test 1. Saving them not allowed because test failed. Use the diff option to show the differences."
 },
 {
-    "__spy_point__": "bond_reconcile._read_console.result", 
-    "result": "e"
+    "__spy_point__": "bond_reconcile._get_user_input.result", 
+    "result": "errors"
 },
 {
     "__spy_point__": "bond_reconcile._print", 
-    "what": "Test test 1 had errors:\nNo saving, period."
+    "what": "\u001b[91mTest test 1 had errors:\nNo saving, period.\u001b[0m"
 },
 {
-    "__spy_point__": "bond_reconcile._read_console", 
-    "prompt": "Observations are shown for test 1. Saving them not allowed because test failed. Use the diff option to show the differences. ([k]diff3 | [d]iff | [e] errors | *): "
+    "__spy_point__": "bond_reconcile._get_user_input", 
+    "options": [
+        "kdiff3", 
+        "diff", 
+        "errors", 
+        "continue"
+    ], 
+    "prompt": "Observations are shown for test 1. Saving them not allowed because test failed. Use the diff option to show the differences."
 },
 {
-    "__spy_point__": "bond_reconcile._read_console.result", 
-    "result": "y"
+    "__spy_point__": "bond_reconcile._get_user_input.result", 
+    "result": "yes"
 },
 {
     "__spy_point__": "invoke_top_reconcile_results", 

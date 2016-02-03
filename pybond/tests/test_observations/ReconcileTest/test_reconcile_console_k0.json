@@ -29,16 +29,32 @@
     "what": "There were differences in observations for test 1: "
 },
 {
-    "__spy_point__": "bond_reconcile._read_console", 
-    "prompt": "Do you want to accept the changes (test 1) ? ( [y]es | [k]diff3 | *): "
+    "__spy_point__": "bond_reconcile._get_user_input", 
+    "options": [
+        "kdiff3", 
+        "yes", 
+        "no"
+    ], 
+    "prompt": "Do you want to accept the changes (test 1)?"
 },
 {
-    "__spy_point__": "bond_reconcile._read_console.result", 
-    "result": "k"
+    "__spy_point__": "bond_reconcile._get_user_input.result", 
+    "result": "kdiff3"
 },
 {
     "__spy_point__": "bond_reconcile._invoke_command", 
     "cmd": "kdiff3 -m \"/tmp/bond_tmp_random.ref\" --L1 \"test 1_REFERENCE\" \"/tmp/bond_tmp_random.curr\" --L2 \"test 1_CURRENT\"  -o \"/tmp/bond_tmp_random.merged\""
+},
+{
+    "__spy_point__": "bond_reconcile._get_user_input", 
+    "options": [
+        "continue"
+    ], 
+    "prompt": "Merge successful; saving a new reference file. "
+},
+{
+    "__spy_point__": "bond_reconcile._get_user_input.result", 
+    "result": "continue"
 },
 {
     "__spy_point__": "bond_reconcile._print", 

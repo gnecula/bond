@@ -29,12 +29,17 @@
     "what": "There were differences in observations for test 1: "
 },
 {
-    "__spy_point__": "bond_reconcile._read_console", 
-    "prompt": "Do you want to accept the changes (test 1) ? ( [y]es | [k]diff3 | *): "
+    "__spy_point__": "bond_reconcile._get_user_input", 
+    "options": [
+        "kdiff3", 
+        "yes", 
+        "no"
+    ], 
+    "prompt": "Do you want to accept the changes (test 1)?"
 },
 {
-    "__spy_point__": "bond_reconcile._read_console.result", 
-    "result": "y"
+    "__spy_point__": "bond_reconcile._get_user_input.result", 
+    "result": "yes"
 },
 {
     "__spy_point__": "bond_reconcile._print", 
