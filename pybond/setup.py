@@ -10,7 +10,7 @@ def readme():
 setup(
     name='bond',
     packages=['bond', 'bond.bond_helpers'],
-    version='1.0.0',
+    version='1.1.0',
     description='Testing with Spies and Mocks',
     long_description=readme(),
     summary='Testing with Spies and Mocks',
