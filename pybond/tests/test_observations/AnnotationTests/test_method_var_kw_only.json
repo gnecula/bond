@@ -1,0 +1,21 @@
+[
+{
+    "__spy_point__": "AnnotationTests.annotated_method_var_kw_only", 
+    "args": [
+        "arg1", 
+        "arg2"
+    ]
+},
+{
+    "__spy_point__": "AnnotationTests.annotated_method_var_kw_only", 
+    "arg1": "myvalue"
+},
+{
+    "__spy_point__": "AnnotationTests.annotated_method_var_kw_only", 
+    "arg3": "value", 
+    "args": [
+        "arg1", 
+        "arg2"
+    ]
+}
+]

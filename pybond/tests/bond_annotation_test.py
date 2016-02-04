@@ -34,6 +34,10 @@ class AnnotationTests(unittest.TestCase):
     def annotated_method_mixed_variable_args(self, arg1, arg2=None, *my_args, **my_kwargs):
         return 'return value'
 
+    @bond.spy_point()
+    def annotated_method_var_kw_only(self, *args, **kwargs):
+        return 'return value'
+
     def test_standard_annotation(self):
         self.assertEquals('return value', self.annotated_standard_method(1, 2))
 
@@ -69,6 +73,11 @@ class AnnotationTests(unittest.TestCase):
         self.annotated_method_mixed_variable_args('val1', 'val2', 'val3', 'val4', arg5='val5')
         self.annotated_method_mixed_variable_args('val1', arg2='val2', arg3='val3', arg4='val4')
         self.annotated_method_mixed_variable_args('val1', 'val3', 'val4')
+
+    def test_method_var_kw_only(self):
+        self.annotated_method_var_kw_only('arg1', 'arg2')
+        self.annotated_method_var_kw_only(arg1='myvalue')
+        self.annotated_method_var_kw_only('arg1', 'arg2', arg3='value')
 
     @bond.spy_point(enabled_for_groups=('group1', 'group2'))
     def annotated_standard_method_enabled_for_groups(self, arg1, arg2):
