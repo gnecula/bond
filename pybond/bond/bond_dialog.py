@@ -15,6 +15,10 @@ class OptionDialog(Frame):
             self._create_widgets(prompt, options)
             self._center(master)
             master.deiconify()
+            # PyCharm likes to grab focus back from the dialog if the window is only marked as
+            # topmost temporarily, which is very annoying, so leave it as topmost.
+            # TODO ETK When settings are better laid out, this should be configurable.
+            master.attributes('-topmost', 1)
 
     @staticmethod
     def create_dialog_get_value(prompt, options):
@@ -28,6 +32,7 @@ class OptionDialog(Frame):
         :return: The option that the user selected.
         """
         root = Tk()
+        root.title('Bond Reconciliation')
         dialog = OptionDialog(root, prompt, options)
         dialog.mainloop()
         try:
