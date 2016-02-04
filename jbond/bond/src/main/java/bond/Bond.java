@@ -7,8 +7,7 @@ import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
 import com.google.common.io.Files;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -380,7 +379,10 @@ public class Bond {
    * @throws IOException If writing out observations fails.
    */
   static void finishTest(Throwable e) throws IOException {
-    finishTest("Test had failure(s): " + e);
+    Writer stackTraceWriter = new StringWriter();
+    PrintWriter stackTracePrintWriter = new PrintWriter(stackTraceWriter);
+    e.printStackTrace(stackTracePrintWriter);
+    finishTest(String.format("Test had failure(s): %s\n%s", e, stackTraceWriter.toString()));
   }
 
   /**

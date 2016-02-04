@@ -1,6 +1,5 @@
 package bond;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;

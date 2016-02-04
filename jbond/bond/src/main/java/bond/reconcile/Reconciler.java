@@ -75,7 +75,7 @@ public abstract class Reconciler {
     List<Delta> deltas = patch.getDeltas();
 
     // No differences, nothing to be done
-    if (deltas.isEmpty()) {
+    if (deltas.isEmpty() && noSaveMessage == null) {
       return true;
     }
 
@@ -262,6 +262,7 @@ class KDiff3Reconciler extends Reconciler {
 
     File currentFile = new File(referenceFile.getCanonicalPath() + ".temp");
     File mergedFile = new File(referenceFile.getCanonicalPath() + ".tempmerge");
+    String resultMessage = "Merge was unsuccessful; not saving a new reference file.";
     try {
       Files.write(Joiner.on("\n").join(currentLines), currentFile, Charsets.UTF_8);
       if (!referenceFile.exists()) {
@@ -298,6 +299,7 @@ class KDiff3Reconciler extends Reconciler {
         return Optional.absent();
       } else {
         if (exitCode == 0) {
+          resultMessage = "Merge successful; saving a new result file.";
           List<String> mergedLines = Files.readLines(mergedFile, Charsets.UTF_8);
           return Optional.of(mergedLines);
         } else {
@@ -305,6 +307,8 @@ class KDiff3Reconciler extends Reconciler {
         }
       }
     } finally {
+      getUserInput(resultMessage, Lists.newArrayList("continue"), Lists.newArrayList("c"));
+
       if (currentFile.exists()) {
         currentFile.delete();
       }
@@ -360,16 +364,16 @@ class ConsoleReconciler extends Reconciler {
 
   protected Optional<List<String>> reconcileDiffs(String testName, File referenceFile,
       List<String> currentLines, List<String> unifiedDiff, String noSaveMessage) throws IOException {
-    String diffMessage = null;
+    String extraMessage = null;
     while (true) {
       String prompt;
       String response;
       if (noSaveMessage != null) {
-        prompt = String.format("Observations are shown for %s. Saving them not allowed: %s\n",
-            testName, noSaveMessage) + "Use the diff option to show the differences.";
-        response = input(prompt, Lists.newArrayList("kdiff3", "diff", "okay"),
-            Lists.newArrayList("k", "d", "o"),
-            diffMessage == null ? Joiner.on("\n").join(currentLines) : diffMessage);
+        prompt = String.format("Observations are shown for %s. Saving them not allowed because test failed.\n",
+            testName) + "Use the diff option to show the differences.";
+        response = input(prompt, Lists.newArrayList("kdiff3", "diff", "errors", "okay"),
+            Lists.newArrayList("k", "d", "e", "o"),
+            extraMessage == null ? Joiner.on("\n").join(currentLines) : extraMessage);
       } else {
         printf(getDiffString(testName, unifiedDiff));
         prompt = String.format("Do you want to accept the changes (%s)?", testName);
@@ -387,9 +391,13 @@ class ConsoleReconciler extends Reconciler {
           } else {
             break;
           }
+        case "errors":
+          extraMessage = noSaveMessage;
+          printf(extraMessage);
+          continue;
         case "diff":
-          diffMessage = getDiffString(testName, unifiedDiff);
-          printf(diffMessage);
+          extraMessage = getDiffString(testName, unifiedDiff);
+          printf(extraMessage);
           continue;
       }
       if (noSaveMessage != null) {
