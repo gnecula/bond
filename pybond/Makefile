@@ -1,3 +1,9 @@
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Darwin)
+    SED_OPTS=-i \"\"  # Syntax on OSX is a little different from Linux
+else
+    SED_OPTS=-i
+endif
 
 
 ##
@@ -47,7 +53,7 @@ pypi_test: pypi_sdist
 	@echo "** Wipe the setup_paths_test, so we use the just-installed bond"
 	echo "">bond_venv_tests/setup_paths_test.py
 	@echo "** Fake a change in observations"
-	sed -i "" -e 's/ton/little/' bond_venv_tests/test_observations/BondTest/test_result.json
+	sed $(SED_OPTS) -e 's/ton/little/' bond_venv_tests/test_observations/BondTest/test_result.json
 	@echo "** Change directory to ensure that we will only reach the installed bond"
 	cd bond_venv_tests && BOND_RECONCILE=console BOND_OBSERVATION_DIR=test_observations ../bond_venv/bin/python -m unittest discover -s . -p '*_test.py'
 
