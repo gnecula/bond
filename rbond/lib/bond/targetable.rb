@@ -145,6 +145,7 @@ module BondTargetable
     args.zip(param_list) do |value, name|
       if name.nil?
         observation["anonymous_parameter#{anon_param_cnt}".to_sym] = value
+        anon_param_cnt += 1
       else
         observation[name] = value unless options[:excluded_keys].include?(name.to_s)
       end
