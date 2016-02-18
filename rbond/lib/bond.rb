@@ -232,6 +232,7 @@ class Bond
   # has already been JSON-serialized and outputs them all as a JSON array.
   # @param fname [String] Path where the file should be saved.
   def save_observations(fname)
+    FileUtils.mkdir_p(File.dirname(fname))
     File.open(fname, 'w') do |f|
       f.print("[\n#{@observations.join(",\n")}\n]\n")
     end
