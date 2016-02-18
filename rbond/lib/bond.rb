@@ -279,6 +279,7 @@ class Bond
   # @return The formatted hash.
   def format_observation(observation, agent = nil)
     # TODO ETK actually have formatters
+    agent.format(observation) unless agent.nil?
     JSON.neat_generate(observation, sorted: true, decimals: @decimal_precision,
                        indent: ' '*4, wrap: true, after_colon: 1)
   end
@@ -364,7 +365,6 @@ class SpyAgent
   #
   #         - `formatter: func` - If specified, a function that is given the observation and
   #           can update it in place. The formatted observation is what gets serialized and saved.
-  #           **NOT YET AVAILABLE**
   #         - `skip_save_observation: Boolean` - If specified, determines whether or not the
   #           observation will be saved after all of the agent's other actions have been processed.
   #           Useful for hiding observations of a spy point that e.g. is sometimes useful but in some
@@ -373,9 +373,9 @@ class SpyAgent
   #           {BondTargetable#spy_point}.
   #
   def initialize(**opts)
-    # TODO ETK needs formatters
     @result_spec = :agent_result_none
     @exception_spec = nil
+    @formatter_spec = nil
     @doers = []
     @filters = []
     @skip_save_observation = nil
@@ -386,6 +386,8 @@ class SpyAgent
           @result_spec = v
         when 'exception'
           @exception_spec = v
+        when 'formatter'
+          @formatter_spec = v
         when 'do'
           @doers = [*v]
         when 'skip_save_observation'
@@ -425,6 +427,15 @@ class SpyAgent
       @result_spec
     end
   end
+
+  # Formats the observation according to the `formatter` option;
+  # if none is specified, do nothing. Modifies the observation
+  # in-place.
+  def format(observation)
+    unless @formatter_spec.nil?
+      @formatter_spec.call(observation)
+    end
+  end
 end
 
 # Filters used to determine whether or not a {SpyAgent} should
@@ -457,11 +468,11 @@ class SpyAgentFilter
         when 'exact','eq'
           @filter_func = lambda { |val| val == filter_value }
         when 'startswith'
-          @filter_func = lambda { |val| val.start_with?(filter_value) }
+          @filter_func = lambda { |val| val.to_s.start_with?(filter_value) }
         when 'endswith'
-          @filter_func = lambda { |val| val.end_with?(filter_value) }
+          @filter_func = lambda { |val| val.to_s.end_with?(filter_value) }
         when 'contains'
-          @filter_func = lambda { |val| val.include?(filter_value) }
+          @filter_func = lambda { |val| val.to_s.include?(filter_value) }
         else
           raise "Unknown operator: #{key_parts[1]}"
       end

@@ -1,0 +1,17 @@
+[
+{
+    "__spy_point__": "my_point",
+    "key1": "mock1",
+    "key2": {
+        "nest1": "nest_val1",
+        "nest2": "nest_mock2"
+    }
+},
+{
+    "__spy_point__": "unmodified_object",
+    "my_dict": {
+        "nest1": "nest_val1",
+        "nest2": "nest_val2"
+    }
+}
+]

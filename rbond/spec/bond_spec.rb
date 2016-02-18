@@ -146,6 +146,17 @@ describe Bond do
       bond.spy(result: bond.spy('my_point'))
     end
 
+    it 'should apply the relevant formatter without modifying original objects' do
+      my_dict = { nest1: 'nest_val1', nest2: 'nest_val2' }
+      def format_func(obs)
+        obs[:key1] = 'mock1'
+        obs[:key2][:nest2] = 'nest_mock2'
+      end
+      bond.deploy_agent('my_point', formatter: method(:format_func))
+      bond.spy('my_point', key1: 'value1', key2: my_dict)
+      bond.spy('unmodified_object', my_dict: my_dict)
+    end
+
     it 'should skip saving observations when specified' do
       bond.spy('skipped_point', skip_save_observation = true, key: 'value')
 
