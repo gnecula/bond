@@ -298,7 +298,7 @@ class ReconcileToolConsole(ReconcileTool):
                          'Use the diff option to show the differences.'.format(test_name)
                 response = self._input(prompt, ('kdiff3', 'diff', 'errors', 'continue'),
                                        ('k', 'd', 'e', 'c'),
-                                       extra_msg if extra_msg else '\n'.join(current_lines))
+                                       extra_msg if extra_msg else ''.join(current_lines))
             else:
                 # Show the diff
                 diff = self.show_diff(test_name, unified_diff)

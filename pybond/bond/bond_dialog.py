@@ -12,7 +12,7 @@ class OptionDialog(Frame):
             Frame.__init__(self, master)
             self.pack()
             self.last_button = options[-1]
-            self._create_widgets(prompt, options)
+            self._create_widgets(prompt, options, master)
             self._center(master)
             master.deiconify()
             # PyCharm likes to grab focus back from the dialog if the window is only marked as
@@ -41,7 +41,7 @@ class OptionDialog(Frame):
             pass  # Probably already destroyed, just ignore
         return dialog.last_button
 
-    def _create_widgets(self, prompt, options):
+    def _create_widgets(self, prompt, options, master):
 
         def fill_last_button(button_text):
             self.last_button = button_text
@@ -62,6 +62,14 @@ class OptionDialog(Frame):
                                 command=functools.partial(fill_last_button, option),
                                 default='active' if option == options[-1] else 'normal')
             opt_button.pack(side='right')
+
+        screen_height = master.winfo_screenheight()
+        master.update_idletasks()
+        size_y = int(master.geometry().split('+')[0].split('x')[1])
+        while size_y > screen_height*0.85:
+            textbox['height'] -= 5
+            master.update_idletasks()
+            size_y = int(master.geometry().split('+')[0].split('x')[1])
 
     def _center(self, master):
         master.update_idletasks()
