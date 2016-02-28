@@ -182,6 +182,11 @@ describe BondTargetable do
     bond.spy('return value', ret: ret)
   end
 
+  it 'correctly yields' do
+    bond.deploy_agent('TestClass#annotated_method_with_block', yield: 'yielded_val')
+    tc.annotated_method_with_block('foo') { |val| bond.spy('inside block', yielded_val: val) }
+  end
+
   it 'correctly returns nil (and mocks) when an agent returns nil' do
     arr = [0]
     bond.deploy_agent('TestClass#annotated_method_with_block', result: nil)

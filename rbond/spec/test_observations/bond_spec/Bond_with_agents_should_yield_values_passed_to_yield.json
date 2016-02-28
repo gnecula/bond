@@ -1,0 +1,10 @@
+[
+{
+    "__spy_point__": "my_point",
+    "obs_name": "foo"
+},
+{
+    "__spy_point__": "inside block",
+    "yielded_val": "yielded_value"
+}
+]

@@ -126,7 +126,7 @@ class Bond
   # @param observation Keyword arguments which should be observed.
   # @return if an agent has been set for this spy point, this will return whatever value
   #     is specified by that agent. Otherwise, returns `:agent_result_none`.
-  def spy(spy_point_name=nil, skip_save_observation=false, **observation)
+  def spy(spy_point_name=nil, skip_save_observation=false, **observation, &blk)
     return :agent_result_none unless active? # If we're not testing, don't do anything
 
     spy_point_name = spy_point_name.nil? ? nil : spy_point_name.to_s
@@ -141,10 +141,11 @@ class Bond
     end
 
     res = :agent_result_none
+    should_yield = false
     begin
       unless active_agent.nil?
         active_agent.do(observation)
-        res = active_agent.result(observation)
+        res, should_yield = active_agent.result(observation)
       end
     ensure
       if do_save_observation
@@ -155,6 +156,7 @@ class Bond
       end
     end
 
+    yield res if should_yield
     res
   end
 
@@ -359,6 +361,9 @@ class SpyAgent
   #           spied function throws an exception. The function should not make
   #           changes to the observation dictionary. Uses the observation before
   #           formatting.
+  #         - `yield: x` - the call to bond.spy yields the given value. If `x` is a function
+  #            it is invokved on the observe argument dictionary to compute the value to yield.
+  #            Uses the observation before formatting.
   #
   #     - Keys that control how the observation is saved. This is processed after all
   #       the above functions.
@@ -374,6 +379,7 @@ class SpyAgent
   #
   def initialize(**opts)
     @result_spec = :agent_result_none
+    @yield_spec = nil
     @exception_spec = nil
     @formatter_spec = nil
     @doers = []
@@ -384,6 +390,8 @@ class SpyAgent
       case k.to_s # Convert to string in case it was passed as a symbol
         when 'result'
           @result_spec = v
+        when 'yield'
+          @yield_spec = v
         when 'exception'
           @exception_spec = v
         when 'formatter'
@@ -420,11 +428,14 @@ class SpyAgent
     unless @exception_spec.nil?
       raise @exception_spec.respond_to?(:call) ? @exception_spec.call(observation) : @exception_spec
     end
+    unless @yield_spec.nil?
+      return @yield_spec.respond_to?(:call) ? @yield_spec.call(observation) : @yield_spec, true
+    end
 
     if !@result_spec.nil? && @result_spec.respond_to?(:call)
-      @result_spec.call(observation)
+      return @result_spec.call(observation), false
     else
-      @result_spec
+      return @result_spec, false
     end
   end
 

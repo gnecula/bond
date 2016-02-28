@@ -99,6 +99,16 @@ describe Bond do
       bond.spy(result: bond.spy('my_point', obs_name: 'foo'))
     end
 
+    it 'should yield values passed to yield' do
+      bond.deploy_agent('my_point', yield: 'yielded_value')
+      bond.spy('my_point', obs_name: 'foo') { |val| bond.spy('inside block', yielded_val: val) }
+    end
+
+    it 'should call the object passed to yield if it is a function' do
+      bond.deploy_agent('my_point', yield: lambda { |obs| obs[:obs_name] })
+      bond.spy('my_point', obs_name: 'foo') { |val| bond.spy('inside block', yielded_val: val) }
+    end
+
     it 'should throw an exception if specified by agent' do
       bond.deploy_agent('my_point', exception: TypeError.new('TypeError exception!'))
       begin

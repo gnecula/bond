@@ -154,7 +154,11 @@ module BondTargetable
       observation[name] = value unless options[:excluded_keys].include?(name.to_s)
     end
 
-    ret = Bond.instance.spy(spy_point_name, options[:mock_only], observation)
+    yielded_val = []
+    ret = Bond.instance.spy(spy_point_name, options[:mock_only], observation) { |val|
+      yielded_val.push(val)
+    }
+
     if options[:require_agent_result] && ret == :agent_result_none
       raise "#{spy_point_name} requires mocking but received :agent_result_none"
     end
@@ -167,6 +171,8 @@ module BondTargetable
       end
     end
     Bond.instance.spy("#{spy_point_name}.result", result: ret) if options[:spy_result]
+
+    yield yielded_val[0] unless yielded_val.empty?
     ret
   end
 

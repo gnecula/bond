@@ -1,0 +1,10 @@
+[
+{
+    "__spy_point__": "TestClass#annotated_method_with_block",
+    "arg1": "foo"
+},
+{
+    "__spy_point__": "inside block",
+    "yielded_val": "yielded_val"
+}
+]
