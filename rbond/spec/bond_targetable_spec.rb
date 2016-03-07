@@ -165,6 +165,18 @@ describe BondTargetable do
     tc.method_calling_private
   end
 
+  it 'correctly differentiates object instances if register_instance has been called' do
+    tc1 = TestClass.new
+    tc2 = TestClass.new
+
+    bond.register_instance(tc1, 'TestClass1')
+    bond.register_instance(tc2, 'TestClass2')
+
+    tc1.annotated_standard_method('foo', '1')
+    tc2.annotated_standard_method('foo', '2')
+    tc.annotated_standard_method('foo', 'bar')
+  end
+
   it 'correctly continues to the method when agent_result_continue is returned' do
     bond.deploy_agent('mock_required', result: :agent_result_continue)
     ret = tc.annotated_method_mocking_required('value1')

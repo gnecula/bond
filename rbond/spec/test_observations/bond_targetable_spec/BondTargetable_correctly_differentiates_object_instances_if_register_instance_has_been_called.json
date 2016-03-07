@@ -1,0 +1,19 @@
+[
+{
+    "__instance_name__": "TestClass1",
+    "__spy_point__": "TestClass#annotated_standard_method",
+    "arg1": "foo",
+    "arg2": "1"
+},
+{
+    "__instance_name__": "TestClass2",
+    "__spy_point__": "TestClass#annotated_standard_method",
+    "arg1": "foo",
+    "arg2": "2"
+},
+{
+    "__spy_point__": "TestClass#annotated_standard_method",
+    "arg1": "foo",
+    "arg2": "bar"
+}
+]

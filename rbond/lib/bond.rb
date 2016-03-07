@@ -90,6 +90,7 @@ class Bond
     @spy_agents = Hash.new { |hash, key|
       hash[key] = []
     }
+    @instance_names = Hash.new
     @decimal_precision = decimal_precision.nil? ? 4 : decimal_precision
     @observation_directory = nil
     @current_test = rspec_test
@@ -171,6 +172,27 @@ class Bond
     raise 'You must enable testing before using deploy_agent' unless active?
     spy_point_name = spy_point_name.to_s
     @spy_agents[spy_point_name] = @spy_agents[spy_point_name].unshift(SpyAgent.new(**opts))
+  end
+
+  # Register a specific object instance, giving it a name. Subsequent to this, whenever
+  # a call to a method being spied on (via {BondTargetable#spy_point}) is made on the
+  # given instance, the observation will include "`__instance_name__: name`".
+  # This can be useful to differentiate calls made to different objects of the
+  # same type.
+  # @param object_instance [Object] The object instance to register a name to.
+  # @param name [#to_s] The name to give the object instance.
+  def register_instance(object_instance, name)
+    raise 'You must enable testing before using register_instance' unless active?
+    @instance_names[object_instance.object_id] = name.to_s
+  end
+
+  # Internal method; used to retrieve the name associated with a given object instance.
+  # @param object_instance [Object] The object instance for which to look up a name
+  # @return `nil` if no name is associated with `object_instance`, else the associated name
+  #     (from a previous call to `register_instance`).
+  # @private
+  def instance_name(object_instance)
+    @instance_names[object_instance.object_id]
   end
 
   private

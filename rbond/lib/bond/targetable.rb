@@ -154,8 +154,13 @@ module BondTargetable
       observation[name] = value unless options[:excluded_keys].include?(name.to_s)
     end
 
+    instance_name = Bond.instance.instance_name(method.receiver)
+    unless instance_name.nil?
+      observation[:__instance_name__] = instance_name
+    end
+
     yielded_val = []
-    ret = Bond.instance.spy(spy_point_name, options[:mock_only], observation) { |val|
+    ret = Bond.instance.spy(spy_point_name, options[:mock_only], **observation) { |val|
       yielded_val.push(val)
     }
 
