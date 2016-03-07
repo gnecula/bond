@@ -3,8 +3,43 @@ require 'spec_helper'
 describe BondTargetable do
   include_context :bond
 
-  class TestClass
+  module IncludedModule
     extend BondTargetable
+
+    bond.spy_point
+    def annotated_included_method(arg1) end
+
+    def unannotated_included_method(arg1) end
+  end
+
+  module ExtendedModule
+    extend BondTargetable
+
+    bond.spy_point
+    def annotated_extended_method(arg1) end
+
+    def unannotated_extended_method(arg1) end
+  end
+  
+  class BaseClass
+    extend BondTargetable
+    
+    bond.spy_point
+    def annotated_base_method(arg1) end
+
+    def unannotated_base_method(arg1) end
+  end
+
+  class TestClass < BaseClass
+    extend BondTargetable
+    include IncludedModule
+    extend ExtendedModule
+
+    bond.spy_point_on(:unannotated_base_method)
+    bond.spy_point_on(:unannotated_included_method)
+    bond.spy_point_on(:unannotated_extended_method)
+
+    bond.spy_point_on(:unannotated_standard_method)
 
     bond.spy_point
     def annotated_standard_method(arg1, arg2) end
@@ -50,6 +85,8 @@ describe BondTargetable do
 
     bond.spy_point
     def annotated_method_with_block(arg1, &blk) yield; end
+
+    def unannotated_standard_method(arg1) end
 
     def method_calling_protected; annotated_protected_method('value') end
 
@@ -157,6 +194,32 @@ describe BondTargetable do
     end
   end
 
+  context 'with inheritance and mixins' do
+    it 'correctly applies spy_point_on to methods in base classes' do
+      tc.unannotated_base_method('foo')
+    end
+
+    it 'correctly spies on annotated methods in base classes' do
+      tc.annotated_base_method('foo')
+    end
+
+    it 'correctly applies spy_point_on to methods in included modules' do
+      tc.unannotated_included_method('foo')
+    end
+
+    it 'correctly spies on annotated methods in included modules' do
+      tc.annotated_included_method('foo')
+    end
+
+    it 'correctly applies spy_point_on to methods in extended modules' do
+      TestClass.unannotated_extended_method('foo')
+    end
+
+    it 'correctly spies on annotated methods in extended modules' do
+      TestClass.annotated_extended_method('foo')
+    end
+  end
+  
   it 'correctly spies protected methods' do
     tc.method_calling_protected
   end
@@ -177,6 +240,10 @@ describe BondTargetable do
     tc.annotated_standard_method('foo', 'bar')
   end
 
+  it 'respects spy_point_on' do
+    tc.unannotated_standard_method('foo')
+  end
+  
   it 'correctly continues to the method when agent_result_continue is returned' do
     bond.deploy_agent('mock_required', result: :agent_result_continue)
     ret = tc.annotated_method_mocking_required('value1')
