@@ -276,7 +276,7 @@ class Bond
         name
       else
         # Using djb2 hash algorithm translated from http://www.cse.yorku.ca/~oz/hash.html
-        name_hash = name.chars.inject(5381) { |sum, c| ((sum << 5) + sum) + c.to_i }
+        name_hash = name.chars.inject(5381) { |sum, c| (((sum << 5) + sum) + c.ord) % 2**64 }
         # Take start of name, up to first 10 chars of the hash as base 36 (alphanumerics)
         name[0, MAX_FILE_NAME_LENGTH - 15] + name_hash.to_s(36)[0, 10]
       end
