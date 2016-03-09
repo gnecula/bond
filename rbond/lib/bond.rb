@@ -270,13 +270,34 @@ class Bond
   # longer than {#MAX_FILE_NAME_LENGTH} - 5 (to account for a possible
   # `.json` extension), reduce the length to 10 characters less than
   # this and fill the remaining 10 characters with a hash of the full name.
+  #
+  # An old version of this would return a very conflict-heavy hash which was
+  # dependent only on the length of the file name; for backwards compatibility,
+  # if a file cannot be found with the normal hash, this checks for one with
+  # the older style of hash as well, and if found, returns that file name.
   def observation_file_name
+    fname = hashed_file_name
+    if not File.exist?(fname + '.json') and File.exist?(hashed_file_name(true) + '.json')
+      hashed_file_name(true)
+    else
+      fname
+    end
+  end
+
+  # Return a hashed file name as specified by {#observation_file_name}; if
+  # use_old_hash is true, it uses the older, more conflict-heavy version of
+  # the hash function.
+  def hashed_file_name(use_old_hash = false)
     name_array = @test_name.split('.').map do |name|
       if name.length <= MAX_FILE_NAME_LENGTH - 5
         name
       else
         # Using djb2 hash algorithm translated from http://www.cse.yorku.ca/~oz/hash.html
-        name_hash = name.chars.inject(5381) { |sum, c| (((sum << 5) + sum) + c.ord) % 2**64 }
+        if use_old_hash
+          name_hash = name.chars.inject(5381) { |sum, c| ((sum << 5) + sum) + c.to_i }
+        else
+          name_hash = name.chars.inject(5381) { |sum, c| (((sum << 5) + sum) + c.ord) % 2**64 }
+        end
         # Take start of name, up to first 10 chars of the hash as base 36 (alphanumerics)
         name[0, MAX_FILE_NAME_LENGTH - 15] + name_hash.to_s(36)[0, 10]
       end
