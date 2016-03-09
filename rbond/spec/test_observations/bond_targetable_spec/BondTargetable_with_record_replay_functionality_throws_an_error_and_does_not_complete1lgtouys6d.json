@@ -1,0 +1,16 @@
+[
+{
+    "__record_args__": "",
+    "__spy_point__": "TestClass#annotated_passthrough_method",
+    "obj": "foo"
+},
+{
+    "__replay_result__": "",
+    "__spy_point__": "TestClass#annotated_passthrough_method.result",
+    "result": "foo"
+},
+{
+    "__spy_point__": "rescued",
+    "exception": "Unable to continue because the recorded value was not accepted for TestClass#annotated_passthrough_method"
+}
+]

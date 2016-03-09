@@ -204,10 +204,8 @@ module BondTargetable
       observation[:__instance_name__] = instance_name
     end
 
-    yielded_val = []
-    ret = Bond.instance.spy(spy_point_name, options[:mock_only], **observation) { |val|
-      yielded_val.push(val)
-    }
+    spy_ret = Bond.instance.spy_internal(spy_point_name, options[:mock_only], **observation)
+    ret = spy_ret[:result]
 
     if options[:require_agent_result] && ret == :agent_result_none
       raise "#{spy_point_name} requires mocking but received :agent_result_none"
@@ -220,9 +218,14 @@ module BondTargetable
         ret = method.call(*args, **kwargs, &blk)
       end
     end
-    Bond.instance.spy("#{spy_point_name}.result", result: ret) if options[:spy_result]
+    if options[:spy_result] or spy_ret[:record_replay]
+      ret2 = Bond.instance.spy_internal("#{spy_point_name}.result", result: ret)[:result]
+      if spy_ret[:record_replay] and ret2 != :agent_result_none
+        return ret2 # Support for changing the returned value during recording
+      end
+    end
 
-    yield yielded_val[0] unless yielded_val.empty?
+    yield ret if spy_ret[:should_yield]
     ret
   end
 

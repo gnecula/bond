@@ -114,9 +114,9 @@ class ReconcileTest(unittest.TestCase):
                  observation_dir=collect_directory_contents(self.testing_observation_dir,
                                                             collect_file_contents=True))
 
-    def test_no_reference(self, no_save=None):
+    def test_no_reference(self, no_save=None, console_reply=['yes']):
         "Test with no reference file"
-        self.console_reply = ['yes']  # Do accept
+        self.console_reply = console_reply # Do accept
         self.prepare_observations(reference_file_content=None)
         self.invoke_top_reconcile(reconcile='console',
                                   current_lines=self.reference_file_content_lines,
@@ -124,7 +124,7 @@ class ReconcileTest(unittest.TestCase):
 
     def test_no_reference_no_save(self):
         "Test with no reference file, and no_save"
-        self.test_no_reference(no_save='I do not want to save')
+        self.test_no_reference(no_save='I do not want to save', console_reply=['continue'])
 
     def test_same(self):
         "Test with reference and current the same"
@@ -160,13 +160,13 @@ class ReconcileTest(unittest.TestCase):
 
     def test_reconcile_console0_no_save(self):
         "Test with console tool, answer: yes, but no_save"
-        self.console_reply = ['yes']  # Do accept
+        self.console_reply = ['continue']  # Do accept
         self.helper_test_reconcile(reconcile='console',
                                    no_save='No saving, period.')
 
     def test_reconcile_console0_no_save_diff(self):
         "Test with console tool, answer: diff, , then yes, but no_save"
-        self.console_reply = ['diff', 'errors', 'yes']  # Do accept
+        self.console_reply = ['diff', 'errors', 'continue']  # Do accept
         self.helper_test_reconcile(reconcile='console',
                                    no_save='No saving, period.')
 

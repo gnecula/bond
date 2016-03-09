@@ -1,0 +1,25 @@
+[
+{
+    "__record_args__": "",
+    "__spy_point__": "TestClass#annotated_passthrough_method",
+    "obj": [
+        "foobar",
+        "original"
+    ]
+},
+{
+    "__replay_result__": "",
+    "__spy_point__": "TestClass#annotated_passthrough_method.result",
+    "result": [
+        "foobar",
+        "modified"
+    ]
+},
+{
+    "__spy_point__": "Result",
+    "value": [
+        "foobar",
+        "modified"
+    ]
+}
+]

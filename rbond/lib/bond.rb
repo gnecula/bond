@@ -17,6 +17,8 @@ class Bond
   # name will be appended to uniquely identify the file.
   MAX_FILE_NAME_LENGTH = 100
 
+  attr_reader :test_name # The name of the test currently being evaluated
+
   # Returns true if Bond is currently active (in testing mode), else false.
   # If this returns false, you can safely assume that calls to {#spy} will
   # have no effect.
@@ -28,10 +30,16 @@ class Bond
   # {#start_test}. Accepts any of the keyword arguments that {#start_test} does
   # except for `test_name`, which cannot be changed.
   # @param (see #start_test)
-  def settings(spy_groups: nil, observation_directory: nil, reconcile: nil)
+  def settings(spy_groups: nil, observation_directory: nil, reconcile: nil,
+               record_mode: nil, decimal_precision: nil)
     raise 'not yet implemented' unless spy_groups.nil? # TODO spy_groups
-    @observation_directory = observation_directory unless observation_directory.nil?
-    @reconcile = reconcile unless @reconcile.nil?
+    unless observation_directory.nil?
+      @observation_directory = observation_directory
+      load_replay_values
+    end
+    @reconcile = reconcile unless reconcile.nil?
+    @record_mode = record_mode unless record_mode.nil?
+    @decimal_precision = decimal_precision unless decimal_precision.nil?
   end
 
   # Enable testing for Bond. When using RSpec, this will be called automatically
@@ -81,20 +89,22 @@ class Bond
   #     - `:kdiff3` - use the kdiff3 graphical merge tool to reconcile differences
   # @param decimal_precision The precision to use when serializing Float and Double values.
   #     If not specified, defaults to 4 decimal places.
+  # @param record_mode If true, set all record-replay style agents (see {Bond#deploy_record_replay_agent})
+  #     into record mode for the duration of this test. This is overriden if
+  #     `record_mode: false` is explicitly set on a given agent.
   #
   def start_test(rspec_test, test_name: nil, spy_groups: nil,
                  observation_directory: nil, reconcile: nil,
-                 decimal_precision: nil)
+                 decimal_precision: nil, record_mode: false)
 
     @observations = []
     @spy_agents = Hash.new { |hash, key|
       hash[key] = []
     }
+    @replay_values = Hash.new(:agent_result_none)
     @instance_names = Hash.new
-    @decimal_precision = decimal_precision.nil? ? 4 : decimal_precision
     @observation_directory = nil
     @current_test = rspec_test
-    @reconcile = reconcile
 
     if test_name.nil?
       test_file = @current_test.metadata[:file_path]
@@ -105,7 +115,9 @@ class Bond
       @test_name = test_name
     end
 
-    settings(spy_groups: spy_groups, observation_directory: observation_directory, reconcile: reconcile)
+    settings(spy_groups: spy_groups, observation_directory: observation_directory, record_mode: record_mode,
+             reconcile: reconcile, decimal_precision: decimal_precision.nil? ? 4 : decimal_precision)
+    load_replay_values
   end
 
   # The main entrypoint, used to observe some program state. If Bond is not active,
@@ -121,44 +133,14 @@ class Bond
   # @param spy_point_name [#to_s] The name of this spy point. Will be used to subsequently
   #     refer to this point for, e.g., {#deploy_agent}. This name also gets printed as
   #     part of the observation with the key `__spy_point__`.
-  # @param skip_save_observation [Boolean] Whether or not to skip recording the observation
-  #     created during this call to spy; other agent actions are enabled regardless. This is
-  #     used by {BondTargetable#spy_point} to enable `mock_only` spy points.
   # @param observation Keyword arguments which should be observed.
-  # @return if an agent has been set for this spy point, this will return whatever value
-  #     is specified by that agent. Otherwise, returns `:agent_result_none`.
-  def spy(spy_point_name=nil, skip_save_observation=false, **observation, &blk)
-    return :agent_result_none unless active? # If we're not testing, don't do anything
-
-    spy_point_name = spy_point_name.nil? ? nil : spy_point_name.to_s
-
-    observation[:__spy_point__] = spy_point_name unless spy_point_name.nil?
-    observation = deep_clone(observation)
-    active_agent = spy_point_name.nil? ? nil : @spy_agents[spy_point_name].find { |agent| agent.process?(observation) }
-
-    do_save_observation = !skip_save_observation
-    unless active_agent.nil? or active_agent.skip_save_observation.nil?
-      do_save_observation = !active_agent.skip_save_observation
-    end
-
-    res = :agent_result_none
-    should_yield = false
-    begin
-      unless active_agent.nil?
-        active_agent.do(observation)
-        res, should_yield = active_agent.result(observation)
-      end
-    ensure
-      if do_save_observation
-        formatted = format_observation(observation, active_agent)
-        @observations <<= formatted
-        #TODO ETK printing
-        puts "Observing: #{formatted} #{", returning <#{res.to_s}>" if res != :agent_result_none}"
-      end
-    end
-
-    yield res if should_yield
-    res
+  # @return if an agent has been set for this spy point, this will return (or, if specified,
+  #     yield) whatever value is specified by that agent. Otherwise, returns `:agent_result_none`.
+  def spy(spy_point_name=nil, **observation, &blk)
+    spy_res = spy_internal(spy_point_name, false, **observation, &blk)
+    result = spy_res[:result]
+    yield result if spy_res[:should_yield]
+    result
   end
 
   # Deploy an agent to watch a specific spy point. The most recently deployed agent
@@ -174,6 +156,38 @@ class Bond
     @spy_agents[spy_point_name] = @spy_agents[spy_point_name].unshift(SpyAgent.new(**opts))
   end
 
+  # Deploy a record-replay style agent to watch a specific spy point. The most
+  # recently deployed agent will always take precedence over any previous agents
+  # for a given spy point. However, if the most recent agent does not apply to the
+  # current observation (because its filters do not match), the next most recent agent
+  # will be used, and so on. At most one agent will be applied.
+  # Note that this agent type is *only* valid for method spy points, i.e. those specified
+  # by {BondTargetable#spy_point} or {BondTargetable#spy_point_on}.
+  # This agent is special in that it implements record-replay. If `record_mode` is `true`,
+  # any time during testing that this agent is activated, it will call the underlying method,
+  # record the output of the method, and display it to the user. The user then has the option
+  # of accepting the output of the method, or first editing that output. The (optionally
+  # edited) output will be saved for future use when in replay mode. If `record_mode` is `false`
+  # (the default), the record-replay agent will search for a saved value to use (based on the
+  # arguments to the method being spied on) and return that value. This is useful for e.g.
+  # mocking out complex HTTP interactions; simply play it once in record mode, see that
+  # the external system responded as expected, and save for future use.
+  # Only invocations whose parameters match the recorded invocation exactly will be
+  # replayed; a single spy point can store multiple replay values with different
+  # call arguments simultaneously.
+  # @param spy_point_name [#to_s] The name of the spy point for which to deploy this agent
+  # @param (see RecordReplaySpyAgent#initialize)
+  def deploy_record_replay_agent(spy_point_name, **opts)
+    raise 'You must enable testing before using deploy_record_replay_agent' unless active?
+    spy_point_name = spy_point_name.to_s
+    unless opts.has_key?(:record_mode) # User-specified overrides test settings
+      opts[:record_mode] = @record_mode
+    end
+    agent = RecordReplaySpyAgent.new(**opts)
+    @spy_agents[spy_point_name] = @spy_agents[spy_point_name].unshift(agent)
+    @spy_agents[spy_point_name + '.result'] = @spy_agents[spy_point_name + '.result'].unshift(agent)
+  end
+
   # Register a specific object instance, giving it a name. Subsequent to this, whenever
   # a call to a method being spied on (via {BondTargetable#spy_point}) is made on the
   # given instance, the observation will include "`__instance_name__: name`".
@@ -186,6 +200,63 @@ class Bond
     @instance_names[object_instance.object_id] = name.to_s
   end
 
+  # An internal-use only method for passing some extra parameters to and getting extra
+  # returns from spy; used to facilitate spy_points.
+  # @param skip_save_observation [Boolean] Whether or not to skip recording the observation
+  #     created during this call to spy; other agent actions are enabled regardless. This is
+  #     used by {BondTargetable#spy_point} to enable `mock_only` spy points.
+  # @param (see #spy)
+  # @private
+  def spy_internal(spy_point_name=nil, skip_save_observation=false, **observation, &blk)
+    return :agent_result_none unless active? # If we're not testing, don't do anything
+
+    spy_point_name = spy_point_name.nil? ? nil : spy_point_name.to_s
+
+    observation[:__spy_point__] = spy_point_name unless spy_point_name.nil?
+    observation = deep_clone(observation)
+    active_agent = spy_point_name.nil? ? nil : @spy_agents[spy_point_name].find { |agent| agent.process?(observation) }
+
+    do_save_observation = !skip_save_observation
+    unless active_agent.nil? or active_agent.skip_save_observation.nil?
+      do_save_observation = !active_agent.skip_save_observation
+    end
+
+    spy_ret = { result: :agent_result_none, should_yield: false, record_replay: false }
+    begin
+      unless active_agent.nil?
+        active_agent.do(observation)
+        spy_ret = active_agent.result(observation)
+      end
+    ensure
+      if do_save_observation
+        formatted = format_observation(observation, active_agent)
+        @observations <<= formatted
+        #TODO ETK printing
+        puts "Observing: #{formatted} #{", returning <#{spy_ret[:result].to_s}>" if spy_ret[:result] != :agent_result_none}"
+      end
+    end
+
+    spy_ret
+  end
+
+  # Look for a saved replay value matching the given observation
+  # @private
+  def get_replay_value(observation)
+    @replay_values[Utils.observation_json_serde(observation)]
+  end
+
+  # Add in a new replay value to the mapping; this should be done whenever
+  # a value is recorded so that it can be reused later.
+  # @private
+  def add_replay_value(observation, value)
+    cleaned_obs = Utils.observation_json_serde(observation)
+    cleaned_obs[:__replay_index__] = 0
+    while @replay_values.has_key?(cleaned_obs)
+      cleaned_obs[:__replay_index__] = cleaned_obs[:__replay_index__] + 1
+    end
+    @replay_values[cleaned_obs] = value
+  end
+
   # Internal method; used to retrieve the name associated with a given object instance.
   # @param object_instance [Object] The object instance for which to look up a name
   # @return `nil` if no name is associated with `object_instance`, else the associated name
@@ -196,6 +267,53 @@ class Bond
   end
 
   private
+
+  # Directory containing the Python scripts Ruby-Bond relies on.
+  BOND_PYTHON_DIR = File.join(File.dirname(File.dirname(__FILE__)), 'bin')
+  # Script for reconciliation
+  BOND_RECONCILE_SCRIPT = File.absolute_path(File.join(BOND_PYTHON_DIR, 'bond_reconcile.py'))
+  # Script for obtaining user input
+  BOND_DIALOG_SCRIPT = File.absolute_path(File.join(BOND_PYTHON_DIR, 'bond_dialog.py'))
+
+  # Return the file name where observations for the current test should be
+  # stored. Any hierarchy (as specified by .) in the test name becomes
+  # a directory hierarchy, e.g. a test name of 'bond.my_tests.test_name'
+  # would be stored at '`{base_directory}`/bond/my_tests/test_name.json'
+  # If any portion of the file name (i.e. a directory or file name) is
+  # longer than {#MAX_FILE_NAME_LENGTH} - 5 (to account for a possible
+  # `.json` extension), reduce the length to 10 characters less than
+  # this and fill the remaining 10 characters with a hash of the full name.
+  #
+  # An old version of this would return a very conflict-heavy hash which was
+  # dependent only on the length of the file name; for backwards compatibility,
+  # if a file cannot be found with the normal hash, this checks for one with
+  # the older style of hash as well, and if found, returns that file name.
+  def observation_file_name
+    fname = hashed_file_name
+    if not File.exist?(fname + '.json') and File.exist?(hashed_file_name(true) + '.json')
+      hashed_file_name(true)
+    else
+      fname
+    end
+  end
+
+  # Load all of the replay values in the current observation file into the
+  # replay_values map.
+  def load_replay_values
+    fname = observation_file_name + '.json'
+    return unless File.exist?(fname) # Can't load if we don't have an existing obs file
+    File.open(fname, 'r') do |f|
+      observations = Utils.observation_from_json(f.read)
+      last_args = nil
+      observations.each do |obs|
+        if obs.has_key?(:__record_args__)
+          last_args = obs
+        elsif obs.has_key?(:__replay_result__)
+          add_replay_value(last_args, obs[:result])
+        end
+      end
+    end
+  end
 
   # Clean up from the current test. Marks Bond as no longer active, and saves
   # all of the current observations to a file specified by {#observation_file_name}.
@@ -236,12 +354,11 @@ class Bond
   #     and the string will be displayed as the reason why saving is not allowed.
   # @return `:pass` if the reconciliation succeeds, else `:bond_fail`
   def reconcile_observations(ref_file, cur_file, no_save=nil)
-    bond_reconcile_script = File.absolute_path(File.join(File.dirname(File.dirname(__FILE__)), 'bin', 'bond_reconcile.py'))
-    unless File.exists?(bond_reconcile_script)
-      raise "Cannot find the bond_reconcile script: #{bond_reconcile_script}"
+    unless File.exists?(BOND_RECONCILE_SCRIPT)
+      raise "Cannot find the bond_reconcile script: #{BOND_RECONCILE_SCRIPT}"
     end
 
-    cmd = "#{Shellwords.shellescape(bond_reconcile_script)} " +
+    cmd = "#{Shellwords.shellescape(BOND_RECONCILE_SCRIPT)} " +
         "--reference #{Shellwords.shellescape(ref_file)} " +
         "--current #{Shellwords.shellescape(cur_file)} " +
         "--test #{Shellwords.shellescape(@test_name)} " +
@@ -259,28 +376,6 @@ class Bond
     FileUtils.mkdir_p(File.dirname(fname))
     File.open(fname, 'w') do |f|
       f.print("[\n#{@observations.join(",\n")}\n]\n")
-    end
-  end
-
-  # Return the file name where observations for the current test should be
-  # stored. Any hierarchy (as specified by .) in the test name becomes
-  # a directory hierarchy, e.g. a test name of 'bond.my_tests.test_name'
-  # would be stored at '`{base_directory}`/bond/my_tests/test_name.json'
-  # If any portion of the file name (i.e. a directory or file name) is
-  # longer than {#MAX_FILE_NAME_LENGTH} - 5 (to account for a possible
-  # `.json` extension), reduce the length to 10 characters less than
-  # this and fill the remaining 10 characters with a hash of the full name.
-  #
-  # An old version of this would return a very conflict-heavy hash which was
-  # dependent only on the length of the file name; for backwards compatibility,
-  # if a file cannot be found with the normal hash, this checks for one with
-  # the older style of hash as well, and if found, returns that file name.
-  def observation_file_name
-    fname = hashed_file_name
-    if not File.exist?(fname + '.json') and File.exist?(hashed_file_name(true) + '.json')
-      hashed_file_name(true)
-    else
-      fname
     end
   end
 
@@ -315,18 +410,15 @@ class Bond
     File.join(File.dirname(File.absolute_path(test_file)), 'test_observations')
   end
 
-  # Formats the observation hash. Currently, this just JSON-serializes
-  # the hash. If any objects encountered have a `to_json` method, it will
-  # be called to serialize the object. Note that `to_json` takes one argument
+  # Formats the observation hash. If any objects encountered have a `to_json` method,
+  # it will be called to serialize the object. Note that `to_json` takes one argument
   # which is a JSON::Ext::Generator::State object; you should pass this object
   # into any `to_json` calls you make within your `to_json` function.
   # @param observation [Hash] Observations to be formatted.
   # @return The formatted hash.
   def format_observation(observation, agent = nil)
-    # TODO ETK actually have formatters
     agent.format(observation) unless agent.nil?
-    JSON.neat_generate(observation, sorted: true, decimals: @decimal_precision,
-                       indent: ' '*4, wrap: true, after_colon: 1)
+    Utils.observation_to_json(observation, @decimal_precision)
   end
 
   # Deep-clones an object
@@ -359,195 +451,7 @@ class Bond
 
 end
 
-# Represents an agent deployed by {Bond#deploy_agent}. Takes
-# action on spy points depending on the options specified upon
-# initialization.
-# @api private
-class SpyAgent
-
-  # Initialize, setting the options for this SpyAgent.
-  # @param opts Key-value pairs that control whether the agent is
-  #     active and what it does. The following keys are recognized:
-  #
-  #     - Keys that restrict for which invocations of bond.spy this
-  #       agent is active. All of these conditions must be true for
-  #       the agent to be the active one:
-  #
-  #         - `key: val` - only when the observation dictionary contains
-  #           the `key` with the given value
-  #         - `key__contains: substr` - only when the observation dictionary
-  #           contains the `key` with a string value that contains the given substr.
-  #         - `key__startswith: substr` - only when the observation dictionary
-  #           contains the `key` with a string value that starts with the given substr.
-  #         - `key__endswith: substr` - only when the observation dictionary contains
-  #           the `key` with a string value that ends with the given substr.
-  #         - `filter: func` - only when the given func returns true when passed
-  #           observation dictionary. The function should not make changes to
-  #           the observation dictionary. Uses the observation before formatting.
-  #
-  #     - Keys that control what the observer does when processed:
-  #
-  #         - `do: func` - executes the given function with the observation dictionary.
-  #           func can also be a list of functions, executed in order.
-  #           The function should not make changes to the observation dictionary.
-  #           Uses the observation before formatting.
-  #
-  #     - Keys that control what the corresponding spy returns (by default `:agent_result_none`):
-  #
-  #         - `exception: x` - the call to bond.spy throws the given exception. If `x`
-  #           is a function it is invoked on the observation dictionary to compute
-  #           the exception to throw. The function should not make changes to the
-  #           observation dictionary. Uses the observation before formatting.
-  #         - `result: x` - the call to bond.spy returns the given value. If `x` is a
-  #           function it is invoked on the observe argument dictionary to compute
-  #           the value to return. If the function throws an exception then the
-  #           spied function throws an exception. The function should not make
-  #           changes to the observation dictionary. Uses the observation before
-  #           formatting.
-  #         - `yield: x` - the call to bond.spy yields the given value. If `x` is a function
-  #            it is invokved on the observe argument dictionary to compute the value to yield.
-  #            Uses the observation before formatting.
-  #
-  #     - Keys that control how the observation is saved. This is processed after all
-  #       the above functions.
-  #
-  #         - `formatter: func` - If specified, a function that is given the observation and
-  #           can update it in place. The formatted observation is what gets serialized and saved.
-  #         - `skip_save_observation: Boolean` - If specified, determines whether or not the
-  #           observation will be saved after all of the agent's other actions have been processed.
-  #           Useful for hiding observations of a spy point that e.g. is sometimes useful but in some
-  #           tests is irrelevant and clutters up the observations. This value, if present, will override
-  #           the `skip_save_observation` parameter of {Bond#spy} and the `mock_only` parameter of
-  #           {BondTargetable#spy_point}.
-  #
-  def initialize(**opts)
-    @result_spec = :agent_result_none
-    @yield_spec = nil
-    @exception_spec = nil
-    @formatter_spec = nil
-    @doers = []
-    @filters = []
-    @skip_save_observation = nil
-
-    opts.each do |k, v|
-      case k.to_s # Convert to string in case it was passed as a symbol
-        when 'result'
-          @result_spec = v
-        when 'yield'
-          @yield_spec = v
-        when 'exception'
-          @exception_spec = v
-        when 'formatter'
-          @formatter_spec = v
-        when 'do'
-          @doers = [*v]
-        when 'skip_save_observation'
-          @skip_save_observation = v
-        else # Must be a filter
-          @filters <<= SpyAgentFilter.new(k.to_s, v)
-      end
-    end
-  end
-
-  attr_reader :skip_save_observation
-
-  # Checks if this agent should process this observation
-  # @return true iff this agent should process this observation
-  def process?(observation)
-    @filters.empty? || @filters.all? do |filter|
-      filter.accept?(observation)
-    end
-  end
-
-  # Carries out all of the actions specified by the `do` option
-  def do(observation)
-    @doers.each { |doer| doer.call(observation) }
-  end
-
-  # Gets the result that this agent should return, dependent on the
-  # `result` and `exception` options. If neither is present,
-  # returns `:agent_result_none`.
-  def result(observation)
-    unless @exception_spec.nil?
-      raise @exception_spec.respond_to?(:call) ? @exception_spec.call(observation) : @exception_spec
-    end
-    unless @yield_spec.nil?
-      return @yield_spec.respond_to?(:call) ? @yield_spec.call(observation) : @yield_spec, true
-    end
-
-    if !@result_spec.nil? && @result_spec.respond_to?(:call)
-      return @result_spec.call(observation), false
-    else
-      return @result_spec, false
-    end
-  end
-
-  # Formats the observation according to the `formatter` option;
-  # if none is specified, do nothing. Modifies the observation
-  # in-place.
-  def format(observation)
-    unless @formatter_spec.nil?
-      @formatter_spec.call(observation)
-    end
-  end
-end
-
-# Filters used to determine whether or not a {SpyAgent} should
-# be applied to a given observation.
-# @api private
-class SpyAgentFilter
-
-  # Initialize this filter.
-  # @see Bond#deploy_agent
-  # @param filter_key [#to_s] The key for the filter.
-  # @param filter_value The value for the filter.
-  def initialize(filter_key, filter_value)
-    @field_name = nil
-    @filter_func = nil
-
-    filter_key = filter_key.to_s
-    if filter_key == 'filter'
-      raise 'When using filter, passed value must be callable' unless filter_value.respond_to?(:call)
-      @filter_func = filter_value
-      return
-    end
-
-    key_parts = filter_key.split('__')
-    if key_parts.length == 1
-      @field_name = key_parts[0]
-      @filter_func = lambda { |val| val == filter_value }
-    elsif key_parts.length == 2
-      @field_name = key_parts[0]
-      case key_parts[1]
-        when 'exact','eq'
-          @filter_func = lambda { |val| val == filter_value }
-        when 'startswith'
-          @filter_func = lambda { |val| val.to_s.start_with?(filter_value) }
-        when 'endswith'
-          @filter_func = lambda { |val| val.to_s.end_with?(filter_value) }
-        when 'contains'
-          @filter_func = lambda { |val| val.to_s.include?(filter_value) }
-        else
-          raise "Unknown operator: #{key_parts[1]}"
-      end
-    else
-      raise "Invalid key passed in: #{filter_key}"
-    end
-  end
-
-  # Return true iff the provided observation meets this filter.
-  def accept?(observation)
-    if @field_name.nil?
-      @filter_func.call(observation)
-    elsif observation.has_key?(@field_name)
-        @filter_func.call(observation[@field_name])
-    elsif observation.has_key?(@field_name.to_sym)
-      @filter_func.call(observation[@field_name.to_sym])
-    else
-      false
-    end
-  end
-
-end
 
 require_relative 'bond/targetable'
+require_relative 'bond/spy_agent'
+require_relative 'bond/utils'

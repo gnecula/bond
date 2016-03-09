@@ -10,10 +10,12 @@
 },
 {
     "__spy_point__": "bond_reconcile._get_user_input", 
+    "after_prompt": "", 
+    "before_prompt": "Merge successful; saving a new reference file. ", 
+    "content": "", 
     "options": [
         "continue"
-    ], 
-    "prompt": "Merge successful; saving a new reference file. "
+    ]
 },
 {
     "__spy_point__": "bond_reconcile._get_user_input.result", 

@@ -10,17 +10,19 @@
 },
 {
     "__spy_point__": "bond_reconcile._get_user_input", 
+    "after_prompt": "Saving not available due to errors in the test", 
+    "before_prompt": "Observations are shown for test 1:", 
+    "content": "\n[\n{\n   \"__spy_point__\" : \"point 1\",\n   val\" : 12345\n}\n]\n", 
     "options": [
         "kdiff3", 
         "diff", 
         "errors", 
         "continue"
-    ], 
-    "prompt": "Observations are shown for test 1. Saving them not allowed because test failed. Use the diff option to show the differences."
+    ]
 },
 {
     "__spy_point__": "bond_reconcile._get_user_input.result", 
-    "result": "yes"
+    "result": "continue"
 },
 {
     "__spy_point__": "invoke_top_reconcile_results", 

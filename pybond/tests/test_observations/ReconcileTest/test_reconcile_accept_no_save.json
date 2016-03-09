@@ -6,7 +6,7 @@
 },
 {
     "__spy_point__": "bond_reconcile._print", 
-    "what": "There were differences in observations for test 1: "
+    "what": "\u001b[1mTest test 1 exited with failures; observations before failure:\u001b[0m"
 },
 {
     "__spy_point__": "bond_reconcile._print", 
@@ -23,10 +23,6 @@
         " ]", 
         ""
     ]
-},
-{
-    "__spy_point__": "bond_reconcile._print", 
-    "what": "There were differences in observations for test 1: "
 },
 {
     "__spy_point__": "bond_reconcile._print", 

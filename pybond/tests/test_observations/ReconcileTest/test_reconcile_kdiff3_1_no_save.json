@@ -6,11 +6,13 @@
 },
 {
     "__spy_point__": "bond_reconcile._get_user_input", 
+    "after_prompt": "Still want to start kdiff3?", 
+    "before_prompt": "Encountered failures while running test test 1:", 
+    "content": "not needed", 
     "options": [
         "yes", 
         "no"
-    ], 
-    "prompt": "\n!!! MERGING NOT ALLOWED for test 1: not needed. Want to start kdiff3?"
+    ]
 },
 {
     "__spy_point__": "bond_reconcile._get_user_input.result", 

@@ -468,7 +468,8 @@ class Bond:
             # We postpone applying the formatter until we have run the "doer" and the "result"
             formatted = self._format_observation(observation,
                                                  active_agent=active_agent)
-            print("Observing: " + formatted + "\n")
+            # print("Observing: " + formatted + "\n")
+            # TODO ETK
             self.observations.append(formatted)
 
         do_save_observation = not skip_save_observation
@@ -488,7 +489,7 @@ class Bond:
                 save_observation()
 
         if res != AGENT_RESULT_NONE:
-            print("   Result " + repr(res))
+            # print("   Result " + repr(res))
             return res
 
         return AGENT_RESULT_NONE

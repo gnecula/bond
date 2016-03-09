@@ -168,24 +168,24 @@ describe Bond do
     end
 
     it 'should skip saving observations when specified' do
-      bond.spy('skipped_point', skip_save_observation = true, key: 'value')
+      bond.spy_internal('skipped_point', skip_save_observation = true, key: 'value')[:result]
 
       bond.deploy_agent('skipped_point', result: 'Mock Value')
-      ret = bond.spy('skipped_point', skip = true, key: 'value')
+      ret = bond.spy_internal('skipped_point', skip_save_observation = true, key: 'value')[:result]
       bond.spy('skipped_return_value', val: ret)
 
       bond.deploy_agent('normal_point', skip_save_observation: false, result: 'Mock Value')
-      ret = bond.spy('normal_point', skip_save_observation = true, key: 'value')
+      ret = bond.spy_internal('normal_point', skip_save_observation = true, key: 'value')[:result]
       bond.spy('not_skipped_return_value', val: ret)
 
       bond.deploy_agent('skipped_point', skip_save_observation: true, result: 'Mock Value')
-      ret = bond.spy('skipped_point', key: 'value')
+      ret = bond.spy_internal('skipped_point', key: 'value')[:result]
       bond.spy('skipped_return_value', val: ret)
     end
 
   end
 
-  # TODO
+  # TODO ETK more testing
   # overriding settings using Bond#settings
   # some different start_test parameters
 

@@ -1,0 +1,60 @@
+[
+{
+    "__record_args__": "",
+    "__spy_point__": "TestClass#annotated_passthrough_method",
+    "obj": [
+        "foo",
+        "bar"
+    ]
+},
+{
+    "__replay_result__": "",
+    "__spy_point__": "TestClass#annotated_passthrough_method.result",
+    "result": [
+        "foo",
+        "bar"
+    ]
+},
+{
+    "__spy_point__": "Array",
+    "is_array": true,
+    "val": [
+        "foo",
+        "bar"
+    ]
+},
+{
+    "__record_args__": "",
+    "__spy_point__": "TestClass#annotated_passthrough_method",
+    "obj": 42
+},
+{
+    "__replay_result__": "",
+    "__spy_point__": "TestClass#annotated_passthrough_method.result",
+    "result": 42
+},
+{
+    "__spy_point__": "Fixnum",
+    "is_num": true,
+    "val": 42
+},
+{
+    "__record_args__": "",
+    "__spy_point__": "TestClass#annotated_passthrough_method",
+    "foo": "bar"
+},
+{
+    "__replay_result__": "",
+    "__spy_point__": "TestClass#annotated_passthrough_method.result",
+    "result": {
+        "foo": "bar"
+    }
+},
+{
+    "__spy_point__": "Hash",
+    "is_hash": true,
+    "val": {
+        "foo": "bar"
+    }
+}
+]

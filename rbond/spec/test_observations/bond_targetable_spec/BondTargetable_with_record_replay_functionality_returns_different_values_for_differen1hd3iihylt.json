@@ -1,0 +1,40 @@
+[
+{
+    "__record_args__": "",
+    "__spy_point__": "TestClass#annotated_side_effect_method",
+    "array": [
+        "foo"
+    ]
+},
+{
+    "__replay_result__": "",
+    "__spy_point__": "TestClass#annotated_side_effect_method.result",
+    "result": "foo,new value"
+},
+{
+    "__spy_point__": "after foo",
+    "array": [
+        "foo"
+    ],
+    "ret": "foo,new value"
+},
+{
+    "__record_args__": "",
+    "__spy_point__": "TestClass#annotated_side_effect_method",
+    "array": [
+        "not foo"
+    ]
+},
+{
+    "__replay_result__": "",
+    "__spy_point__": "TestClass#annotated_side_effect_method.result",
+    "result": "not foo,new value"
+},
+{
+    "__spy_point__": "after not foo",
+    "array": [
+        "not foo"
+    ],
+    "ret": "not foo,new value"
+}
+]

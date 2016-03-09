@@ -42,7 +42,9 @@ describe BondTargetable do
     bond.spy_point_on(:unannotated_standard_method)
 
     bond.spy_point
-    def annotated_standard_method(arg1, arg2) end
+    def annotated_standard_method(arg1, arg2)
+      arg1.to_s + '_' + arg2.to_s
+    end
 
     bond.spy_point
     def self.annotated_class_method(arg1, arg2) end
@@ -85,6 +87,17 @@ describe BondTargetable do
 
     bond.spy_point
     def annotated_method_with_block(arg1, &blk) yield; end
+
+    bond.spy_point
+    def annotated_side_effect_method(array)
+      array << 'new value'
+      array.join(',')
+    end
+
+    bond.spy_point
+    def annotated_passthrough_method(obj)
+      obj
+    end
 
     def unannotated_standard_method(arg1) end
 
@@ -218,6 +231,176 @@ describe BondTargetable do
     it 'correctly spies on annotated methods in extended modules' do
       TestClass.annotated_extended_method('foo')
     end
+  end
+
+  context 'with record-replay functionality' do
+
+    it 'records the arguments and return value' do
+      bond.deploy_agent('Utils.get_user_input_with_edits', result: ['Accept', 'foo,new value'])
+      bond.deploy_record_replay_agent('TestClass#annotated_side_effect_method', record_mode: true)
+      array = ['foo']
+      ret = tc.annotated_side_effect_method(array)
+      bond.spy('after', ret: ret, array: array)
+    end
+
+    it 'replays a saved value' do
+      bond.deploy_record_replay_agent('TestClass#annotated_side_effect_method')
+      array = ['foo']
+      ret = tc.annotated_side_effect_method(array)
+      bond.spy('after', ret: ret)
+    end
+
+    it 'returns different values for different invocation parameters' do
+      bond.deploy_record_replay_agent('TestClass#annotated_side_effect_method')
+      array = ['foo']
+      ret = tc.annotated_side_effect_method(array)
+      bond.spy('after foo', ret: ret, array: array)
+
+      array = ['not foo']
+      ret = tc.annotated_side_effect_method(array)
+      bond.spy('after not foo', ret: ret, array: array)
+    end
+
+    it 'doesnt call the live method when replaying' do
+      bond.deploy_record_replay_agent('TestClass#annotated_side_effect_method')
+      array = ['foo']
+      ret = tc.annotated_side_effect_method(array)
+      bond.spy('after', ret: ret, array: array)
+    end
+
+    it 'throws an error when in replay mode and no replay value is found' do
+      bond.deploy_record_replay_agent('TestClass#annotated_side_effect_method')
+      array = ['foo']
+      begin
+        tc.annotated_side_effect_method(array)
+      rescue Exception => e
+        bond.spy('rescued', error: e)
+      end
+    end
+
+    it 'returns built-in values to their original form' do
+      bond.deploy_record_replay_agent('TestClass#annotated_passthrough_method')
+      arr = tc.annotated_passthrough_method(%w'foo bar')
+      bond.spy('Array', val: arr, is_array: arr.is_a?(Array))
+      num = tc.annotated_passthrough_method(42)
+      bond.spy('Fixnum', val: num, is_num: num.is_a?(Fixnum))
+      hash = tc.annotated_passthrough_method({ foo: 'bar' })
+      bond.spy('Hash', val: hash, is_hash: hash.is_a?(Hash))
+    end
+
+    it 'records the arguments and return value and returns the result to its original form after editing' do
+      def deploy_input_agent(content_substr, result)
+        bond.deploy_agent('Utils.get_user_input_with_edits',
+                          content__contains: content_substr,
+                          result: ['Accept', result])
+      end
+      deploy_input_agent('test_string', 'test_string')
+      deploy_input_agent('foobar', '["foobar","baz"]')
+      deploy_input_agent('42', '42')
+      deploy_input_agent('foo_key', '{"foo_key":"foo_val"}')
+      bond.deploy_record_replay_agent('TestClass#annotated_passthrough_method', record_mode: true)
+      str = tc.annotated_passthrough_method('test_string')
+      bond.spy('String', val: str, is_str: str.is_a?(String))
+      arr = tc.annotated_passthrough_method(%w'foobar baz')
+      bond.spy('Array', val: arr, is_array: arr.is_a?(Array))
+      num = tc.annotated_passthrough_method(42)
+      bond.spy('Fixnum', val: num, is_num: num.is_a?(Fixnum))
+      hash = tc.annotated_passthrough_method({ foo_key: 'foo_val' })
+      bond.spy('Hash', val: hash, is_hash: hash.is_a?(Hash))
+    end
+
+    it 'throws an error and does not complete the test when record value is rejected' do
+      bond.deploy_agent('Utils.get_user_input_with_edits', result: ['Reject', ''])
+      bond.deploy_record_replay_agent('TestClass#annotated_passthrough_method', record_mode: true)
+      begin
+        tc.annotated_passthrough_method('foo')
+      rescue RuntimeError => e
+        bond.spy('rescued', exception: e)
+      end
+    end
+
+    it 'correctly uses updated record values if the user edits it' do
+      bond.deploy_agent('Utils.get_user_input_with_edits', result: ['Accept', '["foobar", "modified"]'])
+      bond.deploy_record_replay_agent('TestClass#annotated_passthrough_method', record_mode: true)
+      res = tc.annotated_passthrough_method(%w'foobar original')
+      bond.spy('Result', value: res)
+    end
+
+    it 'handles Symbols in the argument list' do
+      bond.deploy_record_replay_agent('TestClass#annotated_side_effect_method')
+      arr = [:foo]
+      res = tc.annotated_side_effect_method(arr)
+      bond.spy('result', val: res, array: arr)
+    end
+
+    it 'only asks for a replay value once if order_dependent is not specified' do
+      bond.deploy_agent('Utils.get_user_input_with_edits', result: ['Accept', 'foo,new value'],
+                        skip_save_observation: false)
+      bond.deploy_record_replay_agent('TestClass#annotated_side_effect_method', record_mode: true)
+      arr1 = ['foo']
+      res1 = tc.annotated_side_effect_method(arr1)
+      arr2 = ['foo']
+      res2 = tc.annotated_side_effect_method(arr2)
+      bond.spy(array1: arr1, result1: res1, array2: arr2, result2: res2)
+    end
+
+    it 'replays the same value multiple times if order_dependent is not specified' do
+      bond.deploy_record_replay_agent('TestClass#annotated_side_effect_method')
+      arr1 = ['foo']
+      res1 = tc.annotated_side_effect_method(arr1)
+      arr2 = ['foo']
+      res2 = tc.annotated_side_effect_method(arr2)
+      bond.spy(array1: arr1, result1: res1, array2: arr2, result2: res2)
+    end
+
+    it 'asks for different values if order_dependent is specified' do
+      results = [['Accept', 'foo,bar1'], ['Accept', 'foo,bar2']]
+      bond.deploy_agent('Utils.get_user_input_with_edits', result: lambda { |_| results.shift },
+                        skip_save_observation: false)
+      bond.deploy_record_replay_agent('TestClass#annotated_side_effect_method',
+                                      record_mode: true, order_dependent: true)
+      arr1 = ['foo']
+      res1 = tc.annotated_side_effect_method(arr1)
+      arr2 = ['foo']
+      res2 = tc.annotated_side_effect_method(arr2)
+      bond.spy(array1: arr1, result1: res1, array2: arr2, result2: res2)
+    end
+
+    it 'replays different values if order_dependent is specified' do
+      bond.deploy_record_replay_agent('TestClass#annotated_side_effect_method', order_dependent: true)
+      arr1 = ['foo']
+      res1 = tc.annotated_side_effect_method(arr1)
+      arr2 = ['foo']
+      res2 = tc.annotated_side_effect_method(arr2)
+      bond.spy(array1: arr1, result1: res1, array2: arr2, result2: res2)
+    end
+
+    it 'respects test-wide record mode' do
+      bond.settings(record_mode: true)
+      bond.deploy_agent('Utils.get_user_input_with_edits', result: ['Accept', 'foo,bar'],
+                        skip_save_observation: false)
+      bond.deploy_record_replay_agent('TestClass#annotated_side_effect_method', order_dependent: true)
+      arr1 = ['foo']
+      res1 = tc.annotated_side_effect_method(arr1)
+      arr2 = ['foo']
+      res2 = tc.annotated_side_effect_method(arr2)
+      bond.spy(array1: arr1, result1: res1, array2: arr2, result2: res2)
+    end
+
+    it 'overrides test-wide record mode when specified' do
+      bond.settings(record_mode: true)
+      bond.deploy_agent('Utils.get_user_input_with_edits', result: ['Accept', 'foo,bar'], content__contains: 'foo',
+                        skip_save_observation: false)
+      bond.deploy_record_replay_agent('TestClass#annotated_side_effect_method', array__contains: 'foo')
+      bond.deploy_record_replay_agent('TestClass#annotated_side_effect_method', array__contains: 'bar',
+                                      record_mode: false)
+      arr1 = ['foo']
+      res1 = tc.annotated_side_effect_method(arr1)
+      arr2 = ['bar']
+      res2 = tc.annotated_side_effect_method(arr2)
+      bond.spy(array1: arr1, result1: res1, array2: arr2, result2: res2)
+    end
+
   end
   
   it 'correctly spies protected methods' do

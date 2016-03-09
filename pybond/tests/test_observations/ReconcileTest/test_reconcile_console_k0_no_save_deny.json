@@ -6,13 +6,15 @@
 },
 {
     "__spy_point__": "bond_reconcile._get_user_input", 
+    "after_prompt": "Saving not available due to errors in the test", 
+    "before_prompt": "Observations are shown for test 1:", 
+    "content": "\n[\n{\n   \"__spy_point__\" : \"point 1\",\n   val\" : abcde\n}\n]\n", 
     "options": [
         "kdiff3", 
         "diff", 
         "errors", 
         "continue"
-    ], 
-    "prompt": "Observations are shown for test 1. Saving them not allowed because test failed. Use the diff option to show the differences."
+    ]
 },
 {
     "__spy_point__": "bond_reconcile._get_user_input.result", 
@@ -20,11 +22,13 @@
 },
 {
     "__spy_point__": "bond_reconcile._get_user_input", 
+    "after_prompt": "Still want to start kdiff3?", 
+    "before_prompt": "Encountered failures while running test test 1:", 
+    "content": "No saving, I say so", 
     "options": [
         "yes", 
         "no"
-    ], 
-    "prompt": "\n!!! MERGING NOT ALLOWED for test 1: No saving, I say so. Want to start kdiff3?"
+    ]
 },
 {
     "__spy_point__": "bond_reconcile._get_user_input.result", 

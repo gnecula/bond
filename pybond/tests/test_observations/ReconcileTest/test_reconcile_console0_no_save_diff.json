@@ -6,73 +6,51 @@
 },
 {
     "__spy_point__": "bond_reconcile._get_user_input", 
+    "after_prompt": "Saving not available due to errors in the test", 
+    "before_prompt": "Observations are shown for test 1:", 
+    "content": "\n[\n{\n   \"__spy_point__\" : \"point 1\",\n   val\" : abcde\n}\n]\n", 
     "options": [
         "kdiff3", 
         "diff", 
         "errors", 
         "continue"
-    ], 
-    "prompt": "Observations are shown for test 1. Saving them not allowed because test failed. Use the diff option to show the differences."
+    ]
 },
 {
     "__spy_point__": "bond_reconcile._get_user_input.result", 
     "result": "diff"
 },
 {
-    "__spy_point__": "bond_reconcile._print", 
-    "what": "There were differences in observations for test 1: "
-},
-{
-    "__spy_point__": "bond_reconcile._print", 
-    "what": [
-        "--- reference", 
-        "+++ current", 
-        "@@ -2,6 +2,6 @@", 
-        " [", 
-        " {", 
-        "    \"__spy_point__\" : \"point 1\",", 
-        "-   val\" : 12345", 
-        "+   val\" : abcde", 
-        " }", 
-        " ]", 
-        ""
-    ]
-},
-{
-    "__spy_point__": "bond_reconcile._print", 
-    "what": "There were differences in observations for test 1: "
-},
-{
     "__spy_point__": "bond_reconcile._get_user_input", 
+    "after_prompt": "Saving not available due to errors in the test", 
+    "before_prompt": "Differences in observations are shown for test 1:", 
+    "content": "--- reference\n+++ current\n@@ -2,6 +2,6 @@\n [\n {\n    \"__spy_point__\" : \"point 1\",\n-   val\" : 12345\n+   val\" : abcde\n }\n ]\n", 
     "options": [
         "kdiff3", 
-        "diff", 
+        "observations", 
         "errors", 
         "continue"
-    ], 
-    "prompt": "Observations are shown for test 1. Saving them not allowed because test failed. Use the diff option to show the differences."
+    ]
 },
 {
     "__spy_point__": "bond_reconcile._get_user_input.result", 
     "result": "errors"
 },
 {
-    "__spy_point__": "bond_reconcile._print", 
-    "what": "\u001b[91mTest test 1 had errors:\nNo saving, period.\u001b[0m"
-},
-{
     "__spy_point__": "bond_reconcile._get_user_input", 
+    "after_prompt": "Saving not available due to errors in the test", 
+    "before_prompt": "Errors are shown for test 1:", 
+    "content": "No saving, period.", 
     "options": [
         "kdiff3", 
+        "observations", 
         "diff", 
-        "errors", 
         "continue"
-    ], 
-    "prompt": "Observations are shown for test 1. Saving them not allowed because test failed. Use the diff option to show the differences."
+    ]
 },
 {
     "__spy_point__": "bond_reconcile._get_user_input.result", 
-    "result": "yes"
+    "result": "continue"
 },
 {
     "__spy_point__": "invoke_top_reconcile_results", 

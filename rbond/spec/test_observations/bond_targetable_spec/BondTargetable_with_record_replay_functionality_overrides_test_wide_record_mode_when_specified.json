@@ -1,0 +1,47 @@
+[
+{
+    "__record_args__": "",
+    "__spy_point__": "TestClass#annotated_side_effect_method",
+    "array": [
+        "foo"
+    ]
+},
+{
+    "__spy_point__": "Utils.get_user_input_with_edits",
+    "after_prompt": "Do you wish to save this result for future replay? You can also edit it before accepting.",
+    "before_prompt": "For test bond_targetable_spec.BondTargetable_with_record_replay_functionality_overrides_test_wide_record_mode_when_specified:\nBelow is the current result returned by TestClass#annotated_side_effect_method when called with arguments as follows:\n\n{\n    \"array\": [\n        \"foo\"\n    ]\n}\n",
+    "content": "foo,new value",
+    "options": [
+        "Accept",
+        "Reject"
+    ]
+},
+{
+    "__replay_result__": "",
+    "__spy_point__": "TestClass#annotated_side_effect_method.result",
+    "result": "foo,bar"
+},
+{
+    "__record_args__": "",
+    "__spy_point__": "TestClass#annotated_side_effect_method",
+    "array": [
+        "bar"
+    ]
+},
+{
+    "__replay_result__": "",
+    "__spy_point__": "TestClass#annotated_side_effect_method.result",
+    "result": "bar,foo"
+},
+{
+    "array1": [
+        "foo",
+        "new value"
+    ],
+    "array2": [
+        "bar"
+    ],
+    "result1": "foo,bar",
+    "result2": "bar,foo"
+}
+]

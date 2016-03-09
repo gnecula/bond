@@ -1,0 +1,47 @@
+[
+{
+    "__record_args__": "",
+    "__spy_point__": "TestClass#annotated_side_effect_method",
+    "array": [
+        "foo"
+    ]
+},
+{
+    "__spy_point__": "Utils.get_user_input_with_edits",
+    "after_prompt": "Do you wish to save this result for future replay? You can also edit it before accepting.",
+    "before_prompt": "For test bond_targetable_spec.BondTargetable_with_record_replay_functionality_only_asks_for_a_replay_value_once_if_order_dependent_is_not_specified:\nBelow is the current result returned by TestClass#annotated_side_effect_method when called with arguments as follows:\n\n{\n    \"array\": [\n        \"foo\"\n    ]\n}\n",
+    "content": "foo,new value",
+    "options": [
+        "Accept",
+        "Reject"
+    ]
+},
+{
+    "__replay_result__": "",
+    "__spy_point__": "TestClass#annotated_side_effect_method.result",
+    "result": "foo,new value"
+},
+{
+    "__record_args__": "",
+    "__spy_point__": "TestClass#annotated_side_effect_method",
+    "array": [
+        "foo"
+    ]
+},
+{
+    "__replay_result__": "",
+    "__spy_point__": "TestClass#annotated_side_effect_method.result",
+    "result": "foo,new value"
+},
+{
+    "array1": [
+        "foo",
+        "new value"
+    ],
+    "array2": [
+        "foo"
+    ],
+    "result1": "foo,new value",
+    "result2": "foo,new value"
+}
+]

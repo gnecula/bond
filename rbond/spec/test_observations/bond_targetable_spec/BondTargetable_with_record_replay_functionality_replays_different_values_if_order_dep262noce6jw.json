@@ -1,0 +1,36 @@
+[
+{
+    "__record_args__": "",
+    "__spy_point__": "TestClass#annotated_side_effect_method",
+    "array": [
+        "foo"
+    ]
+},
+{
+    "__replay_result__": "",
+    "__spy_point__": "TestClass#annotated_side_effect_method.result",
+    "result": "foo,bar1"
+},
+{
+    "__record_args__": "",
+    "__spy_point__": "TestClass#annotated_side_effect_method",
+    "array": [
+        "foo"
+    ]
+},
+{
+    "__replay_result__": "",
+    "__spy_point__": "TestClass#annotated_side_effect_method.result",
+    "result": "foo,bar2"
+},
+{
+    "array1": [
+        "foo"
+    ],
+    "array2": [
+        "foo"
+    ],
+    "result1": "foo,bar1",
+    "result2": "foo,bar2"
+}
+]

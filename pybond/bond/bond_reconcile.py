@@ -20,6 +20,8 @@ except ImportError:
 Reconcile the reference observations with the current ones
 """
 
+BOLD_CHAR = '\033[1m'
+RESET_CHAR = '\033[0m'
 
 class ReconcileTool:
     """
@@ -67,7 +69,7 @@ class ReconcileTool:
         return os.system(cmd)
 
     @staticmethod
-    def _get_user_input_console(prompt, options, single_char_options):
+    def _get_user_input_console(before_prompt, after_prompt, content, options, single_char_options):
         """
         Get input from the user using a console.
         :param prompt: The main prompt string to display to the user.
@@ -82,8 +84,16 @@ class ReconcileTool:
         opts_with_single_char = \
             [string.replace(opt, char, '[' + char + ']', 1) for opt, char in zip(options, single_char_options)]
         # Default option, highlight it in bold
-        opts_with_single_char[-1] = '\033[1m' + opts_with_single_char[-1] + '\033[0m'
-        response = raw_input(prompt + ' (' + ' | '.join(opts_with_single_char) + '): ')
+        opts_with_single_char[-1] = BOLD_CHAR + opts_with_single_char[-1] + RESET_CHAR
+        if before_prompt != '' and after_prompt == '':
+            # If there's only one, use the after, since that is when user input is grabbed
+            after_prompt = before_prompt
+            before_prompt = ''
+        if before_prompt != '':
+            print(BOLD_CHAR + before_prompt + RESET_CHAR)
+        if content != '':
+            print(content)
+        response = raw_input(BOLD_CHAR + after_prompt + RESET_CHAR + ' (' + ' | '.join(opts_with_single_char) + '): ')
         if len(response) == 0:  # No input; return the default
             return options[-1]
         elif len(response) == 1:  # Single-character; find matching option
@@ -93,7 +103,7 @@ class ReconcileTool:
             return next((opt for opt in options if opt == response), options[-1])
 
     @staticmethod
-    def _get_user_input_dialog(prompt, options):
+    def _get_user_input_dialog(before_prompt, after_prompt, content, options):
         """
         Get input from the user using a dialog box.
         :param prompt: The main prompt string to display to the user.
@@ -102,14 +112,14 @@ class ReconcileTool:
         :return: The user response, which is guaranteed to be one of the supplied ``options``
                  (if the user input an invalid response the default option is used).
         """
-        return OptionDialog.create_dialog_get_value(prompt, options)
+        return OptionDialog.create_dialog_get_value(before_prompt, after_prompt, content, options)
 
     @staticmethod
     @spy_point(enabled_for_groups='bond_self_test',
                require_agent_result=True,
                excluded_keys=('extra_dialog_prompt','single_char_options'),
                spy_result=True)
-    def _get_user_input(prompt, options, single_char_options, extra_dialog_prompt=''):
+    def _get_user_input(before_prompt, after_prompt, content, options, single_char_options):
         """
         Acquire input from the user. Defaults to using the console to ask for input. If
         a console is not available, falls back to using a popup dialog window.
@@ -125,10 +135,11 @@ class ReconcileTool:
                  input an invalid response the default option is used).
         """
         if sys.stdin.isatty():  # We use the console to retrieve input
-            return ReconcileTool._get_user_input_console(prompt, options, single_char_options)
+            return ReconcileTool._get_user_input_console(before_prompt, after_prompt,
+                                                         content, options, single_char_options)
         else:  # We use a dialog box to retrieve input
             print('System console not found; using a dialog box to retrieve input instead.')
-            return ReconcileTool._get_user_input_dialog(extra_dialog_prompt + '\n' + prompt, options)
+            return ReconcileTool._get_user_input_dialog(before_prompt, after_prompt, content, options)
 
     @staticmethod
     @spy_point(enabled_for_groups='bond_self_test')
@@ -215,21 +226,14 @@ class ReconcileTool:
         else:
             return False
 
-    def show_diff(self,
-                  test_name,
-                  unified_diff):
+    def get_diff(self, unified_diff):
         """
-        Show the lines of the diff, and return it as a string
+        Return a message showing the diff, or a message saying there were no differences.
         """
-        diffs = ''.join(unified_diff)
-        if diffs:
-            ReconcileTool._print('There were differences in observations for {}: '.format(test_name))
-            ReconcileTool._print(diffs)
-            # Print it again at the end; makes it easy to see in the console what test just failed
-            ReconcileTool._print('There were differences in observations for {}: '.format(test_name))
+        if len(unified_diff) > 0:
+            return ''.join(unified_diff)
         else:
-            ReconcileTool._print('No differences in observations for {}: '.format(test_name))
-        return diffs
+            return 'No differences in observations.'
 
     def invoke_tool(self, test_name,
                     reference_lines,
@@ -256,8 +260,10 @@ class ReconcileToolAbort(ReconcileTool):
                     unified_diff,
                     no_save=None):
         if not no_save:
-            self.show_diff(test_name, unified_diff)
-        ReconcileTool._print('Aborting (reconcile=abort) due to differences for test {}'.format(test_name))
+            ReconcileTool._print('{}Differences in observations for {}:{}'.format(BOLD_CHAR, test_name, RESET_CHAR))
+            ReconcileTool._print(self.get_diff(unified_diff))
+        ReconcileTool._print('{}Aborting (reconcile=abort) due to differences for {}{}'
+                             .format(BOLD_CHAR, test_name, RESET_CHAR))
         return None
 
 
@@ -272,9 +278,15 @@ class ReconcileToolAccept(ReconcileTool):
                     current_lines,
                     unified_diff,
                     no_save=None):
-        self.show_diff(test_name, unified_diff)
-        if not no_save:
-            ReconcileTool._print('Accepting (reconcile=accept) differences for test {}'.format(test_name))
+        if no_save:
+            ReconcileTool._print('{}Test {} exited with failures; observations before failure:{}'
+                                 .format(BOLD_CHAR, test_name, RESET_CHAR))
+            ReconcileTool._print(''.join(self.get_diff(unified_diff)))
+        else:
+            ReconcileTool._print('{}Differences for {}:{}'.format(BOLD_CHAR, test_name, RESET_CHAR))
+            ReconcileTool._print(self.get_diff(unified_diff))
+            ReconcileTool._print('{}Accepting (reconcile=accept) differences for {}{}'
+                                 .format(BOLD_CHAR, test_name, RESET_CHAR))
         return current_lines
 
 
@@ -291,47 +303,61 @@ class ReconcileToolConsole(ReconcileTool):
                     unified_diff,
                     no_save=None):
 
-        extra_msg = None
+        response = 'observations' if no_save else 'diff'
+        error_after_prompt = 'Saving not available due to errors in the test'.format(test_name)
         while True:
-            if no_save:
-                prompt = 'Observations are shown for {}. Saving them not allowed because test failed. ' \
-                         'Use the diff option to show the differences.'.format(test_name)
-                response = self._input(prompt, ('kdiff3', 'diff', 'errors', 'continue'),
-                                       ('k', 'd', 'e', 'c'),
-                                       extra_msg if extra_msg else ''.join(current_lines))
-            else:
-                # Show the diff
-                diff = self.show_diff(test_name, unified_diff)
-                prompt = 'Do you want to accept the changes ({})?'.format(test_name)
-                response = self._input(prompt, ('kdiff3', 'yes', 'no'), ('k', 'y', 'n'), diff)
-
-            if response == 'kdiff3':
+            if response == 'observations':
+                if no_save:
+                    after_prompt = error_after_prompt
+                    options = ('kdiff3', 'diff', 'errors', 'continue')
+                    single_char_opts = ('k', 'd', 'e', 'c')
+                else:
+                    after_prompt = 'Save new set of observations with these differences for {}?'.format(test_name)
+                    options = ('kdiff3', 'diff', 'yes', 'no')
+                    single_char_opts = ('k', 'd', 'y', 'n')
+                before_prompt = 'Observations are shown for {}:'.format(test_name)
+                response = self._input(before_prompt, after_prompt, ''.join(current_lines),
+                                       options, single_char_opts)
+            elif response == 'diff':
+                before_prompt = 'Differences in observations are shown for {}:'.format(test_name)
+                if no_save:
+                    after_prompt = error_after_prompt
+                    options = ('kdiff3', 'observations', 'errors', 'continue')
+                    single_char_opts = ('k', 'o', 'e', 'c')
+                else:
+                    after_prompt = 'Save new set of observations with these differences for {}?'.format(test_name)
+                    options = ('kdiff3', 'observations', 'yes', 'no')
+                    single_char_opts = ('k', 'o', 'y', 'n')
+                response = self._input(before_prompt, after_prompt, self.get_diff(unified_diff),
+                                       options, single_char_opts)
+            elif response == 'errors':
+                before_prompt = 'Errors are shown for {}:'.format(test_name)
+                response = self._input(before_prompt, error_after_prompt, no_save,
+                                       ('kdiff3', 'observations', 'diff', 'continue'), ('k', 'o', 'd', 'c'))
+            elif response == 'kdiff3':
                 return ReconcileToolKdiff3().invoke_tool(test_name, reference_lines, current_lines, unified_diff,
                                                          no_save=no_save)
-            elif response == 'diff':
-                extra_msg = self.show_diff(test_name, unified_diff)
-                continue
-            elif response == 'errors':
-                extra_msg = "Test {} had errors:\n{}".format(test_name, no_save)
-                ReconcileTool._print('\033[91m' + extra_msg + '\033[0m')
-                continue
-            elif response == 'yes' and not no_save:
-                ReconcileTool._print('Accepting differences for test {}'.format(test_name))
+            elif response == 'yes':
+                ReconcileTool._print('{}Accepting differences for {}{}'.format(BOLD_CHAR, test_name, RESET_CHAR))
                 return current_lines
-            elif not no_save:
-                ReconcileTool._print('Rejecting differences for test {}'.format(test_name))
-            return None
+            elif response == 'no':
+                ReconcileTool._print('{}Rejecting differences for {}{}'.format(BOLD_CHAR, test_name, RESET_CHAR))
+                return None
+            elif response == 'continue':
+                return None
+            else:
+                assert False, 'Unknown input received!'  # Should never be reached
 
-    def _input(self, prompt, options, single_char_options, extra_dialog_prompt=None):
-        return ReconcileTool._get_user_input(prompt, options, single_char_options, extra_dialog_prompt)
+    def _input(self, before_prompt, after_prompt, content, options, single_char_options):
+        return ReconcileTool._get_user_input(before_prompt, after_prompt, content, options, single_char_options)
 
 
 class ReconcileToolDialog(ReconcileToolConsole):
     """
     Merge with a dialog window.
     """
-    def _input(self, prompt, options, single_char_options, extra_dialog_prompt=None):
-        return ReconcileTool._get_user_input_dialog(extra_dialog_prompt + '\n' + prompt, options)
+    def _input(self, before_prompt, after_prompt, content, options, single_char_options):
+        return ReconcileTool._get_user_input_dialog(before_prompt, after_prompt, content, options)
 
 
 class ReconcileToolKdiff3(ReconcileTool):
@@ -358,7 +384,8 @@ class ReconcileToolKdiff3(ReconcileTool):
             merged_file = None
             if no_save:
                 response = ReconcileTool._get_user_input(
-                    "\n!!! MERGING NOT ALLOWED for {}: {}. Want to start kdiff3?".format(test_name, no_save),
+                    'Encountered failures while running test {}:'.format(test_name),
+                    'Still want to start kdiff3?', no_save,
                     ('yes', 'no'), ('y', 'n'))
                 if response != 'yes':
                     return None
@@ -391,7 +418,7 @@ class ReconcileToolKdiff3(ReconcileTool):
                     message = 'Merge unsuccessful; not saving a new reference file. '
                     ret = None
 
-                ReconcileTool._get_user_input(message, ('continue',), ('c',))
+                ReconcileTool._get_user_input(message, '', '', ('continue',), ('c',))
                 return ret
         finally:
             if os.path.isfile(current_file):
@@ -431,7 +458,7 @@ if __name__ == '__main__':
                                       description='Compare and reconciles differences in Bond observation files')
 
     optParser.add_option('--reconcile', dest='reconcile', action='store', default=None,
-                         help='The reconcile tool to use. Available: accept, abort, console, kdiff3.')
+                         help='The reconcile tool to use. Available: accept, abort, console, dialog, kdiff3.')
     optParser.add_option('--reference', dest='reference', action='store', default=None,
                          help='The reference observation file')
     optParser.add_option('--current', dest='current', action='store', default=None,
