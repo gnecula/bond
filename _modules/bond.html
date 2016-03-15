@@ -1,0 +1,964 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>bond &mdash; Bond - Testing with Spies and Mocks</title>
+    
+    <link rel="stylesheet" href="../_static/bond_doc.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '2.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="Bond - Testing with Spies and Mocks" href="../index.html" />
+    <link rel="up" title="Module code" href="index.html" />
+    
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+    <script type='text/javascript' src='_static/my_ga.js'></script>
+    <!-- script type='text/javascript' src='_static/bond_doc.js'></script  -->
+    <script type='text/javascript' src='_static/bootstrap-3.3.5.min.js'></script>
+    <script type='text/javascript' src='_static/rst-tabbed-sections.js'></script>
+    <link rel='stylesheet' href='_static/bootstrap-3.3.5.min.css' type='text/css'></link>
+    <link rel='stylesheet' href='_static/bond_doc.css' type='text/css'></link>
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for bond</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">wraps</span>
+<span class="kn">import</span> <span class="nn">inspect</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">string</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">from</span> <span class="nn">json</span> <span class="kn">import</span> <span class="n">encoder</span>
+
+
+<span class="c"># Special result from spy when no agent matches, or no agent provides a result</span>
+<span class="n">AGENT_RESULT_NONE</span> <span class="o">=</span> <span class="s">&#39;_bond_agent_result_none&#39;</span>
+
+<span class="c"># Special result from spy when an agent specifically wants the spy point</span>
+<span class="c"># to continue. This is useful for spy points that require an agent result</span>
+<span class="n">AGENT_RESULT_CONTINUE</span> <span class="o">=</span> <span class="s">&#39;_bond_agent_result_continue&#39;</span>
+
+
+<span class="c"># We export some function to module-level for more convenient use</span>
+
+<div class="viewcode-block" id="start_test"><a class="viewcode-back" href="../api.html#bond.start_test">[docs]</a><span class="k">def</span> <span class="nf">start_test</span><span class="p">(</span><span class="n">current_python_test</span><span class="p">,</span>
+               <span class="n">test_name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+               <span class="n">observation_directory</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+               <span class="n">reconcile</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+               <span class="n">spy_groups</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+               <span class="n">decimal_precision</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This function should be called in a ``unittest.TestCase`` before any</span>
+<span class="sd">    of the other Bond functions can be used. This will initialize the Bond</span>
+<span class="sd">    module for the current test, and will ensure proper cleanup of Bond</span>
+<span class="sd">    state when the test ends, including the comparison with the</span>
+<span class="sd">    reference observations. For example,</span>
+
+<span class="sd">    .. code::</span>
+
+<span class="sd">         def test_something(self):</span>
+<span class="sd">            bond.start_test(self)</span>
+<span class="sd">            ...</span>
+
+<span class="sd">    :param current_python_test: the instance of ``unittest.TestCase`` that is running. This is the</span>
+<span class="sd">           only mandatory parameter. Bond uses this parameter to obtain good values for</span>
+<span class="sd">           the other optional parameters, and also to know when the test ends,</span>
+<span class="sd">           to activate the observation comparison.</span>
+<span class="sd">    :param test_name: (optional) the name of the test. By default, it is ``TestCase.testName``.</span>
+<span class="sd">    :param observation_directory: (optional) the directory where the observation files are stored.</span>
+<span class="sd">           By default this is the ``test_observations`` subdirectory in the</span>
+<span class="sd">           directory containing the test file. The directory will be created if not present.</span>
+<span class="sd">           You should plan to commit the</span>
+<span class="sd">           test observations to your repository, as reference for future test runs.</span>
+<span class="sd">    :param reconcile: (optional) the method used to reconcile the current observations with the</span>
+<span class="sd">           saved reference observations. By default the value of the</span>
+<span class="sd">           environment variable ``BOND_RECONCILE`` is used, or if missing, the</span>
+<span class="sd">           default is ``abort``.</span>
+
+<span class="sd">           * ``abort`` (aborts the test when there are differences)</span>
+<span class="sd">           * ``accept`` (accepts the differences as the new reference)</span>
+<span class="sd">           * ``console`` (show ``diff`` results and prompt at the console</span>
+<span class="sd">             whether to accept them or not, or possibly start visual merging tools)</span>
+<span class="sd">           * ``kdiff3`` (use kdiff3, if installed, to merge observations)</span>
+
+<span class="sd">    :param spy_groups: (optional) the list, or tuple, of spy point groups that are enabled. By default,</span>
+<span class="sd">                      enable all spy points that do not have an ``enable_for_groups``</span>
+<span class="sd">                      attribute.</span>
+
+<span class="sd">    :param decimal_precision: (optional) the precision (number of decimal places) to use when</span>
+<span class="sd">           serializing float values. Defaults to 4.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">Bond</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span><span class="o">.</span><span class="n">start_test</span><span class="p">(</span><span class="n">current_python_test</span><span class="p">,</span> <span class="n">test_name</span><span class="o">=</span><span class="n">test_name</span><span class="p">,</span>
+                               <span class="n">observation_directory</span><span class="o">=</span><span class="n">observation_directory</span><span class="p">,</span>
+                               <span class="n">reconcile</span><span class="o">=</span><span class="n">reconcile</span><span class="p">,</span> <span class="n">spy_groups</span><span class="o">=</span><span class="n">spy_groups</span><span class="p">,</span>
+                               <span class="n">decimal_precision</span><span class="o">=</span><span class="n">decimal_precision</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="settings"><a class="viewcode-back" href="../api.html#bond.settings">[docs]</a><span class="k">def</span> <span class="nf">settings</span><span class="p">(</span><span class="n">observation_directory</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+             <span class="n">reconcile</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+             <span class="n">spy_groups</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+             <span class="n">decimal_precision</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Override settings that were set in :py:func:`start_test`. Only apply for the duration</span>
+<span class="sd">    of a test, so this should be called after :py:func:`start_test`. This</span>
+<span class="sd">    is useful if you set general test parameters with :py:func:`start_test` in a ``setUp()`` block,</span>
+<span class="sd">    but want to override them for some specific tests.</span>
+
+<span class="sd">    :param observation_directory: (optional) the directory where the observation files are stored.</span>
+<span class="sd">           By default this is the ``test_observations`` subdirectory in the</span>
+<span class="sd">           directory containing the test file. The directory will be created if not present.</span>
+<span class="sd">           You should plan to commit the</span>
+<span class="sd">           test observations to your repository, as reference for future test runs.</span>
+<span class="sd">    :param reconcile: (optional) the method used to reconcile the current observations with the</span>
+<span class="sd">           saved reference observations. By default the value of the</span>
+<span class="sd">           environment variable ``BOND_RECONCILE`` is used, or if missing, the</span>
+<span class="sd">           default is ``abort``.</span>
+
+<span class="sd">           * ``abort`` (aborts the test when there are differences)</span>
+<span class="sd">           * ``accept`` (accepts the differences as the new reference)</span>
+<span class="sd">           * ``console`` (show ``diff`` results and prompt at the console</span>
+<span class="sd">             whether to accept them or not, or possibly start visual merging tools)</span>
+<span class="sd">           * ``kdiff3`` (use kdiff3, if installed, to merge observations)</span>
+
+<span class="sd">    :param spy_groups: (optional) the list, or tuple, of spy point groups that are enabled. By default,</span>
+<span class="sd">                      enable all spy points that do not have an ``enable_for_groups``</span>
+<span class="sd">                      attribute.</span>
+
+<span class="sd">    :param decimal_precision: (optional) the precision (number of decimal places) to use when</span>
+<span class="sd">           serializing float values. Defaults to 4.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">Bond</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span><span class="o">.</span><span class="n">settings</span><span class="p">(</span><span class="n">observation_directory</span><span class="o">=</span><span class="n">observation_directory</span><span class="p">,</span>
+                             <span class="n">reconcile</span><span class="o">=</span><span class="n">reconcile</span><span class="p">,</span>
+                             <span class="n">spy_groups</span><span class="o">=</span><span class="n">spy_groups</span><span class="p">,</span>
+                             <span class="n">decimal_precision</span><span class="o">=</span><span class="n">decimal_precision</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="active"><a class="viewcode-back" href="../api.html#bond.active">[docs]</a><span class="k">def</span> <span class="nf">active</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This function can be called to find out if a ``bond.start_test`` is currently active.</span>
+<span class="sd">    For example,</span>
+
+<span class="sd">    .. code::</span>
+
+<span class="sd">         if bond.active():</span>
+<span class="sd">            ..do something..</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">Bond</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span><span class="o">.</span><span class="n">active</span><span class="p">()</span>
+
+</div>
+<div class="viewcode-block" id="spy"><a class="viewcode-back" href="../api.html#bond.spy">[docs]</a><span class="k">def</span> <span class="nf">spy</span><span class="p">(</span><span class="n">spy_point_name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">skip_save_observation</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This is the most frequently used Bond function. It will collect the key-value pairs passed</span>
+<span class="sd">    in the argument list and will emit them to the spy observation log.</span>
+
+<span class="sd">    If you are not during testing (:py:func:`start_test` has not been called) then</span>
+<span class="sd">    this function does not do anything.</span>
+
+<span class="sd">    If there is an agent deployed for the current spy point (see :py:func:`deploy_agent`),</span>
+<span class="sd">    it will process the agent.</span>
+
+<span class="sd">    .. code::</span>
+
+<span class="sd">         bond.spy(file_name=file_name, content=data)</span>
+<span class="sd">         bond.spy(spy_point_name=&quot;other spy&quot;, args=args, output=output)</span>
+
+<span class="sd">    The values are formatted to JSON using the json module, with sorted keys, and indentation, with</span>
+<span class="sd">    one value per line, to streamline the observation comparison.</span>
+<span class="sd">    For user-defined classes, the method ``to_json`` is called on the instance before it is formatted.</span>
+<span class="sd">    This method should return a JSON-serializable data structure.</span>
+
+<span class="sd">    If you have deployed agents (see :py:func:`deploy_agent`) that are applicable to this spy point,</span>
+<span class="sd">    the agents can specify a</span>
+<span class="sd">    ``formatter`` that can intervene to modify the observation dictionary before it is</span>
+<span class="sd">    serialized to JSON.</span>
+
+<span class="sd">    :param spy_point_name: (optional) the spy point name, useful to distinguish among different observations, and to</span>
+<span class="sd">           select the agents that are applicable to this spy point. There is no need for this value to</span>
+<span class="sd">           be unique in your test. You only need to have this value if you want to :py:func:`deploy_agent` for</span>
+<span class="sd">           this spy point later in your test. If you do use this parameter, then it will be observed</span>
+<span class="sd">           with the key ``__spy_point__`` to ensure that it appears first in the sorted observation.</span>
+
+<span class="sd">    :param skip_save_observation: (optional) If True (defaults to False), don&#39;t actually save the</span>
+<span class="sd">           observation, just process any relevant agents. This is used internally to enable mocking-only</span>
+<span class="sd">           spy points. This will be overriden if a value of skip_save_observation is specified on an agent</span>
+<span class="sd">           that is active for this spy point, allowing this parameter to be used as an overridable default.</span>
+
+<span class="sd">    :param kwargs: key-value pairs to be observed. This forms the observation dictionary that is</span>
+<span class="sd">           serialized as the current observation.</span>
+
+<span class="sd">    :return: the result from the agent, if any (see :py:func:`deploy_agent`), or ``bond.AGENT_RESULT_NONE``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">Bond</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span><span class="o">.</span><span class="n">spy</span><span class="p">(</span><span class="n">spy_point_name</span><span class="o">=</span><span class="n">spy_point_name</span><span class="p">,</span>
+                               <span class="n">skip_save_observation</span><span class="o">=</span><span class="n">skip_save_observation</span><span class="p">,</span>
+                               <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="deploy_agent"><a class="viewcode-back" href="../api.html#bond.deploy_agent">[docs]</a><span class="k">def</span> <span class="nf">deploy_agent</span><span class="p">(</span><span class="n">spy_point_name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create and deploy a new agent for the named spy point. When a spy point is encountered, the agents are searched</span>
+<span class="sd">    in reverse order of their deployment, and the first agent that matches is used.</span>
+
+<span class="sd">    .. code::</span>
+
+<span class="sd">        bond.deploy_agent(&quot;my file&quot;, file_name__contains=&#39;passwd&#39;,</span>
+<span class="sd">                          result=&quot;mock result&quot;)</span>
+
+
+<span class="sd">    :param spy_point_name: (mandatory) the spy point where the agent is deployed.</span>
+<span class="sd">    :param kwargs: (optional) key-value pairs that control whether the agent is active and what it does.</span>
+<span class="sd">         The following keys are recognized:</span>
+
+<span class="sd">        * Keys that restrict for which invocations of bond.spy this agent is active. All of these conditions</span>
+<span class="sd">          must be true for the agent to be the active one:</span>
+
+<span class="sd">          * key=val : only when the observation dictionary contains the &#39;key&#39; with the given value</span>
+<span class="sd">          * key__contains=substr : only when the observation dictionary contains the &#39;key&#39; with a string value</span>
+<span class="sd">            that contains the given substr.</span>
+<span class="sd">          * key__startswith=substr : only when the observation dictionary contains the &#39;key&#39; with a</span>
+<span class="sd">            string value that starts with the given substr.</span>
+<span class="sd">          * key__endswith=substr : only when the observation dictionary contains the &#39;key&#39; with a string value</span>
+<span class="sd">            that ends with the given substr.</span>
+<span class="sd">          * filter=func : only when the given func returns true when passed observation dictionary.</span>
+<span class="sd">            The function should not make changes to the observation dictionary.</span>
+<span class="sd">            Uses the observation before formatting.</span>
+
+<span class="sd">        * Keys that control what the observer does when processed:</span>
+
+<span class="sd">          * do=func : executes the given function with the observation dictionary.</span>
+<span class="sd">            func can also be a list of functions, executed in order.</span>
+<span class="sd">            The function should not make changes to the observation dictionary.</span>
+<span class="sd">            Uses the observation before formatting.</span>
+
+<span class="sd">        * Keys that control what the corresponding spy returns (by default ``AGENT_RESULT_NONE``):</span>
+
+<span class="sd">          * exception=x : the call to bond.spy throws the given exception. If &#39;x&#39; is a function</span>
+<span class="sd">            it is invoked on the observation dictionary to compute the exception to throw.</span>
+<span class="sd">            The function should not make changes to the observation dictionary.</span>
+<span class="sd">            Uses the observation before formatting.</span>
+<span class="sd">          * result=x : the call to bond.spy returns the given value. If &#39;x&#39; is a function</span>
+<span class="sd">            it is invoked on the observe argument dictionary to compute the value to return.</span>
+<span class="sd">            If the function throws an exception then the spied function thrown an exception.</span>
+<span class="sd">            The function should not make changes to the observation dictionary.</span>
+<span class="sd">            Uses the observation before formatting.</span>
+
+<span class="sd">        * Keys that control how the observation is saved. This is processed after all the above functions.</span>
+
+<span class="sd">          * formatter : if specified, a function that is given the observation and can update it in place.</span>
+<span class="sd">            The formatted observation is what gets serialized and saved.</span>
+<span class="sd">          * skip_save_observation : if specified and True, this causes no observation to be saved as a result</span>
+<span class="sd">            of the call to spy for which this agent is active. This can be useful to conditionally save</span>
+<span class="sd">            calls to e.g. certain functions whose call order may not be relevant. This will override any</span>
+<span class="sd">            value of ``mock_only`` specified on a :py:func:`spy_point` or value of ``skip_save_observation``</span>
+<span class="sd">            specified on a call to :py:func:`spy`, meaning you can also specify a value of False to override.</span>
+
+<span class="sd">    :return: nothing</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">Bond</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span><span class="o">.</span><span class="n">deploy_agent</span><span class="p">(</span><span class="n">spy_point_name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="spy_point"><a class="viewcode-back" href="../api.html#bond.spy_point">[docs]</a><span class="k">def</span> <span class="nf">spy_point</span><span class="p">(</span><span class="n">spy_point_name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+              <span class="n">enabled_for_groups</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+              <span class="n">mock_only</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+              <span class="n">require_agent_result</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+              <span class="n">excluded_keys</span><span class="o">=</span><span class="p">(</span><span class="s">&#39;self&#39;</span><span class="p">,),</span>
+              <span class="n">spy_result</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Function and method decorator for spying arguments and results of methods. This decorator is safe</span>
+<span class="sd">    to use on production code. It will have effects only if the function :py:func:`start_test` has</span>
+<span class="sd">    been called to initialize the Bond module.</span>
+
+<span class="sd">    Must be applied directly to a method or a function, not to another decorator.</span>
+
+<span class="sd">    .. code::</span>
+
+<span class="sd">        @staticmethod</span>
+<span class="sd">        @bond.spy_point()</span>
+<span class="sd">        def my_sneaky_function(arg1=&#39;&#39;, arg2=None):</span>
+<span class="sd">            # does something</span>
+
+<span class="sd">    :param spy_point_name: (optional) A name to use for this spy point. Default is obtained from the name</span>
+<span class="sd">                           of the decorated function: for module methods, `module.method_name`. For other</span>
+<span class="sd">                           methods, `ClassName.method_name`.</span>
+<span class="sd">    :param enabled_for_groups: (optional) A list or tuple of spy point groups to which this spy point belongs.</span>
+<span class="sd">                           If missing then it is enabled for all groups. These names are arbitrary labels</span>
+<span class="sd">                           that :py:func:`start_test` can use to turn off groups of spy points.</span>
+<span class="sd">                           If you are writing a library that others are using, you should use a distinctive</span>
+<span class="sd">                           spy group for your spy points, to avoid your library starting to spy if embedded</span>
+<span class="sd">                           in some other test using Bond.</span>
+<span class="sd">    :param mock_only: (optional) If True (defaults to False), then don&#39;t record calls to this spy</span>
+<span class="sd">                           point as an observation. This allows you to use the spy point as a mock only</span>
+<span class="sd">                           without also recording the sequence of calls. If skip_save_observation is</span>
+<span class="sd">                           specified on an agent that is active for this spy point, that value will override</span>
+<span class="sd">                           this parameter (allowing mock_only to be used as an overridable default).</span>
+<span class="sd">    :param require_agent_result: (optional) if True, and if this spy point is enabled, then there must be an</span>
+<span class="sd">                           agent that provides a result, or else the invocation of the function aborts.</span>
+<span class="sd">                           The agent may still provide ``AGENT_RESULT_CONTINUE`` to tell the spy point</span>
+<span class="sd">                           to continue the invocation of the underlying function. This parameter is</span>
+<span class="sd">                           used to mark functions that should not be invoked normally during testing, e.g.,</span>
+<span class="sd">                           invoking shell commands, or requesting user input.</span>
+<span class="sd">    :param excluded_keys: (optional) a tuple or list of parameter key names to skip when saving the observations.</span>
+<span class="sd">                         Further manipulation of what gets observed can be done from agents.</span>
+<span class="sd">    :param spy_result: (optional) if True, then the result value is spied also, using a spy_point name of</span>
+<span class="sd">                       `spy_point_name.result`. If there is an agent providing a result for</span>
+<span class="sd">                       this spy point, then the agent result is saved as the observation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># TODO: Should we also have an excluded_from_groups parameter?</span>
+    <span class="c"># TODO right now excluding &#39;self&#39; using excludedKeys, should attempt to find a better way?</span>
+    <span class="k">def</span> <span class="nf">wrap</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
+
+        <span class="c"># We have as little code here as possible, because this runs in production code</span>
+        <span class="c"># ^ not if we use the try/except on import idiom. But good to still work if bond is imported</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">inspect</span><span class="o">.</span><span class="n">isfunction</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&#39;The observeFunction decorator may only be applied to functions/methods!&#39;</span><span class="p">)</span>
+
+        <span class="c"># Convert enabled_for_groups into a tuple</span>
+        <span class="k">if</span> <span class="n">enabled_for_groups</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">enabled_for_groups_local</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">enabled_for_groups</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">):</span>
+            <span class="n">enabled_for_groups_local</span> <span class="o">=</span> <span class="p">(</span><span class="n">enabled_for_groups</span><span class="p">,)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">enabled_for_groups</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">))</span>
+            <span class="n">enabled_for_groups_local</span> <span class="o">=</span> <span class="n">enabled_for_groups</span>
+
+        <span class="nd">@wraps</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">fn_wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="c"># Bypass spying if we are not TESTING</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">active</span><span class="p">():</span>
+                <span class="k">return</span> <span class="n">fn</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="n">the_bond</span> <span class="o">=</span> <span class="n">Bond</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">enabled_for_groups_local</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">grp</span> <span class="ow">in</span> <span class="n">enabled_for_groups_local</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">grp</span> <span class="ow">in</span> <span class="n">the_bond</span><span class="o">.</span><span class="n">spy_groups</span><span class="p">:</span>
+                        <span class="k">break</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c"># We are only enabled for some groups, but none of those and active</span>
+                    <span class="k">return</span> <span class="n">fn</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+            <span class="n">arginfo</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getargspec</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+            <span class="n">callargs</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getcallargs</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">spy_point_name</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="c"># We recognize instance methods by the first argument &#39;self&#39;</span>
+                <span class="c"># TODO: there must be a better way to do this</span>
+                <span class="n">spy_point_name_local</span> <span class="o">=</span> <span class="bp">None</span>
+                <span class="k">if</span> <span class="n">arginfo</span> <span class="ow">and</span> <span class="n">arginfo</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                    <span class="k">if</span> <span class="n">arginfo</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;self&#39;</span><span class="p">:</span>
+                        <span class="n">spy_point_name_local</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span> <span class="o">+</span> <span class="s">&#39;.&#39;</span> <span class="o">+</span> <span class="n">fn</span><span class="o">.</span><span class="n">__name__</span>
+                    <span class="k">elif</span> <span class="n">arginfo</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;cls&#39;</span><span class="p">:</span>
+                        <span class="c"># A class method</span>
+                        <span class="n">spy_point_name_local</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">__name__</span> <span class="o">+</span> <span class="s">&#39;.&#39;</span> <span class="o">+</span> <span class="n">fn</span><span class="o">.</span><span class="n">__name__</span>
+                <span class="k">if</span> <span class="n">spy_point_name_local</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                    <span class="c"># TODO We get here both for staticmethod and for module-level functions</span>
+                    <span class="c"># If we had the spy_point wrapper outside the @staticmethod we could tell</span>
+                    <span class="c"># more easily what kind of method this was !!</span>
+                    <span class="n">module_name</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="s">&#39;__module__&#39;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">module_name</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>  <span class="c"># Get the original module name from the filename</span>
+                        <span class="n">module_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">inspect</span><span class="o">.</span><span class="n">getmodule</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span><span class="o">.</span><span class="n">__file__</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="c"># Keep only the last component of the name</span>
+                    <span class="n">module_name</span> <span class="o">=</span> <span class="n">module_name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="n">spy_point_name_local</span> <span class="o">=</span> <span class="n">module_name</span> <span class="o">+</span> <span class="s">&#39;.&#39;</span> <span class="o">+</span> <span class="n">fn</span><span class="o">.</span><span class="n">__name__</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">spy_point_name_local</span> <span class="o">=</span> <span class="n">spy_point_name</span>
+
+            <span class="n">observation_dictionary</span> <span class="o">=</span> <span class="p">{}</span>
+
+            <span class="n">varargs_name</span> <span class="o">=</span> <span class="n">arginfo</span><span class="o">.</span><span class="n">varargs</span>
+            <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">arginfo</span><span class="o">.</span><span class="n">args</span><span class="p">))):</span>
+                <span class="n">observation_dictionary</span><span class="p">[</span><span class="n">arginfo</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="n">idx</span><span class="p">]]</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">varargs_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">callargs</span><span class="p">[</span><span class="n">varargs_name</span><span class="p">])</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">observation_dictionary</span><span class="p">[</span><span class="n">varargs_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">callargs</span><span class="p">[</span><span class="n">varargs_name</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+                <span class="n">observation_dictionary</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+            <span class="n">observation_dictionary</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">val</span> <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span> <span class="ow">in</span> <span class="n">observation_dictionary</span><span class="o">.</span><span class="n">iteritems</span><span class="p">()</span>
+                                      <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">excluded_keys</span><span class="p">}</span>
+
+            <span class="n">response</span> <span class="o">=</span> <span class="n">the_bond</span><span class="o">.</span><span class="n">spy</span><span class="p">(</span><span class="n">spy_point_name</span><span class="o">=</span><span class="n">spy_point_name_local</span><span class="p">,</span>
+                                    <span class="n">skip_save_observation</span><span class="o">=</span><span class="n">mock_only</span><span class="p">,</span>
+                                    <span class="o">**</span><span class="n">observation_dictionary</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">require_agent_result</span><span class="p">:</span>
+                <span class="k">assert</span> <span class="n">response</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">AGENT_RESULT_NONE</span><span class="p">,</span> \
+                    <span class="s">&#39;You MUST mock out spy_point {}: {}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">spy_point_name_local</span><span class="p">,</span>
+                                                                <span class="nb">repr</span><span class="p">(</span><span class="n">observation_dictionary</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">response</span> <span class="ow">is</span> <span class="n">AGENT_RESULT_NONE</span> <span class="ow">or</span> <span class="n">response</span> <span class="ow">is</span> <span class="n">AGENT_RESULT_CONTINUE</span><span class="p">:</span>
+                <span class="n">return_val</span> <span class="o">=</span> <span class="n">fn</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">return_val</span> <span class="o">=</span> <span class="n">response</span>
+
+            <span class="k">if</span> <span class="n">spy_result</span><span class="p">:</span>
+                <span class="n">the_bond</span><span class="o">.</span><span class="n">spy</span><span class="p">(</span><span class="n">spy_point_name_local</span> <span class="o">+</span> <span class="s">&#39;.result&#39;</span><span class="p">,</span> <span class="n">result</span><span class="o">=</span><span class="n">return_val</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">return_val</span>
+
+        <span class="k">return</span> <span class="n">fn_wrapper</span>
+
+    <span class="k">return</span> <span class="n">wrap</span>
+
+</div>
+<span class="k">class</span> <span class="nc">Bond</span><span class="p">:</span>
+    <span class="n">DEFAULT_OBSERVATION_DIRECTORY</span> <span class="o">=</span> <span class="s">&#39;/tmp/bond_observations&#39;</span>
+
+    <span class="n">_instance</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">instance</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">Bond</span><span class="o">.</span><span class="n">_instance</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">Bond</span><span class="o">.</span><span class="n">_instance</span> <span class="o">=</span> <span class="n">Bond</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">Bond</span><span class="o">.</span><span class="n">_instance</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_settings</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">test_framework_bridge</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_count_failures</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_count_errors</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">test_name</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spy_groups</span> <span class="o">=</span> <span class="bp">None</span>  <span class="c"># Map indexed on enabled spy groups</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">observations</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c"># Here we will collect the observations</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spy_agents</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c"># Map from spy_point_name to SpyAgents</span>
+
+    <span class="k">def</span> <span class="nf">settings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the settings for Bond.</span>
+<span class="sd">        See documentation for top-level settings function</span>
+<span class="sd">        :param kwargs:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># Get the not-None keys</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_settings</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+        <span class="k">if</span> <span class="s">&#39;spy_groups&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_settings</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_set_spy_groups</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_settings</span><span class="p">[</span><span class="s">&#39;spy_groups&#39;</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">start_test</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                   <span class="n">current_python_test</span><span class="p">,</span>
+                   <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Signal the starting of a new test.</span>
+<span class="sd">        See documentation for top-level start_test function</span>
+<span class="sd">        :param kwargs:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">observations</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spy_agents</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spy_groups</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">test_framework_bridge</span> <span class="o">=</span> <span class="n">TestFrameworkBridge</span><span class="o">.</span><span class="n">make_bridge</span><span class="p">(</span><span class="n">current_python_test</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_settings</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c"># Clear settings before each test</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">test_name</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;test_name&#39;</span><span class="p">)</span> <span class="ow">or</span>
+                          <span class="bp">self</span><span class="o">.</span><span class="n">test_framework_bridge</span><span class="o">.</span><span class="n">full_test_name</span><span class="p">())</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_settings</span><span class="p">[</span><span class="s">&#39;decimal_precision&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_settings</span><span class="p">[</span><span class="s">&#39;decimal_precision&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">4</span>
+
+        <span class="c"># Register us on test exit</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">test_framework_bridge</span><span class="o">.</span><span class="n">on_finish_test</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_finish_test</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="s">&#39;observation_directory&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_settings</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;WARNING: you should set the settings(observation_directory). Observations saved to {}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">Bond</span><span class="o">.</span><span class="n">DEFAULT_OBSERVATION_DIRECTORY</span>
+            <span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">active</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">test_framework_bridge</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">spy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spy_point_name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">skip_save_observation</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_framework_bridge</span><span class="p">:</span>
+            <span class="c"># Don&#39;t do anything if we are not testing</span>
+            <span class="k">return</span> <span class="bp">None</span>
+
+        <span class="k">if</span> <span class="n">spy_point_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">spy_point_name</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">),</span> <span class="s">&quot;spy_point_name must be a string&quot;</span>
+
+            <span class="c"># Find the agent to apply. We process the agents in order, because they are deployed at the start of the list</span>
+            <span class="n">active_agent</span> <span class="o">=</span> <span class="bp">None</span>
+
+            <span class="k">for</span> <span class="n">agent</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">spy_agents</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">spy_point_name</span><span class="p">,</span> <span class="p">[]):</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">agent</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">kwargs</span><span class="p">):</span>
+                    <span class="k">continue</span>
+                <span class="n">active_agent</span> <span class="o">=</span> <span class="n">agent</span>
+                <span class="k">break</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">active_agent</span> <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="n">observation</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">spy_point_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">observation</span><span class="p">[</span><span class="s">&#39;__spy_point__&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">spy_point_name</span>  <span class="c"># Use a key that should come first alphabetically</span>
+
+        <span class="k">def</span> <span class="nf">save_observation</span><span class="p">():</span>
+            <span class="c"># We postpone applying the formatter until we have run the &quot;doer&quot; and the &quot;result&quot;</span>
+            <span class="n">formatted</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_format_observation</span><span class="p">(</span><span class="n">observation</span><span class="p">,</span>
+                                                 <span class="n">active_agent</span><span class="o">=</span><span class="n">active_agent</span><span class="p">)</span>
+            <span class="c"># print(&quot;Observing: &quot; + formatted + &quot;\n&quot;)</span>
+            <span class="c"># TODO ETK</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">observations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">formatted</span><span class="p">)</span>
+
+        <span class="n">do_save_observation</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">skip_save_observation</span>
+        <span class="k">if</span> <span class="n">active_agent</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">active_agent</span><span class="o">.</span><span class="n">skip_save_observation</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">do_save_observation</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">active_agent</span><span class="o">.</span><span class="n">skip_save_observation</span>
+
+        <span class="c"># Apply the doer if present</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">res</span> <span class="o">=</span> <span class="n">AGENT_RESULT_NONE</span>
+
+            <span class="k">if</span> <span class="n">active_agent</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">active_agent</span><span class="o">.</span><span class="n">do</span><span class="p">(</span><span class="n">observation</span><span class="p">)</span>
+
+                <span class="n">res</span> <span class="o">=</span> <span class="n">active_agent</span><span class="o">.</span><span class="n">result</span><span class="p">(</span><span class="n">observation</span><span class="p">)</span>  <span class="c"># This may throw an exception</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">do_save_observation</span><span class="p">:</span>
+                <span class="n">save_observation</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">res</span> <span class="o">!=</span> <span class="n">AGENT_RESULT_NONE</span><span class="p">:</span>
+            <span class="c"># print(&quot;   Result &quot; + repr(res))</span>
+            <span class="k">return</span> <span class="n">res</span>
+
+        <span class="k">return</span> <span class="n">AGENT_RESULT_NONE</span>
+
+    <span class="k">def</span> <span class="nf">deploy_agent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spy_point_name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Deploy an agent for a spy point.</span>
+<span class="sd">        See documentation for the top-level deploy_agent function.</span>
+<span class="sd">        :param spy_point_name:</span>
+<span class="sd">        :param kwargs:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_framework_bridge</span><span class="p">,</span> <span class="s">&quot;Should not call deploy_agent unless you have called start_test first&quot;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">spy_point_name</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">),</span> <span class="s">&quot;spy_point_name must be a string&quot;</span>
+
+        <span class="n">agent</span> <span class="o">=</span> <span class="n">SpyAgent</span><span class="p">(</span><span class="n">spy_point_name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">spy_agent_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spy_agents</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">spy_point_name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">spy_agent_list</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">spy_agent_list</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">spy_agents</span><span class="p">[</span><span class="n">spy_point_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">spy_agent_list</span>
+        <span class="c"># add the agent at the start of the list</span>
+        <span class="n">spy_agent_list</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">agent</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_set_spy_groups</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spy_groups</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spy_groups</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="n">spy_groups</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">spy_groups</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">spy_groups</span> <span class="o">=</span> <span class="p">{</span><span class="n">spy_groups</span><span class="p">:</span> <span class="bp">True</span><span class="p">}</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">spy_groups</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">))</span>
+
+                <span class="k">for</span> <span class="n">sg</span> <span class="ow">in</span> <span class="n">spy_groups</span><span class="p">:</span>
+                    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sg</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">spy_groups</span><span class="p">[</span><span class="n">sg</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+
+    <span class="k">def</span> <span class="nf">_format_observation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                            <span class="n">observation</span><span class="p">,</span>
+                            <span class="n">active_agent</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="c"># TODO: I do not quite like how formatters work. See issue #1</span>
+        <span class="k">if</span> <span class="n">active_agent</span><span class="p">:</span>
+            <span class="n">active_agent</span><span class="o">.</span><span class="n">formatter</span><span class="p">(</span><span class="n">observation</span><span class="p">)</span>
+
+        <span class="n">original_float_repr</span> <span class="o">=</span> <span class="n">encoder</span><span class="o">.</span><span class="n">FLOAT_REPR</span>
+        <span class="n">format_string</span> <span class="o">=</span> <span class="s">&#39;.{}f&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_settings</span><span class="p">[</span><span class="s">&#39;decimal_precision&#39;</span><span class="p">])</span>
+        <span class="n">encoder</span><span class="o">.</span><span class="n">FLOAT_REPR</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="n">format</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="n">format_string</span><span class="p">)</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">observation</span><span class="p">,</span>
+                         <span class="n">sort_keys</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                         <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+                         <span class="n">default</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_custom_json_serializer</span><span class="p">)</span>
+        <span class="n">encoder</span><span class="o">.</span><span class="n">FLOAT_REPR</span> <span class="o">=</span> <span class="n">original_float_repr</span>
+        <span class="k">return</span> <span class="n">ret</span>
+
+    <span class="k">def</span> <span class="nf">_custom_json_serializer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="c"># TODO: figure out how to do this. Must be customizable from settings</span>
+        <span class="k">if</span> <span class="s">&#39;to_json&#39;</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__dict__</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s">&#39;to_json&#39;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="k">lambda</span> <span class="p">:</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="k">return</span> <span class="s">&quot;</span><span class="se">\&quot;</span><span class="s">&lt;lambda&gt;</span><span class="se">\&quot;</span><span class="s">&quot;</span>
+
+
+    <span class="k">def</span> <span class="nf">_finish_test</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Called internally when a test ends</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c"># Were there failures and errors in this test?</span>
+            <span class="n">test_failed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_framework_bridge</span><span class="o">.</span><span class="n">test_failed</span><span class="p">()</span>
+            <span class="c"># Save the observations</span>
+            <span class="k">if</span> <span class="n">test_failed</span><span class="p">:</span>
+                <span class="c"># Show the failures and errors now</span>
+                <span class="k">print</span><span class="p">(</span><span class="n">test_failed</span><span class="p">)</span>
+                <span class="n">no_save</span> <span class="o">=</span> <span class="n">test_failed</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">no_save</span> <span class="o">=</span> <span class="bp">None</span>
+
+            <span class="n">fname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_observation_file_name</span><span class="p">()</span>
+            <span class="n">fdir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">fdir</span><span class="p">):</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">fdir</span><span class="p">)</span>
+
+            <span class="n">reference_file</span> <span class="o">=</span> <span class="n">fname</span> <span class="o">+</span> <span class="s">&#39;.json&#39;</span>
+            <span class="n">current_lines</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_observations</span><span class="p">()</span>
+
+            <span class="c"># We have to reconcile them</span>
+            <span class="n">reconcile_res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reconcile_observations</span><span class="p">(</span><span class="n">reference_file</span><span class="p">,</span> <span class="n">current_lines</span><span class="p">,</span> <span class="n">no_save</span><span class="o">=</span><span class="n">no_save</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">test_failed</span><span class="p">:</span>
+                <span class="c"># If the test did not fail already, but it failed reconcile, fail the test</span>
+                <span class="k">assert</span> <span class="n">reconcile_res</span><span class="p">,</span> <span class="s">&#39;Reconciling observations for {}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">test_name</span><span class="p">)</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="c"># Mark that we are outside of a test</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">test_framework_bridge</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">_observation_file_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">fname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_observation_directory</span><span class="p">()]</span> <span class="o">+</span>
+                              <span class="bp">self</span><span class="o">.</span><span class="n">test_name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">fname</span>
+
+    <span class="k">def</span> <span class="nf">_observation_directory</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">obs_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;observation_directory&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">obs_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">obs_dir</span>
+
+        <span class="c"># We build the observation directory based on the path of the current test file</span>
+        <span class="n">test_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_framework_bridge</span><span class="o">.</span><span class="n">test_file_name</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">test_file</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">test_file</span><span class="p">),</span>
+                                <span class="s">&#39;test_observations&#39;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&quot;WARNING: Using temporary directory for Bond test observations. &quot;</span>
+              <span class="s">&quot;Use observation_directory parameter to start_test or settings&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Bond</span><span class="o">.</span><span class="n">DEFAULT_OBSERVATION_DIRECTORY</span>
+
+    <span class="k">def</span> <span class="nf">_get_observations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return all of the observations as a list of lines that would be</span>
+<span class="sd">        printed out</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">observations</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="s">&#39;[</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;]</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="s">&#39;[</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">line</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">string</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;,</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">observations</span><span class="p">),</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)]</span> <span class="o">+</span> <span class="p">[</span><span class="s">&#39;]</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">_reconcile_observations</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                <span class="n">reference_file</span><span class="p">,</span>
+                                <span class="n">current_lines</span><span class="p">,</span>
+                                <span class="n">no_save</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="n">settings</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">reconcile</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;reconcile&#39;</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">bond_reconcile</span><span class="o">.</span><span class="n">reconcile_observations</span><span class="p">(</span><span class="n">settings</span><span class="p">,</span>
+                                                     <span class="n">test_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">test_name</span><span class="p">,</span>
+                                                     <span class="n">reference_file</span><span class="o">=</span><span class="n">reference_file</span><span class="p">,</span>
+                                                     <span class="n">current_lines</span><span class="o">=</span><span class="n">current_lines</span><span class="p">,</span>
+                                                     <span class="n">no_save</span><span class="o">=</span><span class="n">no_save</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">SpyAgent</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A spy agent applies to a particular spy_point_name, has</span>
+<span class="sd">    some optional filters to select only certain observations,</span>
+<span class="sd">    and has optional mocking parameters.</span>
+<span class="sd">    See documentation for the deploy_agent top-level function.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spy_point_name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spy_point_name</span> <span class="o">=</span> <span class="n">spy_point_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">result_spec</span> <span class="o">=</span> <span class="n">AGENT_RESULT_NONE</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">exception_spec</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">formatter_spec</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">doers</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c"># A list of things to do</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">point_filter</span> <span class="o">=</span> <span class="bp">None</span>  <span class="c"># The filter for pointName, if present</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filters</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c"># The generic filters</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">skip_save_observation</span> <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">k</span> <span class="o">==</span> <span class="s">&#39;result&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">result_spec</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="n">k</span> <span class="o">==</span> <span class="s">&#39;exception&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">exception_spec</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="n">k</span> <span class="o">==</span> <span class="s">&#39;formatter&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">formatter_spec</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="n">k</span> <span class="o">==</span> <span class="s">&#39;do&#39;</span><span class="p">:</span>
+                <span class="n">doers</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">doers</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">doers</span> <span class="o">+=</span> <span class="n">doers</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">doers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">doers</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">k</span> <span class="o">==</span> <span class="s">&#39;skip_save_observation&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">skip_save_observation</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c"># Must be a filter</span>
+                <span class="n">fo</span> <span class="o">=</span> <span class="n">SpyAgentFilter</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">filters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fo</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">observation</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Run the filter on an observation to see if the SpyAgent applies</span>
+<span class="sd">        :param observation:</span>
+<span class="sd">        :return: True, if the</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">filters</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">f</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">observation</span><span class="p">):</span>
+                <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">return</span> <span class="bp">True</span>
+
+    <span class="k">def</span> <span class="nf">formatter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">observation</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Apply the formatter to modify the observation in place&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">formatter_spec</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">formatter_spec</span><span class="p">(</span><span class="n">observation</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">do</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">observation</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">doers</span><span class="p">:</span>
+            <span class="n">d</span><span class="p">(</span><span class="n">observation</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">result</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">observation</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Compute the result&quot;&quot;&quot;</span>
+        <span class="n">es</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">exception_spec</span>
+        <span class="k">if</span> <span class="n">es</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">es</span><span class="p">,</span> <span class="s">&#39;__call__&#39;</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="n">es</span><span class="p">(</span><span class="n">observation</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">es</span>
+
+        <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">result_spec</span>
+        <span class="k">if</span> <span class="n">r</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">AGENT_RESULT_NONE</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="s">&#39;__call__&#39;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">r</span><span class="p">(</span><span class="n">observation</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">r</span>
+
+
+<span class="k">class</span> <span class="nc">SpyAgentFilter</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Each SpyAgent can have multiple filters.</span>
+<span class="sd">    See documentation for deploy_agent function.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filter_key</span><span class="p">,</span> <span class="n">filter_value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">field_name</span> <span class="o">=</span> <span class="bp">None</span>  <span class="c"># The observation field name the filter applies to</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filter_func</span> <span class="o">=</span> <span class="bp">None</span>  <span class="c"># A filter function (applies to the field value)</span>
+        <span class="k">if</span> <span class="n">filter_key</span> <span class="o">==</span> <span class="s">&#39;filter&#39;</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">filter_value</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="mi">0</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">field_name</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">filter_func</span> <span class="o">=</span> <span class="n">filter_value</span>
+            <span class="k">return</span>
+
+        <span class="n">parts</span> <span class="o">=</span> <span class="n">filter_key</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&quot;__&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">field_name</span> <span class="o">=</span> <span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">filter_func</span> <span class="o">=</span> <span class="p">(</span><span class="k">lambda</span> <span class="n">f</span><span class="p">:</span> <span class="n">f</span> <span class="o">==</span> <span class="n">filter_value</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">field_name</span> <span class="o">=</span> <span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">cmp_spec</span> <span class="o">=</span> <span class="n">parts</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">cmp_spec</span> <span class="o">==</span> <span class="s">&#39;exact&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">filter_func</span> <span class="o">=</span> <span class="p">(</span><span class="k">lambda</span> <span class="n">f</span><span class="p">:</span> <span class="n">f</span> <span class="o">==</span> <span class="n">filter_value</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">cmp_spec</span> <span class="o">==</span> <span class="s">&#39;eq&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">filter_func</span> <span class="o">=</span> <span class="p">(</span><span class="k">lambda</span> <span class="n">f</span><span class="p">:</span> <span class="n">f</span> <span class="o">==</span> <span class="n">filter_value</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">cmp_spec</span> <span class="o">==</span> <span class="s">&#39;startswith&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">filter_func</span> <span class="o">=</span> <span class="p">(</span><span class="k">lambda</span> <span class="n">f</span><span class="p">:</span> <span class="n">f</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">filter_value</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">cmp_spec</span> <span class="o">==</span> <span class="s">&#39;endswith&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">filter_func</span> <span class="o">=</span> <span class="p">(</span><span class="k">lambda</span> <span class="n">f</span><span class="p">:</span> <span class="n">f</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="n">filter_value</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">filter_value</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="n">cmp_spec</span> <span class="o">==</span> <span class="s">&#39;contains&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">filter_func</span> <span class="o">=</span> <span class="p">(</span><span class="k">lambda</span> <span class="n">f</span><span class="p">:</span> <span class="n">filter_value</span> <span class="ow">in</span> <span class="n">f</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">assert</span> <span class="bp">False</span><span class="p">,</span> <span class="s">&quot;Unknown operator: &quot;</span> <span class="o">+</span> <span class="n">cmp_spec</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="bp">False</span>
+
+    <span class="k">def</span> <span class="nf">filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">observation</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">field_name</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">field_name</span> <span class="ow">in</span> <span class="n">observation</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_func</span><span class="p">(</span><span class="n">observation</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">field_name</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_func</span><span class="p">(</span><span class="n">observation</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">TestFrameworkBridge</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A class to abstract the interface to the host test framework</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">current_python_test</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_python_test</span> <span class="o">=</span> <span class="n">current_python_test</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">make_bridge</span><span class="p">(</span><span class="n">current_python_test</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Make the proper bridge for the current python test</span>
+<span class="sd">        :param current_python_test:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c"># We test for the presence of fields</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">current_python_test</span><span class="p">,</span> <span class="s">&#39;_resultForDoCleanups&#39;</span><span class="p">):</span>
+            <span class="n">resultForDoCleanups</span> <span class="o">=</span> <span class="n">current_python_test</span><span class="o">.</span><span class="n">_resultForDoCleanups</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nb">hasattr</span><span class="p">(</span><span class="n">resultForDoCleanups</span><span class="p">,</span> <span class="s">&#39;failures&#39;</span><span class="p">)</span> <span class="ow">and</span>
+                <span class="nb">hasattr</span><span class="p">(</span><span class="n">resultForDoCleanups</span><span class="p">,</span> <span class="s">&#39;errors&#39;</span><span class="p">)):</span>
+
+                <span class="k">return</span> <span class="n">TestFrameworkBridgeUnittest</span><span class="p">(</span><span class="n">current_python_test</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">resultForDoCleanups</span><span class="p">,</span> <span class="s">&#39;_fixtureinfo&#39;</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">TestFrameworkBridgePyTest</span><span class="p">(</span><span class="n">current_python_test</span><span class="p">)</span>
+
+        <span class="k">assert</span> <span class="bp">False</span><span class="p">,</span> <span class="s">&quot;Can&#39;t recognize the test framework&quot;</span>
+
+    <span class="k">def</span> <span class="nf">full_test_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The full name of the test: Class.test</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_python_test</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span> <span class="o">+</span> <span class="s">&quot;.&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_python_test</span><span class="o">.</span><span class="n">_testMethodName</span>
+
+    <span class="k">def</span> <span class="nf">test_file_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The name of the .py file where the test is defined</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getfile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">current_python_test</span><span class="o">.</span><span class="n">__class__</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">on_finish_test</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_callback</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Register a callback to be called on test end</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_python_test</span><span class="o">.</span><span class="n">addCleanup</span><span class="p">(</span><span class="n">_callback</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">test_failed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return an error message if the test has failed</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="bp">False</span><span class="p">,</span> <span class="s">&quot;Must override&quot;</span>
+
+
+<span class="k">class</span> <span class="nc">TestFrameworkBridgeUnittest</span><span class="p">(</span><span class="n">TestFrameworkBridge</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A bridge for the standard unitest</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">current_python_test</span><span class="p">):</span>
+        <span class="n">TestFrameworkBridge</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">current_python_test</span><span class="p">)</span>
+
+        <span class="c"># TODO: the rest is specific to unittest. We need to factor it out to allow other frameworks. See issue #2</span>
+        <span class="c"># (the use of current_python_test._testMethodName above is unittest specific as well)</span>
+
+        <span class="c"># We remember the start counter for failures and errors</span>
+        <span class="c"># This is the best way I know how to tell that a test has failed</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_count_failures</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">current_python_test</span><span class="o">.</span><span class="n">_resultForDoCleanups</span><span class="o">.</span><span class="n">failures</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_count_errors</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">current_python_test</span><span class="o">.</span><span class="n">_resultForDoCleanups</span><span class="o">.</span><span class="n">errors</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">test_failed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return true if the test has failed</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">failures_and_errors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_failures_and_errors</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">failures_and_errors</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">failures_and_errors</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">None</span>
+
+
+    <span class="k">def</span> <span class="nf">_get_failures_and_errors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a list of failures and errors so far</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">fmsg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_python_test</span><span class="o">.</span><span class="n">_resultForDoCleanups</span><span class="o">.</span><span class="n">failures</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">start_count_failures</span><span class="p">:]:</span>
+            <span class="n">res</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fmsg</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="k">for</span> <span class="n">emsg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_python_test</span><span class="o">.</span><span class="n">_resultForDoCleanups</span><span class="o">.</span><span class="n">errors</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">start_count_errors</span><span class="p">:]:</span>
+            <span class="n">res</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">emsg</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">res</span>
+
+
+<span class="k">class</span> <span class="nc">TestFrameworkBridgePyTest</span><span class="p">(</span><span class="n">TestFrameworkBridge</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A bridge for py.test</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">current_python_test</span><span class="p">):</span>
+        <span class="n">TestFrameworkBridge</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">current_python_test</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_count_excinfo</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_count_excinfo</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">test_failed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return true if the test has failed</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_count_excinfo</span><span class="p">()</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_count_excinfo</span>
+
+
+    <span class="k">def</span> <span class="nf">_count_excinfo</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">current_python_test</span><span class="o">.</span><span class="n">_resultForDoCleanups</span><span class="o">.</span><span class="n">_excinfo</span><span class="p">)</span> \
+                     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_python_test</span><span class="o">.</span><span class="n">_resultForDoCleanups</span><span class="o">.</span><span class="n">_excinfo</span> <span class="k">else</span> <span class="mi">0</span>
+
+<span class="c"># Import bond_reconcile at the end, because we import bond from bond_reconcile, and</span>
+<span class="c"># we need at least the spy_point to be defined</span>
+<span class="kn">import</span> <span class="nn">bond_reconcile</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, George Necula, Erik Krogen.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,594 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>
+  Module: BondTargetable
+  
+    &mdash; Documentation by YARD 0.8.7.6
+  
+</title>
+
+  <link rel="stylesheet" href="css/style.css" type="text/css" charset="utf-8" />
+
+  <link rel="stylesheet" href="css/common.css" type="text/css" charset="utf-8" />
+
+<script type="text/javascript" charset="utf-8">
+  hasFrames = window.top.frames.main ? true : false;
+  relpath = '';
+  framesUrl = "frames.html#!BondTargetable.html";
+</script>
+
+
+  <script type="text/javascript" charset="utf-8" src="js/jquery.js"></script>
+
+  <script type="text/javascript" charset="utf-8" src="js/app.js"></script>
+
+
+  </head>
+  <body>
+    <div id="header">
+      <div id="menu">
+  
+    <a href="_index.html">Index (B)</a> &raquo;
+    
+    
+    <span class="title">BondTargetable</span>
+  
+
+  <div class="noframes"><span class="title">(</span><a href="." target="_top">no frames</a><span class="title">)</span></div>
+</div>
+
+      <div id="search">
+  
+    <a class="full_list_link" id="class_list_link"
+        href="class_list.html">
+      Class List
+    </a>
+  
+    <a class="full_list_link" id="method_list_link"
+        href="method_list.html">
+      Method List
+    </a>
+  
+    <a class="full_list_link" id="file_list_link"
+        href="file_list.html">
+      File List
+    </a>
+  
+</div>
+      <div class="clear"></div>
+    </div>
+
+    <iframe id="search_frame"></iframe>
+
+    <div id="content"><h1>Module: BondTargetable
+  
+  
+  
+</h1>
+
+<dl class="box">
+  
+  
+    
+  
+    
+  
+  
+    <dt class="r1">Included in:</dt>
+    <dd class="r1"><span class='object_link'><a href="Utils.html" title="Utils (class)">Utils</a></span></dd>
+    
+  
+  
+    <dt class="r2 last">Defined in:</dt>
+    <dd class="r2 last">lib/bond/targetable.rb</dd>
+  
+</dl>
+<div class="clear"></div>
+
+<h2>Overview</h2><div class="docstring">
+  <div class="discussion">
+    <p>Module which should be <code>extend</code>ed into any class or module which you would like
+to spy on, either via <span class='object_link'><a href="Bond.html#spy-instance_method" title="Bond#spy (method)">Bond#spy</a></span> or via a <span class='object_link'><a href="#spy_point-instance_method" title="BondTargetable#spy_point (method)">#spy_point</a></span>. Within that class/module,
+the method <span class='object_link'><a href="#bond-instance_method" title="BondTargetable#bond (method)">#bond</a></span> is available to access Bond, i.e. <code>bond.spy</code> and <code>bond.spy_point</code>.</p>
+
+<p>For example, if you would like to spy on MyClass, you would do this:</p>
+
+<pre class="code ruby"><code class="ruby">class MyClass
+  extend BondTargetable
+
+  bond.spy_point(spy_point_name: &#39;my_name&#39;)
+  def method_to_spy_on
+    ...
+    bond.spy(intermediate_state: state_variable)
+    ...
+  end
+end
+</code></pre>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div>
+
+
+
+
+
+
+  
+    <h2>
+      Instance Method Summary
+      <small>(<a href="#" class="summary_toggle">collapse</a>)</small>
+    </h2>
+
+    <ul class="summary">
+      
+        <li class="protected ">
+  <span class="summary_signature">
+    
+      <a href="#bond-instance_method" title="#bond (instance method)">- (Object) <strong>bond</strong> </a>
+    
+
+    
+  </span>
+  
+  
+  
+  <span class="note title protected">protected</span>
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Simple method to access Bond from within a BondTargetable class/module.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="protected ">
+  <span class="summary_signature">
+    
+      <a href="#spy_point-instance_method" title="#spy_point (instance method)">- (Object) <strong>spy_point</strong>(spy_point_name: nil, require_agent_result: false, excluded_keys: [], spy_result: false, mock_only: false) </a>
+    
+
+    
+  </span>
+  
+  
+  
+  <span class="note title protected">protected</span>
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>The annotation which indicates that a method should be spied on.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="protected ">
+  <span class="summary_signature">
+    
+      <a href="#spy_point_on-instance_method" title="#spy_point_on (instance method)">- (Object) <strong>spy_point_on</strong>(method_name, spy_point_name: nil, require_agent_result: false, excluded_keys: [], spy_result: false, mock_only: false) </a>
+    
+
+    
+  </span>
+  
+  
+  
+  <span class="note title protected">protected</span>
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Acts identically to <span class='object_link'><a href="#spy_point-instance_method" title="BondTargetable#spy_point (method)">#spy_point</a></span>, except that you specify which method to place a spy point on using the <code>method_name</code> parameter (i.e., the position of the call is not relevant).</p>
+</div></span>
+  
+</li>
+
+      
+    </ul>
+  
+
+
+
+  <div id="instance_method_details" class="method_details_list">
+    <h2>Instance Method Details</h2>
+
+    
+      <div class="method_details first">
+  <h3 class="signature first" id="bond-instance_method">
+  
+    - (<tt>Object</tt>) <strong>bond</strong>  <span class="extras">(protected)</span>
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Simple method to access Bond from within a BondTargetable class/module.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+98
+99
+100</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/bond/targetable.rb', line 98</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_bond'>bond</span>
+  <span class='const'>PassthroughClass</span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span><span class='lparen'>(</span><span class='kw'>self</span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="spy_point-instance_method">
+  
+    - (<tt>Object</tt>) <strong>spy_point</strong>(spy_point_name: nil, require_agent_result: false, excluded_keys: [], spy_result: false, mock_only: false)  <span class="extras">(protected)</span>
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>The annotation which indicates that a method should be spied on. Use like:</p>
+
+<pre class="code ruby"><code class="ruby">bond.spy_point(options...)
+def method_being_spied_on()
+</code></pre>
+
+<p>This is safe to use in production code; it will have effects only if the function
+<span class='object_link'><a href="Bond.html#start_test-instance_method" title="Bond#start_test (method)">Bond#start_test</a></span> has been called to initialize Bond.
+This will automatically spy every call to the <code>method_being_spied_on</code>. By default,
+all supplied arguments are logged. For normal arguments and keyword arguments,
+they will be logged as <code>argument_name: value</code>. For variable arguments,
+they are logged as <code>anonymous_parameter{arg_num}: value</code> (e.g. <code>anonymous_parameter0: &#39;foo&#39;</code>).
+If the call to <span class='object_link'><a href="Bond.html#spy-instance_method" title="Bond#spy (method)">Bond#spy</a></span> returns anything other than <code>:agent_result_none</code> or
+<code>:agent_result_continue</code> (i.e. through the use of <span class='object_link'><a href="Bond.html#deploy_agent-instance_method" title="Bond#deploy_agent (method)">Bond#deploy_agent</a></span>), the spied
+method will never be called and the result will be returned in its place. Else, the
+method is called as normal.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>spy_point_name</span>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>If supplied, overrides the default spy point name, which is
+<code>Class.method_name</code> for class methods and <code>Class#method_name</code> for other methods.</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>require_agent_result</span>
+      
+      
+        <span class='type'>(<tt>Boolean</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>If true, you <em>must</em> supply a return value via
+<span class='object_link'><a href="Bond.html#deploy_agent-instance_method" title="Bond#deploy_agent (method)">Bond#deploy_agent</a></span> during testing, else an error is thrown.</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>excluded_keys</span>
+      
+      
+        <span class='type'>(<tt>String</tt>, <tt>Symbol</tt>, <tt>Array&lt;String, Symbol&gt;</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>An array of key/argument
+names to exclude from the spy. Can be useful if you don&#39;t care about the value of some argument.</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>spy_result</span>
+      
+      
+        <span class='type'>(<tt>Boolean</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>If true, spy on the return value. The spy point name will be
+<code>{spy_point_name}.result</code> and the key name will be <code>result</code>.</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>mock_only</span>
+      
+      
+        <span class='type'>(<tt>Boolean</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>If true, don&#39;t record calls to this method as observations.
+This allows for the ability to mock a method without observing all of its calls, useful
+if mocking e.g. a small utility method whose call order is unimportant. This can be
+overridden by using the <code>skip_save_observation</code> parameter when deploying an agent
+(<span class='object_link'><a href="Bond.html#deploy_agent-instance_method" title="Bond#deploy_agent (method)">Bond#deploy_agent</a></span>).</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/bond/targetable.rb', line 57</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_spy_point'>spy_point</span><span class='lparen'>(</span><span class='label'>spy_point_name:</span> <span class='kw'>nil</span><span class='comma'>,</span> <span class='label'>require_agent_result:</span> <span class='kw'>false</span><span class='comma'>,</span> <span class='label'>excluded_keys:</span> <span class='lbracket'>[</span><span class='rbracket'>]</span><span class='comma'>,</span>
+              <span class='label'>spy_result:</span> <span class='kw'>false</span><span class='comma'>,</span> <span class='label'>mock_only:</span> <span class='kw'>false</span><span class='rparen'>)</span>
+  <span class='ivar'>@__last_annotation_args</span> <span class='op'>=</span> <span class='lbrace'>{</span>
+      <span class='label'>spy_point_name:</span> <span class='id identifier rubyid_spy_point_name'>spy_point_name</span><span class='comma'>,</span>
+      <span class='label'>require_agent_result:</span> <span class='id identifier rubyid_require_agent_result'>require_agent_result</span><span class='comma'>,</span>
+      <span class='comment'># Allow for a single key or an array of them, and map to_s in case they were passed as symbols
+</span>      <span class='label'>excluded_keys:</span> <span class='lbracket'>[</span><span class='op'>*</span><span class='id identifier rubyid_excluded_keys'>excluded_keys</span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_map'>map</span><span class='lparen'>(</span><span class='op'>&amp;</span><span class='symbol'>:to_s</span><span class='rparen'>)</span><span class='comma'>,</span>
+      <span class='label'>spy_result:</span> <span class='id identifier rubyid_spy_result'>spy_result</span><span class='comma'>,</span>
+      <span class='label'>mock_only:</span> <span class='id identifier rubyid_mock_only'>mock_only</span>
+  <span class='rbrace'>}</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="spy_point_on-instance_method">
+  
+    - (<tt>Object</tt>) <strong>spy_point_on</strong>(method_name, spy_point_name: nil, require_agent_result: false, excluded_keys: [], spy_result: false, mock_only: false)  <span class="extras">(protected)</span>
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Acts identically to <span class='object_link'><a href="#spy_point-instance_method" title="BondTargetable#spy_point (method)">#spy_point</a></span>, except that you specify which method to place a spy
+point on using the <code>method_name</code> parameter (i.e., the position of the call is not relevant).
+This is especially useful for spying on members of a base/mixed-in class/module, since it may be
+difficult to place annotations on those methods (especially if you are inheriting from a library).</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>method_name</span>
+      
+      
+        <span class='type'>(<tt>Symbol</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>Name of the method on which to place a spy point.</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>spy_point_name</span>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>If supplied, overrides the default spy point name, which is
+<code>Class.method_name</code> for class methods and <code>Class#method_name</code> for other methods.</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>require_agent_result</span>
+      
+      
+        <span class='type'>(<tt>Boolean</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>If true, you <em>must</em> supply a return value via
+<span class='object_link'><a href="Bond.html#deploy_agent-instance_method" title="Bond#deploy_agent (method)">Bond#deploy_agent</a></span> during testing, else an error is thrown.</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>excluded_keys</span>
+      
+      
+        <span class='type'>(<tt>String</tt>, <tt>Symbol</tt>, <tt>Array&lt;String, Symbol&gt;</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>An array of key/argument
+names to exclude from the spy. Can be useful if you don&#39;t care about the value of some argument.</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>spy_result</span>
+      
+      
+        <span class='type'>(<tt>Boolean</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>If true, spy on the return value. The spy point name will be
+<code>{spy_point_name}.result</code> and the key name will be <code>result</code>.</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>mock_only</span>
+      
+      
+        <span class='type'>(<tt>Boolean</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>If true, don&#39;t record calls to this method as observations.
+This allows for the ability to mock a method without observing all of its calls, useful
+if mocking e.g. a small utility method whose call order is unimportant. This can be
+overridden by using the <code>skip_save_observation</code> parameter when deploying an agent
+(<span class='object_link'><a href="Bond.html#deploy_agent-instance_method" title="Bond#deploy_agent (method)">Bond#deploy_agent</a></span>).</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/bond/targetable.rb', line 77</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_spy_point_on'>spy_point_on</span><span class='lparen'>(</span><span class='id identifier rubyid_method_name'>method_name</span><span class='comma'>,</span> <span class='label'>spy_point_name:</span> <span class='kw'>nil</span><span class='comma'>,</span> <span class='label'>require_agent_result:</span> <span class='kw'>false</span><span class='comma'>,</span> <span class='label'>excluded_keys:</span> <span class='lbracket'>[</span><span class='rbracket'>]</span><span class='comma'>,</span>
+                 <span class='label'>spy_result:</span> <span class='kw'>false</span><span class='comma'>,</span> <span class='label'>mock_only:</span> <span class='kw'>false</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_annotation_args'>annotation_args</span> <span class='op'>=</span> <span class='lbrace'>{</span>
+      <span class='label'>spy_point_name:</span> <span class='id identifier rubyid_spy_point_name'>spy_point_name</span><span class='comma'>,</span>
+      <span class='label'>require_agent_result:</span> <span class='id identifier rubyid_require_agent_result'>require_agent_result</span><span class='comma'>,</span>
+      <span class='comment'># Allow for a single key or an array of them, and map to_s in case they were passed as symbols
+</span>      <span class='label'>excluded_keys:</span> <span class='lbracket'>[</span><span class='op'>*</span><span class='id identifier rubyid_excluded_keys'>excluded_keys</span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_map'>map</span><span class='lparen'>(</span><span class='op'>&amp;</span><span class='symbol'>:to_s</span><span class='rparen'>)</span><span class='comma'>,</span>
+      <span class='label'>spy_result:</span> <span class='id identifier rubyid_spy_result'>spy_result</span><span class='comma'>,</span>
+      <span class='label'>mock_only:</span> <span class='id identifier rubyid_mock_only'>mock_only</span>
+  <span class='rbrace'>}</span>
+  <span class='kw'>if</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_method_defined?'>method_defined?</span><span class='lparen'>(</span><span class='id identifier rubyid_method_name'>method_name</span><span class='rparen'>)</span> <span class='op'>||</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_respond_to?'>respond_to?</span><span class='lparen'>(</span><span class='id identifier rubyid_method_name'>method_name</span><span class='rparen'>)</span>
+    <span class='id identifier rubyid_wrap_instance_method'>wrap_instance_method</span><span class='lparen'>(</span><span class='id identifier rubyid_method_name'>method_name</span><span class='comma'>,</span> <span class='id identifier rubyid_annotation_args'>annotation_args</span><span class='rparen'>)</span> <span class='kw'>if</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_method_defined?'>method_defined?</span><span class='lparen'>(</span><span class='id identifier rubyid_method_name'>method_name</span><span class='rparen'>)</span>
+    <span class='id identifier rubyid_wrap_singleton_method'>wrap_singleton_method</span><span class='lparen'>(</span><span class='id identifier rubyid_method_name'>method_name</span><span class='comma'>,</span> <span class='id identifier rubyid_annotation_args'>annotation_args</span><span class='rparen'>)</span> <span class='kw'>if</span> <span class='kw'>self</span><span class='period'>.</span><span class='id identifier rubyid_respond_to?'>respond_to?</span><span class='lparen'>(</span><span class='id identifier rubyid_method_name'>method_name</span><span class='rparen'>)</span>
+  <span class='kw'>else</span>
+    <span class='ivar'>@__annotation_args</span> <span class='op'>=</span> <span class='lbrace'>{</span><span class='rbrace'>}</span> <span class='kw'>if</span> <span class='ivar'>@__annotation_args</span><span class='period'>.</span><span class='id identifier rubyid_nil?'>nil?</span>
+    <span class='ivar'>@__annotation_args</span><span class='lbracket'>[</span><span class='id identifier rubyid_method_name'>method_name</span><span class='period'>.</span><span class='id identifier rubyid_to_sym'>to_sym</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='id identifier rubyid_annotation_args'>annotation_args</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+  </div>
+
+</div>
+
+    <div id="footer">
+  Generated on Tue Mar 15 10:19:35 2016 by
+  <a href="http://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
+  0.8.7.6 (ruby-2.1.2).
+</div>
+
+  </body>
+</html>

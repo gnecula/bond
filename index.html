@@ -1,0 +1,166 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Welcome to Bond’s documentation! &mdash; Bond - Testing with Spies and Mocks</title>
+    
+    <link rel="stylesheet" href="_static/bond_doc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '2.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Bond - Testing with Spies and Mocks" href="#" />
+    <link rel="next" title="Getting Started with Bond" href="gettingstarted.html" />
+    
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+    <script type='text/javascript' src='_static/my_ga.js'></script>
+    <!-- script type='text/javascript' src='_static/bond_doc.js'></script  -->
+    <script type='text/javascript' src='_static/bootstrap-3.3.5.min.js'></script>
+    <script type='text/javascript' src='_static/rst-tabbed-sections.js'></script>
+    <link rel='stylesheet' href='_static/bootstrap-3.3.5.min.css' type='text/css'></link>
+    <link rel='stylesheet' href='_static/bond_doc.css' type='text/css'></link>
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="welcome-to-bond-s-documentation">
+<h1>Welcome to Bond&#8217;s documentation!<a class="headerlink" href="#welcome-to-bond-s-documentation" title="Permalink to this headline">¶</a></h1>
+<p>Contents:</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="gettingstarted.html">Getting Started with Bond</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="gettingstarted.html#setting-up-dependencies">Setting Up Dependencies</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Bond Tutorial</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#part-1-spying-with-bond">Part 1: Spying with Bond</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#part-2-mocking-with-bond">Part 2: Mocking with Bond</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#part-3-a-larger-example-of-bond-usage">Part 3: A Larger Example of Bond Usage</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">Bond API Documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api.html#python">Python</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#ruby">Ruby</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#java">Java</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="patterns.html">Bond Usage Patterns</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="patterns.html#dealing-with-non-determinism-in-observations">Dealing with Non-determinism in Observations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="patterns.html#including-bond-in-production-code">Including Bond in Production Code</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Bond Development</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="development.html#generating-documentation">Generating documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="development.html#dependencies">Dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="development.html#running-tests">Running tests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="development.html#deploying-a-new-version">Deploying a new version</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="buses_tutorial.html">Practice Testing with Spies and Mocks</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="buses_tutorial.html#acknowledgements">Acknowledgements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="buses_tutorial.html#important-request">Important Request</a></li>
+<li class="toctree-l2"><a class="reference internal" href="buses_tutorial.html#task-1-get-started-with-the-provided-files">Task 1: Get Started with the Provided Files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="buses_tutorial.html#task-2-run-the-buses-application">Task 2: Run the buses application</a></li>
+<li class="toctree-l2"><a class="reference internal" href="buses_tutorial.html#task-3-run-the-initial-tests">Task 3: Run the initial tests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="buses_tutorial.html#task-4-read-the-documentation-for-the-bond-spying-and-mocking-library">Task 4: Read the documentation for the Bond spying and mocking library</a></li>
+<li class="toctree-l2"><a class="reference internal" href="buses_tutorial.html#task-5-use-spying-for-a-simple-unit-test">Task 5: Use spying for a simple unit test</a></li>
+<li class="toctree-l2"><a class="reference internal" href="buses_tutorial.html#task-6-write-the-first-mock">Task 6: Write the first mock</a></li>
+<li class="toctree-l2"><a class="reference internal" href="buses_tutorial.html#task-7-write-a-more-complex-mock-for-reading-input">Task 7: Write a more complex mock for reading input</a></li>
+<li class="toctree-l2"><a class="reference internal" href="buses_tutorial.html#task-8-writing-mocks-for-the-http-requests">Task 8: Writing mocks for the HTTP requests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="buses_tutorial.html#task-9-some-code-maintenance">Task 9: Some code maintenance</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><a class="reference internal" href="genindex.html"><span>Index</span></a></li>
+<li><a class="reference internal" href="py-modindex.html"><span>Module Index</span></a></li>
+<li><a class="reference internal" href="search.html"><span>Search Page</span></a></li>
+</ul>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="#">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Welcome to Bond&#8217;s documentation!</a></li>
+<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+      <li>Next: <a href="gettingstarted.html" title="next chapter">Getting Started with Bond</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/index.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, George Necula, Erik Krogen.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+      |
+      <a href="_sources/index.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

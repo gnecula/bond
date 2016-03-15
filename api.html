@@ -1,0 +1,461 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Bond API Documentation &mdash; Bond - Testing with Spies and Mocks</title>
+    
+    <link rel="stylesheet" href="_static/bond_doc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '2.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Bond - Testing with Spies and Mocks" href="index.html" />
+    <link rel="next" title="Bond Usage Patterns" href="patterns.html" />
+    <link rel="prev" title="Bond Tutorial" href="tutorial.html" />
+    
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+    <script type='text/javascript' src='_static/my_ga.js'></script>
+    <!-- script type='text/javascript' src='_static/bond_doc.js'></script  -->
+    <script type='text/javascript' src='_static/bootstrap-3.3.5.min.js'></script>
+    <script type='text/javascript' src='_static/rst-tabbed-sections.js'></script>
+    <link rel='stylesheet' href='_static/bootstrap-3.3.5.min.css' type='text/css'></link>
+    <link rel='stylesheet' href='_static/bond_doc.css' type='text/css'></link>
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="bond-api-documentation">
+<h1>Bond API Documentation<a class="headerlink" href="#bond-api-documentation" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="python">
+<h2>Python<a class="headerlink" href="#python" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="python-spying-api">
+<h3>Python Spying API<a class="headerlink" href="#python-spying-api" title="Permalink to this headline">¶</a></h3>
+<p id="api-start-test">For spying you need at the very minimum to call <a class="reference internal" href="#bond.start_test" title="bond.start_test"><code class="xref py py-func docutils literal"><span class="pre">bond.start_test()</span></code></a> (typically in your <code class="docutils literal"><span class="pre">setUp</span></code> code)
+and then <a class="reference internal" href="#bond.spy" title="bond.spy"><code class="xref py py-func docutils literal"><span class="pre">bond.spy()</span></code></a> to actually spy values.</p>
+<hr class="docutils" />
+<span class="target" id="module-bond"></span><dl class="function">
+<dt id="bond.start_test">
+<code class="descclassname">bond.</code><code class="descname">start_test</code><span class="sig-paren">(</span><em>current_python_test</em>, <em>test_name=None</em>, <em>observation_directory=None</em>, <em>reconcile=None</em>, <em>spy_groups=None</em>, <em>decimal_precision=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bond.html#start_test"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bond.start_test" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function should be called in a <code class="docutils literal"><span class="pre">unittest.TestCase</span></code> before any
+of the other Bond functions can be used. This will initialize the Bond
+module for the current test, and will ensure proper cleanup of Bond
+state when the test ends, including the comparison with the
+reference observations. For example,</p>
+<div class="code highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">test_something</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+   <span class="n">bond</span><span class="o">.</span><span class="n">start_test</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+   <span class="o">...</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>current_python_test</strong> &#8211; the instance of <code class="docutils literal"><span class="pre">unittest.TestCase</span></code> that is running. This is the
+only mandatory parameter. Bond uses this parameter to obtain good values for
+the other optional parameters, and also to know when the test ends,
+to activate the observation comparison.</li>
+<li><strong>test_name</strong> &#8211; (optional) the name of the test. By default, it is <code class="docutils literal"><span class="pre">TestCase.testName</span></code>.</li>
+<li><strong>observation_directory</strong> &#8211; (optional) the directory where the observation files are stored.
+By default this is the <code class="docutils literal"><span class="pre">test_observations</span></code> subdirectory in the
+directory containing the test file. The directory will be created if not present.
+You should plan to commit the
+test observations to your repository, as reference for future test runs.</li>
+<li><strong>reconcile</strong> &#8211; <p>(optional) the method used to reconcile the current observations with the
+saved reference observations. By default the value of the
+environment variable <code class="docutils literal"><span class="pre">BOND_RECONCILE</span></code> is used, or if missing, the
+default is <code class="docutils literal"><span class="pre">abort</span></code>.</p>
+<ul>
+<li><code class="docutils literal"><span class="pre">abort</span></code> (aborts the test when there are differences)</li>
+<li><code class="docutils literal"><span class="pre">accept</span></code> (accepts the differences as the new reference)</li>
+<li><code class="docutils literal"><span class="pre">console</span></code> (show <code class="docutils literal"><span class="pre">diff</span></code> results and prompt at the console
+whether to accept them or not, or possibly start visual merging tools)</li>
+<li><code class="docutils literal"><span class="pre">kdiff3</span></code> (use kdiff3, if installed, to merge observations)</li>
+</ul>
+</li>
+<li><strong>spy_groups</strong> &#8211; (optional) the list, or tuple, of spy point groups that are enabled. By default,
+enable all spy points that do not have an <code class="docutils literal"><span class="pre">enable_for_groups</span></code>
+attribute.</li>
+<li><strong>decimal_precision</strong> &#8211; (optional) the precision (number of decimal places) to use when
+serializing float values. Defaults to 4.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<hr class="docutils" />
+<p id="api-spy">To actually collect observations (spy) you need to call <a class="reference internal" href="#bond.spy" title="bond.spy"><code class="xref py py-func docutils literal"><span class="pre">bond.spy()</span></code></a>, with a name of a spy point, and
+your choice of values to spy. The values to spy are named with key parameters and are saved in a JSON format
+to the observation file.</p>
+<hr class="docutils" />
+<span class="target" id="module-bond"></span><dl class="function">
+<dt id="bond.spy">
+<code class="descclassname">bond.</code><code class="descname">spy</code><span class="sig-paren">(</span><em>spy_point_name=None</em>, <em>skip_save_observation=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bond.html#spy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bond.spy" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the most frequently used Bond function. It will collect the key-value pairs passed
+in the argument list and will emit them to the spy observation log.</p>
+<p>If you are not during testing (<a class="reference internal" href="#bond.start_test" title="bond.start_test"><code class="xref py py-func docutils literal"><span class="pre">start_test()</span></code></a> has not been called) then
+this function does not do anything.</p>
+<p>If there is an agent deployed for the current spy point (see <a class="reference internal" href="#bond.deploy_agent" title="bond.deploy_agent"><code class="xref py py-func docutils literal"><span class="pre">deploy_agent()</span></code></a>),
+it will process the agent.</p>
+<div class="code highlight-python"><div class="highlight"><pre><span class="n">bond</span><span class="o">.</span><span class="n">spy</span><span class="p">(</span><span class="n">file_name</span><span class="o">=</span><span class="n">file_name</span><span class="p">,</span> <span class="n">content</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
+<span class="n">bond</span><span class="o">.</span><span class="n">spy</span><span class="p">(</span><span class="n">spy_point_name</span><span class="o">=</span><span class="s">&quot;other spy&quot;</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="n">output</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The values are formatted to JSON using the json module, with sorted keys, and indentation, with
+one value per line, to streamline the observation comparison.
+For user-defined classes, the method <code class="docutils literal"><span class="pre">to_json</span></code> is called on the instance before it is formatted.
+This method should return a JSON-serializable data structure.</p>
+<p>If you have deployed agents (see <a class="reference internal" href="#bond.deploy_agent" title="bond.deploy_agent"><code class="xref py py-func docutils literal"><span class="pre">deploy_agent()</span></code></a>) that are applicable to this spy point,
+the agents can specify a
+<code class="docutils literal"><span class="pre">formatter</span></code> that can intervene to modify the observation dictionary before it is
+serialized to JSON.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>spy_point_name</strong> &#8211; (optional) the spy point name, useful to distinguish among different observations, and to
+select the agents that are applicable to this spy point. There is no need for this value to
+be unique in your test. You only need to have this value if you want to <a class="reference internal" href="#bond.deploy_agent" title="bond.deploy_agent"><code class="xref py py-func docutils literal"><span class="pre">deploy_agent()</span></code></a> for
+this spy point later in your test. If you do use this parameter, then it will be observed
+with the key <code class="docutils literal"><span class="pre">__spy_point__</span></code> to ensure that it appears first in the sorted observation.</li>
+<li><strong>skip_save_observation</strong> &#8211; (optional) If True (defaults to False), don&#8217;t actually save the
+observation, just process any relevant agents. This is used internally to enable mocking-only
+spy points. This will be overriden if a value of skip_save_observation is specified on an agent
+that is active for this spy point, allowing this parameter to be used as an overridable default.</li>
+<li><strong>kwargs</strong> &#8211; key-value pairs to be observed. This forms the observation dictionary that is
+serialized as the current observation.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the result from the agent, if any (see <a class="reference internal" href="#bond.deploy_agent" title="bond.deploy_agent"><code class="xref py py-func docutils literal"><span class="pre">deploy_agent()</span></code></a>), or <code class="docutils literal"><span class="pre">bond.AGENT_RESULT_NONE</span></code>.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<hr class="docutils" />
+<p>One more API function that comes handy occasionally is <a class="reference internal" href="#bond.settings" title="bond.settings"><code class="xref py py-func docutils literal"><span class="pre">bond.settings()</span></code></a> that you can use in the body of
+your test to override some Bond parameters that were set by <a class="reference internal" href="#bond.start_test" title="bond.start_test"><code class="xref py py-func docutils literal"><span class="pre">bond.start_test()</span></code></a>. It takes
+similar arguments as <a class="reference internal" href="#bond.start_test" title="bond.start_test"><code class="xref py py-func docutils literal"><span class="pre">bond.start_test()</span></code></a>.</p>
+<hr class="docutils" />
+<span class="target" id="module-bond"></span><dl class="function">
+<dt id="bond.settings">
+<code class="descclassname">bond.</code><code class="descname">settings</code><span class="sig-paren">(</span><em>observation_directory=None</em>, <em>reconcile=None</em>, <em>spy_groups=None</em>, <em>decimal_precision=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bond.html#settings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bond.settings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Override settings that were set in <a class="reference internal" href="#bond.start_test" title="bond.start_test"><code class="xref py py-func docutils literal"><span class="pre">start_test()</span></code></a>. Only apply for the duration
+of a test, so this should be called after <a class="reference internal" href="#bond.start_test" title="bond.start_test"><code class="xref py py-func docutils literal"><span class="pre">start_test()</span></code></a>. This
+is useful if you set general test parameters with <a class="reference internal" href="#bond.start_test" title="bond.start_test"><code class="xref py py-func docutils literal"><span class="pre">start_test()</span></code></a> in a <code class="docutils literal"><span class="pre">setUp()</span></code> block,
+but want to override them for some specific tests.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>observation_directory</strong> &#8211; (optional) the directory where the observation files are stored.
+By default this is the <code class="docutils literal"><span class="pre">test_observations</span></code> subdirectory in the
+directory containing the test file. The directory will be created if not present.
+You should plan to commit the
+test observations to your repository, as reference for future test runs.</li>
+<li><strong>reconcile</strong> &#8211; <p>(optional) the method used to reconcile the current observations with the
+saved reference observations. By default the value of the
+environment variable <code class="docutils literal"><span class="pre">BOND_RECONCILE</span></code> is used, or if missing, the
+default is <code class="docutils literal"><span class="pre">abort</span></code>.</p>
+<ul>
+<li><code class="docutils literal"><span class="pre">abort</span></code> (aborts the test when there are differences)</li>
+<li><code class="docutils literal"><span class="pre">accept</span></code> (accepts the differences as the new reference)</li>
+<li><code class="docutils literal"><span class="pre">console</span></code> (show <code class="docutils literal"><span class="pre">diff</span></code> results and prompt at the console
+whether to accept them or not, or possibly start visual merging tools)</li>
+<li><code class="docutils literal"><span class="pre">kdiff3</span></code> (use kdiff3, if installed, to merge observations)</li>
+</ul>
+</li>
+<li><strong>spy_groups</strong> &#8211; (optional) the list, or tuple, of spy point groups that are enabled. By default,
+enable all spy points that do not have an <code class="docutils literal"><span class="pre">enable_for_groups</span></code>
+attribute.</li>
+<li><strong>decimal_precision</strong> &#8211; (optional) the precision (number of decimal places) to use when
+serializing float values. Defaults to 4.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<hr class="docutils" />
+<p id="api-spy-point">You can place spy points in your production code as well, if you want to be able to spy on intermediate computations
+in your code. Bond provides the <a class="reference internal" href="#bond.spy_point" title="bond.spy_point"><code class="xref py py-func docutils literal"><span class="pre">bond.spy_point()</span></code></a> function and method decorator that you can use to spy
+the arguments and the result of a function or a method.</p>
+<hr class="docutils" />
+<span class="target" id="module-bond"></span><dl class="function">
+<dt id="bond.spy_point">
+<code class="descclassname">bond.</code><code class="descname">spy_point</code><span class="sig-paren">(</span><em>spy_point_name=None</em>, <em>enabled_for_groups=None</em>, <em>mock_only=False</em>, <em>require_agent_result=False</em>, <em>excluded_keys=('self'</em>, <em>)</em>, <em>spy_result=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bond.html#spy_point"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bond.spy_point" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function and method decorator for spying arguments and results of methods. This decorator is safe
+to use on production code. It will have effects only if the function <a class="reference internal" href="#bond.start_test" title="bond.start_test"><code class="xref py py-func docutils literal"><span class="pre">start_test()</span></code></a> has
+been called to initialize the Bond module.</p>
+<p>Must be applied directly to a method or a function, not to another decorator.</p>
+<div class="code highlight-python"><div class="highlight"><pre>@staticmethod
+@bond.spy_point()
+def my_sneaky_function(arg1=&#39;&#39;, arg2=None):
+    # does something
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>spy_point_name</strong> &#8211; (optional) A name to use for this spy point. Default is obtained from the name
+of the decorated function: for module methods, <cite>module.method_name</cite>. For other
+methods, <cite>ClassName.method_name</cite>.</li>
+<li><strong>enabled_for_groups</strong> &#8211; (optional) A list or tuple of spy point groups to which this spy point belongs.
+If missing then it is enabled for all groups. These names are arbitrary labels
+that <a class="reference internal" href="#bond.start_test" title="bond.start_test"><code class="xref py py-func docutils literal"><span class="pre">start_test()</span></code></a> can use to turn off groups of spy points.
+If you are writing a library that others are using, you should use a distinctive
+spy group for your spy points, to avoid your library starting to spy if embedded
+in some other test using Bond.</li>
+<li><strong>mock_only</strong> &#8211; (optional) If True (defaults to False), then don&#8217;t record calls to this spy
+point as an observation. This allows you to use the spy point as a mock only
+without also recording the sequence of calls. If skip_save_observation is
+specified on an agent that is active for this spy point, that value will override
+this parameter (allowing mock_only to be used as an overridable default).</li>
+<li><strong>require_agent_result</strong> &#8211; (optional) if True, and if this spy point is enabled, then there must be an
+agent that provides a result, or else the invocation of the function aborts.
+The agent may still provide <code class="docutils literal"><span class="pre">AGENT_RESULT_CONTINUE</span></code> to tell the spy point
+to continue the invocation of the underlying function. This parameter is
+used to mark functions that should not be invoked normally during testing, e.g.,
+invoking shell commands, or requesting user input.</li>
+<li><strong>excluded_keys</strong> &#8211; (optional) a tuple or list of parameter key names to skip when saving the observations.
+Further manipulation of what gets observed can be done from agents.</li>
+<li><strong>spy_result</strong> &#8211; (optional) if True, then the result value is spied also, using a spy_point name of
+<cite>spy_point_name.result</cite>. If there is an agent providing a result for
+this spy point, then the agent result is saved as the observation.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<hr class="docutils" />
+<p>If you want to modify your production code to fine tune your mocking, you may need to
+know when Bond is active. You can use the function <a class="reference internal" href="#bond.active" title="bond.active"><code class="xref py py-func docutils literal"><span class="pre">bond.active()</span></code></a> for this purpose.</p>
+<hr class="docutils" />
+<span class="target" id="module-bond"></span><dl class="function">
+<dt id="bond.active">
+<code class="descclassname">bond.</code><code class="descname">active</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/bond.html#active"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bond.active" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function can be called to find out if a <code class="docutils literal"><span class="pre">bond.start_test</span></code> is currently active.
+For example,</p>
+<div class="code highlight-python"><div class="highlight"><pre>if bond.active():
+   ..do something..
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+<hr class="docutils" />
+<div class="section" id="python-mocking-api">
+<h3>Python Mocking API<a class="headerlink" href="#python-mocking-api" title="Permalink to this headline">¶</a></h3>
+<p id="api-deploy-agent">Once you have deployed spy point annotations in your production code it is possible to use the same points for
+mocking the result of those functions by deploying agents for specific spy points. An agent can:</p>
+<ul class="simple">
+<li>further decide on which invocations of the spy point they activate, based on various filters on the function arguments.</li>
+<li>spy the values of the arguments, and optionally the result also.</li>
+<li>control which arguments are spied and how are the observations formatted.</li>
+<li>execute additional test code on each call.</li>
+<li>bypass the actual body of the method and return a result prepared by the testing code, or throw an exception when the call is reached.</li>
+</ul>
+<span class="target" id="module-bond"></span><dl class="function">
+<dt id="bond.deploy_agent">
+<code class="descclassname">bond.</code><code class="descname">deploy_agent</code><span class="sig-paren">(</span><em>spy_point_name</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/bond.html#deploy_agent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#bond.deploy_agent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create and deploy a new agent for the named spy point. When a spy point is encountered, the agents are searched
+in reverse order of their deployment, and the first agent that matches is used.</p>
+<div class="code highlight-python"><div class="highlight"><pre><span class="n">bond</span><span class="o">.</span><span class="n">deploy_agent</span><span class="p">(</span><span class="s">&quot;my file&quot;</span><span class="p">,</span> <span class="n">file_name__contains</span><span class="o">=</span><span class="s">&#39;passwd&#39;</span><span class="p">,</span>
+                  <span class="n">result</span><span class="o">=</span><span class="s">&quot;mock result&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>spy_point_name</strong> &#8211; (mandatory) the spy point where the agent is deployed.</li>
+<li><strong>kwargs</strong> &#8211; <dl class="docutils">
+<dt>(optional) key-value pairs that control whether the agent is active and what it does.</dt>
+<dd>The following keys are recognized:</dd>
+</dl>
+<ul>
+<li>Keys that restrict for which invocations of bond.spy this agent is active. All of these conditions
+must be true for the agent to be the active one:<ul>
+<li>key=val : only when the observation dictionary contains the &#8216;key&#8217; with the given value</li>
+<li>key__contains=substr : only when the observation dictionary contains the &#8216;key&#8217; with a string value
+that contains the given substr.</li>
+<li>key__startswith=substr : only when the observation dictionary contains the &#8216;key&#8217; with a
+string value that starts with the given substr.</li>
+<li>key__endswith=substr : only when the observation dictionary contains the &#8216;key&#8217; with a string value
+that ends with the given substr.</li>
+<li>filter=func : only when the given func returns true when passed observation dictionary.
+The function should not make changes to the observation dictionary.
+Uses the observation before formatting.</li>
+</ul>
+</li>
+<li>Keys that control what the observer does when processed:<ul>
+<li>do=func : executes the given function with the observation dictionary.
+func can also be a list of functions, executed in order.
+The function should not make changes to the observation dictionary.
+Uses the observation before formatting.</li>
+</ul>
+</li>
+<li>Keys that control what the corresponding spy returns (by default <code class="docutils literal"><span class="pre">AGENT_RESULT_NONE</span></code>):<ul>
+<li>exception=x : the call to bond.spy throws the given exception. If &#8216;x&#8217; is a function
+it is invoked on the observation dictionary to compute the exception to throw.
+The function should not make changes to the observation dictionary.
+Uses the observation before formatting.</li>
+<li>result=x : the call to bond.spy returns the given value. If &#8216;x&#8217; is a function
+it is invoked on the observe argument dictionary to compute the value to return.
+If the function throws an exception then the spied function thrown an exception.
+The function should not make changes to the observation dictionary.
+Uses the observation before formatting.</li>
+</ul>
+</li>
+<li>Keys that control how the observation is saved. This is processed after all the above functions.<ul>
+<li>formatter : if specified, a function that is given the observation and can update it in place.
+The formatted observation is what gets serialized and saved.</li>
+<li>skip_save_observation : if specified and True, this causes no observation to be saved as a result
+of the call to spy for which this agent is active. This can be useful to conditionally save
+calls to e.g. certain functions whose call order may not be relevant. This will override any
+value of <code class="docutils literal"><span class="pre">mock_only</span></code> specified on a <a class="reference internal" href="#bond.spy_point" title="bond.spy_point"><code class="xref py py-func docutils literal"><span class="pre">spy_point()</span></code></a> or value of <code class="docutils literal"><span class="pre">skip_save_observation</span></code>
+specified on a call to <a class="reference internal" href="#bond.spy" title="bond.spy"><code class="xref py py-func docutils literal"><span class="pre">spy()</span></code></a>, meaning you can also specify a value of False to override.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">nothing</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="ruby">
+<h2>Ruby<a class="headerlink" href="#ruby" title="Permalink to this headline">¶</a></h2>
+<p>The Ruby API follows closely the Python API described above. The Ruby
+API is implemented using the following classes:</p>
+<ul class="simple">
+<li><a class="reference external" href="rbond/Bond.html">Bond class</a></li>
+<li><a class="reference external" href="rbond/BondTargetable.html">BondTargetable class</a></li>
+</ul>
+</div>
+<div class="section" id="java">
+<h2>Java<a class="headerlink" href="#java" title="Permalink to this headline">¶</a></h2>
+<p>Due to the strongly typed nature of Java, the <a class="reference external" href="jbond/index.html">Java API</a>
+has significant differences from the Python API described above. You&#8217;ll want
+to start with:</p>
+<ul class="simple">
+<li><a class="reference external" href="jbond/bond/Bond.html">Bond class</a></li>
+<li><a class="reference external" href="jbond/bond/Observation.html">Observation class</a></li>
+<li><a class="reference external" href="jbond/bond/BondTestRule.html">BondTestRule JUnit Rule</a></li>
+<li><a class="reference external" href="jbond/bond/SpyAgent.html">SpyAgent class</a></li>
+<li><a class="reference external" href="jbond/bond/spypoint/SpyPoint.html">SpyPoint annotation</a></li>
+<li><a class="reference external" href="jbond/bond/spypoint/BondMockPolicy.html">BondMockPolcy (setup for mocking)</a></li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Bond API Documentation</a><ul>
+<li><a class="reference internal" href="#python">Python</a><ul>
+<li><a class="reference internal" href="#python-spying-api">Python Spying API</a></li>
+<li><a class="reference internal" href="#python-mocking-api">Python Mocking API</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#ruby">Ruby</a></li>
+<li><a class="reference internal" href="#java">Java</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="tutorial.html" title="previous chapter">Bond Tutorial</a></li>
+      <li>Next: <a href="patterns.html" title="next chapter">Bond Usage Patterns</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/api.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, George Necula, Erik Krogen.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+      |
+      <a href="_sources/api.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

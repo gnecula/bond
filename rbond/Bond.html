@@ -1,0 +1,1420 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>
+  Class: Bond
+  
+    &mdash; Documentation by YARD 0.8.7.6
+  
+</title>
+
+  <link rel="stylesheet" href="css/style.css" type="text/css" charset="utf-8" />
+
+  <link rel="stylesheet" href="css/common.css" type="text/css" charset="utf-8" />
+
+<script type="text/javascript" charset="utf-8">
+  hasFrames = window.top.frames.main ? true : false;
+  relpath = '';
+  framesUrl = "frames.html#!Bond.html";
+</script>
+
+
+  <script type="text/javascript" charset="utf-8" src="js/jquery.js"></script>
+
+  <script type="text/javascript" charset="utf-8" src="js/app.js"></script>
+
+
+  </head>
+  <body>
+    <div id="header">
+      <div id="menu">
+  
+    <a href="_index.html">Index (B)</a> &raquo;
+    
+    
+    <span class="title">Bond</span>
+  
+
+  <div class="noframes"><span class="title">(</span><a href="." target="_top">no frames</a><span class="title">)</span></div>
+</div>
+
+      <div id="search">
+  
+    <a class="full_list_link" id="class_list_link"
+        href="class_list.html">
+      Class List
+    </a>
+  
+    <a class="full_list_link" id="method_list_link"
+        href="method_list.html">
+      Method List
+    </a>
+  
+    <a class="full_list_link" id="file_list_link"
+        href="file_list.html">
+      File List
+    </a>
+  
+</div>
+      <div class="clear"></div>
+    </div>
+
+    <iframe id="search_frame"></iframe>
+
+    <div id="content"><h1>Class: Bond
+  
+  
+  
+</h1>
+
+<dl class="box">
+  
+    <dt class="r1">Inherits:</dt>
+    <dd class="r1">
+      <span class="inheritName">Object</span>
+      
+        <ul class="fullTree">
+          <li>Object</li>
+          
+            <li class="next">Bond</li>
+          
+        </ul>
+        <a href="#" class="inheritanceTree">show all</a>
+      
+      </dd>
+    
+  
+  
+    
+  
+    
+      <dt class="r2">Includes:</dt>
+      <dd class="r2">Singleton</dd>
+      
+    
+  
+  
+  
+    <dt class="r1 last">Defined in:</dt>
+    <dd class="r1 last">lib/bond.rb<span class="defines">,<br />
+  lib/bond/version.rb</span>
+</dd>
+  
+</dl>
+<div class="clear"></div>
+
+<h2>Overview</h2><div class="docstring">
+  <div class="discussion">
+    <p>Singleton class providing the core functionality of Bond. You will generally
+access this through the <span class='object_link'><a href="BondTargetable.html#bond-instance_method" title="BondTargetable#bond (method)">BondTargetable#bond</a></span> method exported to you when you
+<code>extend</code> BondTargetable, but it can also be accessed (e.g. for functions not
+contained in a class/module) via <code>Bond.instance</code>.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div>
+  <h2>Constant Summary</h2>
+  
+    <dl class="constants">
+      
+        <dt id="MAX_FILE_NAME_LENGTH-constant" class="">MAX_FILE_NAME_LENGTH =
+          <div class="docstring">
+  <div class="discussion">
+    <p>Maximum number of characters to allow in any test file name.
+File names which would be longer than this will be truncated
+to 10 fewer characters than the max, and a hash of the full
+name will be appended to uniquely identify the file.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div>
+        </dt>
+        <dd><pre class="code"><span class='int'>100</span></pre></dd>
+      
+        <dt id="VERSION-constant" class="">VERSION =
+          
+        </dt>
+        <dd><pre class="code"><span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>0.2.1</span><span class='tstring_end'>&#39;</span></span></pre></dd>
+      
+    </dl>
+  
+
+
+
+
+  <h2>Instance Attribute Summary <small>(<a href="#" class="summary_toggle">collapse</a>)</small></h2>
+  <ul class="summary">
+    
+      <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#test_name-instance_method" title="#test_name (instance method)">- (Object) <strong>test_name</strong> </a>
+    
+
+    
+  </span>
+  
+  
+  
+    
+      <span class="note title readonly">readonly</span>
+    
+    
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>The name of the test currently being evaluated.</p>
+</div></span>
+  
+</li>
+
+    
+  </ul>
+
+
+
+
+  
+    <h2>
+      Instance Method Summary
+      <small>(<a href="#" class="summary_toggle">collapse</a>)</small>
+    </h2>
+
+    <ul class="summary">
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#active%3F-instance_method" title="#active? (instance method)">- (Boolean) <strong>active?</strong> </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Returns true if Bond is currently active (in testing mode), else false.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#deploy_agent-instance_method" title="#deploy_agent (instance method)">- (Object) <strong>deploy_agent</strong>(spy_point_name, **opts) </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Deploy an agent to watch a specific spy point.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#deploy_record_replay_agent-instance_method" title="#deploy_record_replay_agent (instance method)">- (Object) <strong>deploy_record_replay_agent</strong>(spy_point_name, **opts) </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Deploy a record-replay style agent to watch a specific spy point.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#register_instance-instance_method" title="#register_instance (instance method)">- (Object) <strong>register_instance</strong>(object_instance, name) </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Register a specific object instance, giving it a name.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#settings-instance_method" title="#settings (instance method)">- (Object) <strong>settings</strong>(spy_groups: nil, observation_directory: nil, reconcile: nil, record_mode: nil, decimal_precision: nil) </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Change the settings for Bond, overriding anything which was previously set by <span class='object_link'><a href="#start_test-instance_method" title="Bond#start_test (method)">#start_test</a></span>.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#spy-instance_method" title="#spy (instance method)">- (Object) <strong>spy</strong>(spy_point_name = nil, **observation) {|result| ... }</a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>The main entrypoint, used to observe some program state.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#start_test-instance_method" title="#start_test (instance method)">- (Object) <strong>start_test</strong>(rspec_test, test_name: nil, spy_groups: nil, observation_directory: nil, reconcile: nil, decimal_precision: nil, record_mode: false) </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  
+
+  
+    <span class="summary_desc"><div class='inline'><p>Enable testing for Bond.</p>
+</div></span>
+  
+</li>
+
+      
+    </ul>
+  
+
+
+  
+  <div id="instance_attr_details" class="attr_details">
+    <h2>Instance Attribute Details</h2>
+    
+      
+      <span id=""></span>
+      <div class="method_details first">
+  <h3 class="signature first" id="test_name-instance_method">
+  
+    - (<tt>Object</tt>) <strong>test_name</strong>  <span class="extras">(readonly)</span>
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>The name of the test currently being evaluated</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+20
+21
+22</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/bond.rb', line 20</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_test_name'>test_name</span>
+  <span class='ivar'>@test_name</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+  </div>
+
+
+  <div id="instance_method_details" class="method_details_list">
+    <h2>Instance Method Details</h2>
+
+    
+      <div class="method_details first">
+  <h3 class="signature first" id="active?-instance_method">
+  
+    - (<tt>Boolean</tt>) <strong>active?</strong> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Returns true if Bond is currently active (in testing mode), else false.
+If this returns false, you can safely assume that calls to <span class='object_link'><a href="#spy-instance_method" title="Bond#spy (method)">#spy</a></span> will
+have no effect.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Boolean</tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+25
+26
+27</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/bond.rb', line 25</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_active?'>active?</span>
+  <span class='op'>!</span><span class='ivar'>@current_test</span><span class='period'>.</span><span class='id identifier rubyid_nil?'>nil?</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="deploy_agent-instance_method">
+  
+    - (<tt>Object</tt>) <strong>deploy_agent</strong>(spy_point_name, **opts) 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Deploy an agent to watch a specific spy point. The most recently deployed agent
+will always take precedence over any previous agents for a given spy point.
+However, if the most recent agent does not apply to the current observation
+(because its filters do not match), the next most recent agent will be used,
+and so on. At most one agent will be applied.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>spy_point_name</span>
+      
+      
+        <span class='type'>(<tt>#to_s</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>The name of the spy point for which to deploy this agent</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>opts</span>
+      
+      
+        <span class='type'></span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>Key-value pairs that control whether the agent is
+active and what it does. The following keys are recognized:</p>
+
+<ul>
+<li><p>Keys that restrict for which invocations of bond.spy this
+agent is active. All of these conditions must be true for
+the agent to be the active one:</p>
+
+<ul>
+<li><code>key: val</code> - only when the observation dictionary contains
+the <code>key</code> with the given value</li>
+<li><code>key__contains: substr</code> - only when the observation dictionary
+contains the <code>key</code> with a string value that contains the given substr.</li>
+<li><code>key__startswith: substr</code> - only when the observation dictionary
+contains the <code>key</code> with a string value that starts with the given substr.</li>
+<li><code>key__endswith: substr</code> - only when the observation dictionary contains
+the <code>key</code> with a string value that ends with the given substr.</li>
+<li><code>filter: func</code> - only when the given func returns true when passed
+observation dictionary. The function should not make changes to
+the observation dictionary. Uses the observation before formatting.</li>
+</ul></li>
+<li><p>Keys that control what the observer does when processed:</p>
+
+<ul>
+<li><code>do: func</code> - executes the given function with the observation dictionary.
+func can also be a list of functions, executed in order.
+The function should not make changes to the observation dictionary.
+Uses the observation before formatting.</li>
+</ul></li>
+<li><p>Keys that control what the corresponding spy returns (by default <code>:agent_result_none</code>):</p>
+
+<ul>
+<li><code>exception: x</code> - the call to bond.spy throws the given exception. If <code>x</code>
+is a function it is invoked on the observation dictionary to compute
+the exception to throw. The function should not make changes to the
+observation dictionary. Uses the observation before formatting.</li>
+<li><code>result: x</code> - the call to bond.spy returns the given value. If <code>x</code> is a
+function it is invoked on the observe argument dictionary to compute
+the value to return. If the function throws an exception then the
+spied function throws an exception. The function should not make
+changes to the observation dictionary. Uses the observation before
+formatting.</li>
+<li><code>yield: x</code> - the call to bond.spy yields the given value. If <code>x</code> is a function
+it is invokved on the observe argument dictionary to compute the value to yield.
+Uses the observation before formatting.</li>
+</ul></li>
+<li><p>Keys that control how the observation is saved. This is processed after all
+the above functions.</p>
+
+<ul>
+<li><code>formatter: func</code> - If specified, a function that is given the observation and
+can update it in place. The formatted observation is what gets serialized and saved.</li>
+<li><code>skip_save_observation: Boolean</code> - If specified, determines whether or not the
+observation will be saved after all of the agent&#39;s other actions have been processed.
+Useful for hiding observations of a spy point that e.g. is sometimes useful but in some
+tests is irrelevant and clutters up the observations. This value, if present, will override
+the <code>skip_save_observation</code> parameter of <span class='object_link'><a href="#spy-instance_method" title="Bond#spy (method)">#spy</a></span> and the <code>mock_only</code> parameter of
+<span class='object_link'><a href="BondTargetable.html#spy_point-instance_method" title="BondTargetable#spy_point (method)">BondTargetable#spy_point</a></span>.</li>
+</ul></li>
+</ul>
+</div>
+      
+    </li>
+  
+</ul>
+
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+153
+154
+155
+156
+157</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/bond.rb', line 153</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_deploy_agent'>deploy_agent</span><span class='lparen'>(</span><span class='id identifier rubyid_spy_point_name'>spy_point_name</span><span class='comma'>,</span> <span class='op'>**</span><span class='id identifier rubyid_opts'>opts</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_raise'>raise</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>You must enable testing before using deploy_agent</span><span class='tstring_end'>&#39;</span></span> <span class='kw'>unless</span> <span class='id identifier rubyid_active?'>active?</span>
+  <span class='id identifier rubyid_spy_point_name'>spy_point_name</span> <span class='op'>=</span> <span class='id identifier rubyid_spy_point_name'>spy_point_name</span><span class='period'>.</span><span class='id identifier rubyid_to_s'>to_s</span>
+  <span class='ivar'>@spy_agents</span><span class='lbracket'>[</span><span class='id identifier rubyid_spy_point_name'>spy_point_name</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='ivar'>@spy_agents</span><span class='lbracket'>[</span><span class='id identifier rubyid_spy_point_name'>spy_point_name</span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_unshift'>unshift</span><span class='lparen'>(</span><span class='const'>SpyAgent</span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span><span class='lparen'>(</span><span class='op'>**</span><span class='id identifier rubyid_opts'>opts</span><span class='rparen'>)</span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="deploy_record_replay_agent-instance_method">
+  
+    - (<tt>Object</tt>) <strong>deploy_record_replay_agent</strong>(spy_point_name, **opts) 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Deploy a record-replay style agent to watch a specific spy point. The most
+recently deployed agent will always take precedence over any previous agents
+for a given spy point. However, if the most recent agent does not apply to the
+current observation (because its filters do not match), the next most recent agent
+will be used, and so on. At most one agent will be applied.
+Note that this agent type is <em>only</em> valid for method spy points, i.e. those specified
+by <span class='object_link'><a href="BondTargetable.html#spy_point-instance_method" title="BondTargetable#spy_point (method)">BondTargetable#spy_point</a></span> or <span class='object_link'><a href="BondTargetable.html#spy_point_on-instance_method" title="BondTargetable#spy_point_on (method)">BondTargetable#spy_point_on</a></span>.
+This agent is special in that it implements record-replay. If <code>record_mode</code> is <code>true</code>,
+any time during testing that this agent is activated, it will call the underlying method,
+record the output of the method, and display it to the user. The user then has the option
+of accepting the output of the method, or first editing that output. The (optionally
+edited) output will be saved for future use when in replay mode. If <code>record_mode</code> is <code>false</code>
+(the default), the record-replay agent will search for a saved value to use (based on the
+arguments to the method being spied on) and return that value. This is useful for e.g.
+mocking out complex HTTP interactions; simply play it once in record mode, see that
+the external system responded as expected, and save for future use.
+Only invocations whose parameters match the recorded invocation exactly will be
+replayed; a single spy point can store multiple replay values with different
+call arguments simultaneously.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>spy_point_name</span>
+      
+      
+        <span class='type'>(<tt>#to_s</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>The name of the spy point for which to deploy this agent</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>opts</span>
+      
+      
+        <span class='type'></span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>Key-value pairs that control whether the agent is
+active and what it does. The following keys are recognized:</p>
+
+<ul>
+<li><p>Keys that restrict for which invocations of bond.spy this
+agent is active. All of these conditions must be true for
+the agent to be the active one:</p>
+
+<ul>
+<li><code>key: val</code> - only when the observation dictionary contains
+the <code>key</code> with the given value</li>
+<li><code>key__contains: substr</code> - only when the observation dictionary
+contains the <code>key</code> with a string value that contains the given substr.</li>
+<li><code>key__startswith: substr</code> - only when the observation dictionary
+contains the <code>key</code> with a string value that starts with the given substr.</li>
+<li><code>key__endswith: substr</code> - only when the observation dictionary contains
+the <code>key</code> with a string value that ends with the given substr.</li>
+<li><code>filter: func</code> - only when the given func returns true when passed
+observation dictionary. The function should not make changes to
+the observation dictionary. Uses the observation before formatting.</li>
+</ul></li>
+<li><p>Keys that control what the observer does when processed:</p>
+
+<ul>
+<li><code>do: func</code> - executes the given function with the observation dictionary.
+func can also be a list of functions, executed in order.
+The function should not make changes to the observation dictionary.
+Uses the observation before formatting.</li>
+<li><code>record_mode: Boolean</code> - If true, this record-replay point will be in
+record mode. Upon calling the spy point, the value will be saved for use
+in future executions. Otherwise, this point will be in replay mode.
+This can also be specified for the entire test (e.g., to easily switch all
+RecordReplaySpyAgents simultaneously) using <code>bond.settings(record_mode: true)</code>.
+A <code>record_mode</code> parameter on an individual agent will override the test-wide setting.</li>
+<li><code>order_dependent: Boolean</code> - If true, this record-replay point will differentiate
+between multiple calls to the same method with the same arguments, returning
+different order-dependent replay values. Otherwise, once a replay value
+is recorded for a set of arguments, that same value is used every time that
+set of arguments is seen.</li>
+</ul></li>
+</ul>
+</div>
+      
+    </li>
+  
+</ul>
+
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+180
+181
+182
+183
+184
+185
+186
+187
+188
+189</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/bond.rb', line 180</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_deploy_record_replay_agent'>deploy_record_replay_agent</span><span class='lparen'>(</span><span class='id identifier rubyid_spy_point_name'>spy_point_name</span><span class='comma'>,</span> <span class='op'>**</span><span class='id identifier rubyid_opts'>opts</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_raise'>raise</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>You must enable testing before using deploy_record_replay_agent</span><span class='tstring_end'>&#39;</span></span> <span class='kw'>unless</span> <span class='id identifier rubyid_active?'>active?</span>
+  <span class='id identifier rubyid_spy_point_name'>spy_point_name</span> <span class='op'>=</span> <span class='id identifier rubyid_spy_point_name'>spy_point_name</span><span class='period'>.</span><span class='id identifier rubyid_to_s'>to_s</span>
+  <span class='kw'>unless</span> <span class='id identifier rubyid_opts'>opts</span><span class='period'>.</span><span class='id identifier rubyid_has_key?'>has_key?</span><span class='lparen'>(</span><span class='symbol'>:record_mode</span><span class='rparen'>)</span> <span class='comment'># User-specified overrides test settings
+</span>    <span class='id identifier rubyid_opts'>opts</span><span class='lbracket'>[</span><span class='symbol'>:record_mode</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='ivar'>@record_mode</span>
+  <span class='kw'>end</span>
+  <span class='id identifier rubyid_agent'>agent</span> <span class='op'>=</span> <span class='const'>RecordReplaySpyAgent</span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span><span class='lparen'>(</span><span class='op'>**</span><span class='id identifier rubyid_opts'>opts</span><span class='rparen'>)</span>
+  <span class='ivar'>@spy_agents</span><span class='lbracket'>[</span><span class='id identifier rubyid_spy_point_name'>spy_point_name</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='ivar'>@spy_agents</span><span class='lbracket'>[</span><span class='id identifier rubyid_spy_point_name'>spy_point_name</span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_unshift'>unshift</span><span class='lparen'>(</span><span class='id identifier rubyid_agent'>agent</span><span class='rparen'>)</span>
+  <span class='ivar'>@spy_agents</span><span class='lbracket'>[</span><span class='id identifier rubyid_spy_point_name'>spy_point_name</span> <span class='op'>+</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>.result</span><span class='tstring_end'>&#39;</span></span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='ivar'>@spy_agents</span><span class='lbracket'>[</span><span class='id identifier rubyid_spy_point_name'>spy_point_name</span> <span class='op'>+</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>.result</span><span class='tstring_end'>&#39;</span></span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_unshift'>unshift</span><span class='lparen'>(</span><span class='id identifier rubyid_agent'>agent</span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="register_instance-instance_method">
+  
+    - (<tt>Object</tt>) <strong>register_instance</strong>(object_instance, name) 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Register a specific object instance, giving it a name. Subsequent to this, whenever
+a call to a method being spied on (via <span class='object_link'><a href="BondTargetable.html#spy_point-instance_method" title="BondTargetable#spy_point (method)">BondTargetable#spy_point</a></span>) is made on the
+given instance, the observation will include &quot;<code>__instance_name__: name</code>&quot;.
+This can be useful to differentiate calls made to different objects of the
+same type.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>object_instance</span>
+      
+      
+        <span class='type'>(<tt>Object</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>The object instance to register a name to.</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>name</span>
+      
+      
+        <span class='type'>(<tt>#to_s</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>The name to give the object instance.</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+198
+199
+200
+201</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/bond.rb', line 198</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_register_instance'>register_instance</span><span class='lparen'>(</span><span class='id identifier rubyid_object_instance'>object_instance</span><span class='comma'>,</span> <span class='id identifier rubyid_name'>name</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_raise'>raise</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>You must enable testing before using register_instance</span><span class='tstring_end'>&#39;</span></span> <span class='kw'>unless</span> <span class='id identifier rubyid_active?'>active?</span>
+  <span class='ivar'>@instance_names</span><span class='lbracket'>[</span><span class='id identifier rubyid_object_instance'>object_instance</span><span class='period'>.</span><span class='id identifier rubyid_object_id'>object_id</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='id identifier rubyid_name'>name</span><span class='period'>.</span><span class='id identifier rubyid_to_s'>to_s</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="settings-instance_method">
+  
+    - (<tt>Object</tt>) <strong>settings</strong>(spy_groups: nil, observation_directory: nil, reconcile: nil, record_mode: nil, decimal_precision: nil) 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Change the settings for Bond, overriding anything which was previously set by
+<span class='object_link'><a href="#start_test-instance_method" title="Bond#start_test (method)">#start_test</a></span>. Accepts any of the keyword arguments that <span class='object_link'><a href="#start_test-instance_method" title="Bond#start_test (method)">#start_test</a></span> does
+except for <code>test_name</code>, which cannot be changed.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>rspec_test</span>
+      
+      
+        <span class='type'></span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>The current test that is being run through RSpec.</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>test_name</span>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>The name of the current test. If not provided,
+the default is the test file concatenated with the full description
+string of the RSpec test, e.g. for a test within my_class_spec.rb that
+appeared as:</p>
+
+<pre class="code ruby"><code class="ruby">  describe MyClass do
+    include_context :bond, observation_directory: &#39;spec/observations&#39;
+
+    context &#39;when nothing is wrong&#39; do
+      it &#39;should work!&#39; do
+        ... test code ...
+        # `include_context :bond` automatically exports a `bond` variable
+        # for you to access for e.g. `spy` and `deploy_agent`
+        bond.spy(&#39;spy_point&#39;, key: value, ...)
+        ... test code ...
+      end
+    end
+  end
+</code></pre>
+
+<p><code>test_name</code> would be &#39;my_class_spec.MyClass_when_nothing_is_wrong_should_work_&#39;
+(note that all non-alphanumeric characters except periods are replaced with
+an underscore).</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>spy_groups</span>
+      
+      
+        <span class='type'></span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>NOT YET IMPLEMENTED.</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>observation_directory</span>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>Path to the directory where
+the observations for this test should be stored. The default is
+a &#39;test_observations&#39; directory located in the same directory
+as the file containing the current test. Test observations will
+be stored within this directory. Any hierarchy (as specified by .)
+in the test name becomes a directory hierarchy, e.g. a test name of
+&#39;bond.my_tests.test_name&#39; would be stored at
+&#39;<code>{observation_directory}</code>/bond/my_tests/test_name.json&#39;</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>reconcile</span>
+      
+      
+        <span class='type'></span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>The action to take when there are differences found between
+the reference versions of test output and the current test output.
+Should be one of:</p>
+
+<ul>
+<li><strong><code>:console</code></strong> - interactive console prompts to decide what to merge (default)</li>
+<li><code>:abort</code> - don&#39;t accept any new changes</li>
+<li><code>:accept</code> - accept all new changes</li>
+<li><code>:kdiff3</code> - use the kdiff3 graphical merge tool to reconcile differences</li>
+</ul>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>decimal_precision</span>
+      
+      
+        <span class='type'></span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>The precision to use when serializing Float and Double values.
+If not specified, defaults to 4 decimal places.</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>record_mode</span>
+      
+      
+        <span class='type'></span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>If true, set all record-replay style agents (see <span class='object_link'><a href="#deploy_record_replay_agent-instance_method" title="Bond#deploy_record_replay_agent (method)">#deploy_record_replay_agent</a></span>)
+into record mode for the duration of this test. This is overriden if
+<code>record_mode: false</code> is explicitly set on a given agent.</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/bond.rb', line 33</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_settings'>settings</span><span class='lparen'>(</span><span class='label'>spy_groups:</span> <span class='kw'>nil</span><span class='comma'>,</span> <span class='label'>observation_directory:</span> <span class='kw'>nil</span><span class='comma'>,</span> <span class='label'>reconcile:</span> <span class='kw'>nil</span><span class='comma'>,</span>
+             <span class='label'>record_mode:</span> <span class='kw'>nil</span><span class='comma'>,</span> <span class='label'>decimal_precision:</span> <span class='kw'>nil</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_raise'>raise</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>not yet implemented</span><span class='tstring_end'>&#39;</span></span> <span class='kw'>unless</span> <span class='id identifier rubyid_spy_groups'>spy_groups</span><span class='period'>.</span><span class='id identifier rubyid_nil?'>nil?</span> <span class='comment'># TODO spy_groups
+</span>  <span class='kw'>unless</span> <span class='id identifier rubyid_observation_directory'>observation_directory</span><span class='period'>.</span><span class='id identifier rubyid_nil?'>nil?</span>
+    <span class='ivar'>@observation_directory</span> <span class='op'>=</span> <span class='id identifier rubyid_observation_directory'>observation_directory</span>
+    <span class='id identifier rubyid_load_replay_values'>load_replay_values</span>
+  <span class='kw'>end</span>
+  <span class='ivar'>@reconcile</span> <span class='op'>=</span> <span class='id identifier rubyid_reconcile'>reconcile</span> <span class='kw'>unless</span> <span class='id identifier rubyid_reconcile'>reconcile</span><span class='period'>.</span><span class='id identifier rubyid_nil?'>nil?</span>
+  <span class='ivar'>@record_mode</span> <span class='op'>=</span> <span class='id identifier rubyid_record_mode'>record_mode</span> <span class='kw'>unless</span> <span class='id identifier rubyid_record_mode'>record_mode</span><span class='period'>.</span><span class='id identifier rubyid_nil?'>nil?</span>
+  <span class='ivar'>@decimal_precision</span> <span class='op'>=</span> <span class='id identifier rubyid_decimal_precision'>decimal_precision</span> <span class='kw'>unless</span> <span class='id identifier rubyid_decimal_precision'>decimal_precision</span><span class='period'>.</span><span class='id identifier rubyid_nil?'>nil?</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="spy-instance_method">
+  
+    - (<tt>Object</tt>) <strong>spy</strong>(spy_point_name = nil, **observation) {|result| ... }
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>The main entrypoint, used to observe some program state. If Bond is not active,
+does nothing. Observes all keyword arguments within <code>observation</code>, recording them
+to be written out to a file at the end of the current test. A deep copy
+of the arguments is made, all hashes (at any level of nesting) are sorted, and
+any object that is not an Array or Hash will have its <code>Object#clone</code> method called.
+If it is not cloneable (<code>clone</code> throws an error), the original object will be used.
+The arguments are then JSON-serialized. For any object which has a <code>to_json</code> method,
+this will be called to serialize it. Note that <code>to_json</code> takes one argument which
+is a JSON::Ext::Generator::State object; you should pass this object into any <code>to_json</code>
+calls you make within your <code>to_json</code> function.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>spy_point_name</span>
+      
+      
+        <span class='type'>(<tt>#to_s</tt>)</span>
+      
+      
+        <em class="default">(defaults to: <tt>nil</tt>)</em>
+      
+      
+        &mdash;
+        <div class='inline'><p>The name of this spy point. Will be used to subsequently
+refer to this point for, e.g., <span class='object_link'><a href="#deploy_agent-instance_method" title="Bond#deploy_agent (method)">#deploy_agent</a></span>. This name also gets printed as
+part of the observation with the key <code>__spy_point__</code>.</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>observation</span>
+      
+      
+        <span class='type'></span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>Keyword arguments which should be observed.</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+<p class="tag_title">Yields:</p>
+<ul class="yield">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>result</tt>)</span>
+      
+      
+      
+    </li>
+  
+</ul>
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'></span>
+      
+      
+      
+        
+        <div class='inline'><p>if an agent has been set for this spy point, this will return (or, if specified,
+yield) whatever value is specified by that agent. Otherwise, returns <code>:agent_result_none</code>.</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+139
+140
+141
+142
+143
+144</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/bond.rb', line 139</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_spy'>spy</span><span class='lparen'>(</span><span class='id identifier rubyid_spy_point_name'>spy_point_name</span><span class='op'>=</span><span class='kw'>nil</span><span class='comma'>,</span> <span class='op'>**</span><span class='id identifier rubyid_observation'>observation</span><span class='comma'>,</span> <span class='op'>&amp;</span><span class='id identifier rubyid_blk'>blk</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_spy_res'>spy_res</span> <span class='op'>=</span> <span class='id identifier rubyid_spy_internal'>spy_internal</span><span class='lparen'>(</span><span class='id identifier rubyid_spy_point_name'>spy_point_name</span><span class='comma'>,</span> <span class='kw'>false</span><span class='comma'>,</span> <span class='op'>**</span><span class='id identifier rubyid_observation'>observation</span><span class='comma'>,</span> <span class='op'>&amp;</span><span class='id identifier rubyid_blk'>blk</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_result'>result</span> <span class='op'>=</span> <span class='id identifier rubyid_spy_res'>spy_res</span><span class='lbracket'>[</span><span class='symbol'>:result</span><span class='rbracket'>]</span>
+  <span class='kw'>yield</span> <span class='id identifier rubyid_result'>result</span> <span class='kw'>if</span> <span class='id identifier rubyid_spy_res'>spy_res</span><span class='lbracket'>[</span><span class='symbol'>:should_yield</span><span class='rbracket'>]</span>
+  <span class='id identifier rubyid_result'>result</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="start_test-instance_method">
+  
+    - (<tt>Object</tt>) <strong>start_test</strong>(rspec_test, test_name: nil, spy_groups: nil, observation_directory: nil, reconcile: nil, decimal_precision: nil, record_mode: false) 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p>Enable testing for Bond. When using RSpec, this will be called automatically
+for you when you <code>include_context :bond</code>, to which you can pass all of the
+same keyword arguments as <code>start_test</code>.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>rspec_test</span>
+      
+      
+        <span class='type'></span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>The current test that is being run through RSpec.</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>test_name</span>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>The name of the current test. If not provided,
+the default is the test file concatenated with the full description
+string of the RSpec test, e.g. for a test within my_class_spec.rb that
+appeared as:</p>
+
+<pre class="code ruby"><code class="ruby">  describe MyClass do
+    include_context :bond, observation_directory: &#39;spec/observations&#39;
+
+    context &#39;when nothing is wrong&#39; do
+      it &#39;should work!&#39; do
+        ... test code ...
+        # `include_context :bond` automatically exports a `bond` variable
+        # for you to access for e.g. `spy` and `deploy_agent`
+        bond.spy(&#39;spy_point&#39;, key: value, ...)
+        ... test code ...
+      end
+    end
+  end
+</code></pre>
+
+<p><code>test_name</code> would be &#39;my_class_spec.MyClass_when_nothing_is_wrong_should_work_&#39;
+(note that all non-alphanumeric characters except periods are replaced with
+an underscore).</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>spy_groups</span>
+      
+      
+        <span class='type'></span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>NOT YET IMPLEMENTED.</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>observation_directory</span>
+      
+      
+        <span class='type'>(<tt>String</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>Path to the directory where
+the observations for this test should be stored. The default is
+a &#39;test_observations&#39; directory located in the same directory
+as the file containing the current test. Test observations will
+be stored within this directory. Any hierarchy (as specified by .)
+in the test name becomes a directory hierarchy, e.g. a test name of
+&#39;bond.my_tests.test_name&#39; would be stored at
+&#39;<code>{observation_directory}</code>/bond/my_tests/test_name.json&#39;</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>reconcile</span>
+      
+      
+        <span class='type'></span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>The action to take when there are differences found between
+the reference versions of test output and the current test output.
+Should be one of:</p>
+
+<ul>
+<li><strong><code>:console</code></strong> - interactive console prompts to decide what to merge (default)</li>
+<li><code>:abort</code> - don&#39;t accept any new changes</li>
+<li><code>:accept</code> - accept all new changes</li>
+<li><code>:kdiff3</code> - use the kdiff3 graphical merge tool to reconcile differences</li>
+</ul>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>decimal_precision</span>
+      
+      
+        <span class='type'></span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>The precision to use when serializing Float and Double values.
+If not specified, defaults to 4 decimal places.</p>
+</div>
+      
+    </li>
+  
+    <li>
+      
+        <span class='name'>record_mode</span>
+      
+      
+        <span class='type'></span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>If true, set all record-replay style agents (see <span class='object_link'><a href="#deploy_record_replay_agent-instance_method" title="Bond#deploy_record_replay_agent (method)">#deploy_record_replay_agent</a></span>)
+into record mode for the duration of this test. This is overriden if
+<code>record_mode: false</code> is explicitly set on a given agent.</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/bond.rb', line 96</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_start_test'>start_test</span><span class='lparen'>(</span><span class='id identifier rubyid_rspec_test'>rspec_test</span><span class='comma'>,</span> <span class='label'>test_name:</span> <span class='kw'>nil</span><span class='comma'>,</span> <span class='label'>spy_groups:</span> <span class='kw'>nil</span><span class='comma'>,</span>
+               <span class='label'>observation_directory:</span> <span class='kw'>nil</span><span class='comma'>,</span> <span class='label'>reconcile:</span> <span class='kw'>nil</span><span class='comma'>,</span>
+               <span class='label'>decimal_precision:</span> <span class='kw'>nil</span><span class='comma'>,</span> <span class='label'>record_mode:</span> <span class='kw'>false</span><span class='rparen'>)</span>
+
+  <span class='ivar'>@observations</span> <span class='op'>=</span> <span class='lbracket'>[</span><span class='rbracket'>]</span>
+  <span class='ivar'>@spy_agents</span> <span class='op'>=</span> <span class='const'>Hash</span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span> <span class='lbrace'>{</span> <span class='op'>|</span><span class='id identifier rubyid_hash'>hash</span><span class='comma'>,</span> <span class='id identifier rubyid_key'>key</span><span class='op'>|</span>
+    <span class='id identifier rubyid_hash'>hash</span><span class='lbracket'>[</span><span class='id identifier rubyid_key'>key</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='lbracket'>[</span><span class='rbracket'>]</span>
+  <span class='rbrace'>}</span>
+  <span class='ivar'>@replay_values</span> <span class='op'>=</span> <span class='const'>Hash</span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span><span class='lparen'>(</span><span class='symbol'>:agent_result_none</span><span class='rparen'>)</span>
+  <span class='ivar'>@instance_names</span> <span class='op'>=</span> <span class='const'>Hash</span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span>
+  <span class='ivar'>@observation_directory</span> <span class='op'>=</span> <span class='kw'>nil</span>
+  <span class='ivar'>@current_test</span> <span class='op'>=</span> <span class='id identifier rubyid_rspec_test'>rspec_test</span>
+
+  <span class='kw'>if</span> <span class='id identifier rubyid_test_name'>test_name</span><span class='period'>.</span><span class='id identifier rubyid_nil?'>nil?</span>
+    <span class='id identifier rubyid_test_file'>test_file</span> <span class='op'>=</span> <span class='ivar'>@current_test</span><span class='period'>.</span><span class='id identifier rubyid_metadata'>metadata</span><span class='lbracket'>[</span><span class='symbol'>:file_path</span><span class='rbracket'>]</span>
+    <span class='comment'># TODO ETK allow other characters besides alphanumeric?
+</span>    <span class='ivar'>@test_name</span> <span class='op'>=</span> <span class='const'>File</span><span class='period'>.</span><span class='id identifier rubyid_basename'>basename</span><span class='lparen'>(</span><span class='id identifier rubyid_test_file'>test_file</span><span class='comma'>,</span> <span class='const'>File</span><span class='period'>.</span><span class='id identifier rubyid_extname'>extname</span><span class='lparen'>(</span><span class='id identifier rubyid_test_file'>test_file</span><span class='rparen'>)</span><span class='rparen'>)</span> <span class='op'>+</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>.</span><span class='tstring_end'>&#39;</span></span> <span class='op'>+</span>
+        <span class='ivar'>@current_test</span><span class='period'>.</span><span class='id identifier rubyid_metadata'>metadata</span><span class='lbracket'>[</span><span class='symbol'>:full_description</span><span class='rbracket'>]</span><span class='period'>.</span><span class='id identifier rubyid_gsub'>gsub</span><span class='lparen'>(</span><span class='tstring'><span class='regexp_beg'>/</span><span class='tstring_content'>[^A-z0-9.]</span><span class='regexp_end'>/</span></span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>_</span><span class='tstring_end'>&#39;</span></span><span class='rparen'>)</span>
+  <span class='kw'>else</span>
+    <span class='ivar'>@test_name</span> <span class='op'>=</span> <span class='id identifier rubyid_test_name'>test_name</span>
+  <span class='kw'>end</span>
+
+  <span class='id identifier rubyid_settings'>settings</span><span class='lparen'>(</span><span class='label'>spy_groups:</span> <span class='id identifier rubyid_spy_groups'>spy_groups</span><span class='comma'>,</span> <span class='label'>observation_directory:</span> <span class='id identifier rubyid_observation_directory'>observation_directory</span><span class='comma'>,</span> <span class='label'>record_mode:</span> <span class='id identifier rubyid_record_mode'>record_mode</span><span class='comma'>,</span>
+           <span class='label'>reconcile:</span> <span class='id identifier rubyid_reconcile'>reconcile</span><span class='comma'>,</span> <span class='label'>decimal_precision:</span> <span class='id identifier rubyid_decimal_precision'>decimal_precision</span><span class='period'>.</span><span class='id identifier rubyid_nil?'>nil?</span> <span class='op'>?</span> <span class='int'>4</span> <span class='op'>:</span> <span class='id identifier rubyid_decimal_precision'>decimal_precision</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_load_replay_values'>load_replay_values</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+  </div>
+
+</div>
+
+    <div id="footer">
+  Generated on Tue Mar 15 10:19:35 2016 by
+  <a href="http://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
+  0.8.7.6 (ruby-2.1.2).
+</div>
+
+  </body>
+</html>

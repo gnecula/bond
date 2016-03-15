@@ -1,0 +1,248 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Bond Usage Patterns &mdash; Bond - Testing with Spies and Mocks</title>
+    
+    <link rel="stylesheet" href="_static/bond_doc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '2.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Bond - Testing with Spies and Mocks" href="index.html" />
+    <link rel="next" title="Bond Development" href="development.html" />
+    <link rel="prev" title="Bond API Documentation" href="api.html" />
+    
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+    <script type='text/javascript' src='_static/my_ga.js'></script>
+    <!-- script type='text/javascript' src='_static/bond_doc.js'></script  -->
+    <script type='text/javascript' src='_static/bootstrap-3.3.5.min.js'></script>
+    <script type='text/javascript' src='_static/rst-tabbed-sections.js'></script>
+    <link rel='stylesheet' href='_static/bootstrap-3.3.5.min.css' type='text/css'></link>
+    <link rel='stylesheet' href='_static/bond_doc.css' type='text/css'></link>
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="bond-usage-patterns">
+<span id="patterns"></span><h1>Bond Usage Patterns<a class="headerlink" href="#bond-usage-patterns" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="dealing-with-non-determinism-in-observations">
+<span id="pattern-nondet"></span><h2>Dealing with Non-determinism in Observations<a class="headerlink" href="#dealing-with-non-determinism-in-observations" title="Permalink to this headline">¶</a></h2>
+<p>Bond shines when you need to assert the equality of some state values in your
+test, with some expected values that are the same every time the particular
+test runs. This is not enough when your test tries to observe values that are
+inherently non-deterministic, e.g., random numbers, timestamps, user names,
+full directory paths, process ids, etc.</p>
+<div class="section" id="dealing-with-random-numbers">
+<span id="pattern-random"></span><h3>Dealing with Random Numbers<a class="headerlink" href="#dealing-with-random-numbers" title="Permalink to this headline">¶</a></h3>
+<p>You should seed the random number generator with a fixed value, when starting
+each test. To be continued ...</p>
+<p>Alternatively, I sometimes prefer to mock the entire random number generator
+to make it return consecutive recognizable numbers. To be continued ...</p>
+</div>
+<div class="section" id="dealing-with-timestamps">
+<span id="patern-time"></span><h3>Dealing with Timestamps<a class="headerlink" href="#dealing-with-timestamps" title="Permalink to this headline">¶</a></h3>
+<p>You should mock time. To be continued ...</p>
+</div>
+</div>
+<div class="section" id="including-bond-in-production-code">
+<span id="pattern-bond-import"></span><h2>Including Bond in Production Code<a class="headerlink" href="#including-bond-in-production-code" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="safe-import-of-bond">
+<h3>Safe Import of Bond<a class="headerlink" href="#safe-import-of-bond" title="Permalink to this headline">¶</a></h3>
+<p>If you put spy point annotations in your production code, you will have to either distribute
+Bond with your code, which is safe as long as you do not call <code class="docutils literal"><span class="pre">bond.start_test</span></code>,
+or else fake the Bond API functions using something like this in your file:</p>
+<div class="tab-section-group container">
+<div class="tab-section-python container">
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># Import, or fake, bond</span>
+<span class="hll"><span class="k">try</span><span class="p">:</span>
+</span>    <span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">bond</span>
+<span class="hll"><span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+</span><span class="hll">    <span class="k">class</span> <span class="nc">bond</span><span class="p">:</span>
+</span><span class="hll">        <span class="nd">@staticmethod</span>
+</span><span class="hll">        <span class="k">def</span> <span class="nf">active</span><span class="p">()</span>
+</span><span class="hll">            <span class="k">return</span> <span class="bp">False</span>
+</span><span class="hll">        <span class="nd">@staticmethod</span>
+</span><span class="hll">        <span class="k">def</span> <span class="nf">spy</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+</span><span class="hll">            <span class="k">return</span> <span class="bp">None</span>
+</span><span class="hll">        <span class="nd">@staticmethod</span>
+</span><span class="hll">        <span class="k">def</span> <span class="nf">spy_point</span><span class="p">(</span><span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+</span><span class="hll">            <span class="k">return</span> <span class="k">lambda</span> <span class="n">f</span><span class="p">:</span> <span class="n">f</span>
+</span></pre></div>
+</div>
+</div>
+<div class="tab-section-ruby container">
+<div class="highlight-ruby"><div class="highlight"><pre><span class="hll"><span class="k">begin</span>
+</span>    <span class="nb">require</span> <span class="s1">&#39;bond&#39;</span>
+<span class="hll"><span class="k">rescue</span> <span class="no">LoadError</span>
+</span><span class="hll">    <span class="k">module</span> <span class="nn">BondTargetable</span>
+</span><span class="hll">        <span class="no">DUMMY_BOND</span> <span class="o">=</span> <span class="no">Class</span><span class="o">.</span><span class="n">new</span> <span class="p">{</span> <span class="k">def</span> <span class="nf">method_missing</span><span class="p">(</span><span class="n">meth</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">);</span> <span class="no">False</span><span class="p">;</span> <span class="k">end</span> <span class="p">}</span><span class="o">.</span><span class="n">new</span>
+</span><span class="hll">        <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">extended</span><span class="p">(</span><span class="n">base</span><span class="p">);</span> <span class="n">base</span><span class="o">.</span><span class="n">include</span><span class="p">(</span><span class="no">BondTargetable</span><span class="p">);</span> <span class="k">end</span>
+</span><span class="hll">        <span class="k">def</span> <span class="nf">bond</span><span class="p">;</span> <span class="no">DUMMY_BOND</span><span class="p">;</span> <span class="k">end</span>
+</span><span class="hll">    <span class="k">end</span>
+</span><span class="hll"><span class="k">end</span>
+</span></pre></div>
+</div>
+</div>
+</div>
+<p>The code shown above defines all the API functions that may be used in your production code. Put this in
+a module of your production code, and import <code class="docutils literal"><span class="pre">bond</span></code> from that module everywhere you need it in production files. Unfortunately the Java version of Bond does not support anything like the above, but is still safe to use in production.</p>
+</div>
+<div class="section" id="inline-spy-and-mock-points">
+<h3>Inline Spy and Mock Points<a class="headerlink" href="#inline-spy-and-mock-points" title="Permalink to this headline">¶</a></h3>
+<p>The recommended way to use mocking with Bond in the production code is to use
+the <code class="docutils literal"><span class="pre">bond.spy_point</span></code> annotation, which allows you to observe and mock at
+function boundaries. Occasionally, you may want to inject a mock in the middle
+of a function. This pattern gives you full flexibilty for how you weave
+the mock injection point into your production code, while still delegating
+the mock functionality to the agent, and thus to the testing code.</p>
+<div class="tab-section-group container">
+<div class="tab-section-python container">
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># Inline spying</span>
+<span class="n">bond</span><span class="o">.</span><span class="n">spy</span><span class="p">(</span><span class="n">what</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="s">&#39;Spying has effect only if you called bond.start_test&#39;</span><span class="p">)</span>
+<span class="o">...</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">bond</span><span class="o">.</span><span class="n">active</span><span class="p">():</span>
+   <span class="n">value</span> <span class="o">=</span> <span class="n">compute_production_value</span> <span class="p">()</span>
+<span class="k">else</span>
+   <span class="c"># This is true only if you called bond.start_test</span>
+   <span class="n">value</span> <span class="o">=</span> <span class="n">bond</span><span class="o">.</span><span class="n">spy</span><span class="p">(</span><span class="s">&#39;my_spy_point&#39;</span><span class="p">,</span> <span class="n">what</span><span class="o">=</span><span class="n">x</span><span class="p">)</span>
+   <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="n">bond</span><span class="o">.</span><span class="n">AGENT_RESULT_NONE</span><span class="p">:</span>
+       <span class="k">assert</span> <span class="bp">False</span><span class="p">,</span> <span class="s">&quot;When testing, you must mock &#39;my_spy_point&#39;&quot;</span>
+</pre></div>
+</div>
+</div>
+<div class="tab-section-ruby container">
+<div class="highlight-ruby"><div class="highlight"><pre><span class="c1"># Inline spying</span>
+<span class="n">bond</span><span class="o">.</span><span class="n">spy</span><span class="p">(</span><span class="ss">what</span><span class="p">:</span> <span class="n">x</span><span class="p">,</span> <span class="ss">msg</span><span class="p">:</span> <span class="s1">&#39;Spying has effect only if you called bond.start_test&#39;</span><span class="p">)</span>
+<span class="o">...</span>
+<span class="k">unless</span> <span class="n">bond</span><span class="o">.</span><span class="n">active?</span>
+    <span class="n">value</span> <span class="o">=</span> <span class="n">compute_production_value</span>
+<span class="k">else</span>
+    <span class="c1"># This is executed only if you called bond.start_test</span>
+    <span class="c1"># or used `include_context :bond` in RSpec</span>
+    <span class="n">value</span> <span class="o">=</span> <span class="n">bond</span><span class="o">.</span><span class="n">spy</span><span class="p">(</span><span class="s1">&#39;my_spy_point&#39;</span><span class="p">,</span> <span class="ss">what</span><span class="p">:</span> <span class="n">x</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="ss">:agent_result_none</span>
+        <span class="k">raise</span> <span class="s2">&quot;When testing, you must mock &#39;my_spy_point&#39;&quot;</span>
+    <span class="k">end</span>
+</pre></div>
+</div>
+</div>
+<div class="tab-section-java container">
+<div class="highlight-java"><div class="highlight"><pre><span class="c1">// Inline spying</span>
+<span class="n">Bond</span><span class="o">.</span><span class="na">obs</span><span class="o">(</span><span class="s">&quot;what&quot;</span><span class="o">,</span> <span class="n">x</span><span class="o">).</span><span class="na">obs</span><span class="o">(</span><span class="s">&quot;msg&quot;</span><span class="o">,</span> <span class="s">&quot;Spying has effect only if Bond is active&quot;</span><span class="o">).</span><span class="na">spy</span><span class="o">();</span>
+<span class="c1">// ...</span>
+<span class="k">if</span> <span class="o">(!</span><span class="n">Bond</span><span class="o">.</span><span class="na">isActive</span><span class="o">())</span> <span class="o">{</span>
+  <span class="n">value</span> <span class="o">=</span> <span class="n">computeProductionValue</span><span class="o">();</span>
+<span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+  <span class="c1">// This is executed only if you called Bond.startTest()</span>
+  <span class="c1">// or used BondTestRule in JUnit</span>
+  <span class="n">SpyResult</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;</span> <span class="n">mockValue</span> <span class="o">=</span> <span class="n">Bond</span><span class="o">.</span><span class="na">obs</span><span class="o">(</span><span class="s">&quot;what&quot;</span><span class="o">,</span> <span class="n">x</span><span class="o">).</span><span class="na">spy</span><span class="o">(</span><span class="s">&quot;mySpyPoint&quot;</span><span class="o">,</span> <span class="n">Integer</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
+  <span class="c1">// or</span>
+  <span class="n">SpyResult</span><span class="o">&lt;</span><span class="n">Object</span><span class="o">&gt;</span> <span class="n">mockValue</span> <span class="o">=</span> <span class="n">Bond</span><span class="o">.</span><span class="na">obs</span><span class="o">(</span><span class="s">&quot;what&quot;</span><span class="o">,</span> <span class="n">x</span><span class="o">).</span><span class="na">spy</span><span class="o">(</span><span class="s">&quot;mySpyPoint&quot;</span><span class="o">);</span>
+  <span class="k">if</span> <span class="o">(!</span><span class="n">mockValue</span><span class="o">.</span><span class="na">isPresent</span><span class="o">())</span> <span class="o">{</span>
+    <span class="k">throw</span> <span class="k">new</span> <span class="n">RuntimeException</span><span class="o">(</span><span class="s">&quot;When testing, you must mock mySpyPoint!&quot;</span><span class="o">);</span>
+  <span class="o">}</span>
+  <span class="n">value</span> <span class="o">=</span> <span class="n">mockValue</span><span class="o">.</span><span class="na">get</span><span class="o">();</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Bond Usage Patterns</a><ul>
+<li><a class="reference internal" href="#dealing-with-non-determinism-in-observations">Dealing with Non-determinism in Observations</a><ul>
+<li><a class="reference internal" href="#dealing-with-random-numbers">Dealing with Random Numbers</a></li>
+<li><a class="reference internal" href="#dealing-with-timestamps">Dealing with Timestamps</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#including-bond-in-production-code">Including Bond in Production Code</a><ul>
+<li><a class="reference internal" href="#safe-import-of-bond">Safe Import of Bond</a></li>
+<li><a class="reference internal" href="#inline-spy-and-mock-points">Inline Spy and Mock Points</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="api.html" title="previous chapter">Bond API Documentation</a></li>
+      <li>Next: <a href="development.html" title="next chapter">Bond Development</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/patterns.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, George Necula, Erik Krogen.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+      |
+      <a href="_sources/patterns.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

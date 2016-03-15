@@ -1,0 +1,1006 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>
+  Class: RecordReplaySpyAgent
+  
+    &mdash; Documentation by YARD 0.8.7.6
+  
+</title>
+
+  <link rel="stylesheet" href="css/style.css" type="text/css" charset="utf-8" />
+
+  <link rel="stylesheet" href="css/common.css" type="text/css" charset="utf-8" />
+
+<script type="text/javascript" charset="utf-8">
+  hasFrames = window.top.frames.main ? true : false;
+  relpath = '';
+  framesUrl = "frames.html#!RecordReplaySpyAgent.html";
+</script>
+
+
+  <script type="text/javascript" charset="utf-8" src="js/jquery.js"></script>
+
+  <script type="text/javascript" charset="utf-8" src="js/app.js"></script>
+
+
+  </head>
+  <body>
+    <div id="header">
+      <div id="menu">
+  
+    <a href="_index.html">Index (R)</a> &raquo;
+    
+    
+    <span class="title">RecordReplaySpyAgent</span>
+  
+
+  <div class="noframes"><span class="title">(</span><a href="." target="_top">no frames</a><span class="title">)</span></div>
+</div>
+
+      <div id="search">
+  
+    <a class="full_list_link" id="class_list_link"
+        href="class_list.html">
+      Class List
+    </a>
+  
+    <a class="full_list_link" id="method_list_link"
+        href="method_list.html">
+      Method List
+    </a>
+  
+    <a class="full_list_link" id="file_list_link"
+        href="file_list.html">
+      File List
+    </a>
+  
+</div>
+      <div class="clear"></div>
+    </div>
+
+    <iframe id="search_frame"></iframe>
+
+    <div id="content"><h1>Class: RecordReplaySpyAgent
+  
+  
+  <span class="private note title">Private</span>
+</h1>
+
+<dl class="box">
+  
+    <dt class="r1">Inherits:</dt>
+    <dd class="r1">
+      <span class="inheritName"><span class='object_link'><a href="SpyAgent.html" title="SpyAgent (class)">SpyAgent</a></span></span>
+      
+        <ul class="fullTree">
+          <li>Object</li>
+          
+            <li class="next"><span class='object_link'><a href="SpyAgent.html" title="SpyAgent (class)">SpyAgent</a></span></li>
+          
+            <li class="next">RecordReplaySpyAgent</li>
+          
+        </ul>
+        <a href="#" class="inheritanceTree">show all</a>
+      
+      </dd>
+    
+  
+  
+    
+  
+    
+  
+  
+  
+    <dt class="r2 last">Defined in:</dt>
+    <dd class="r2 last">lib/bond/spy_agent.rb</dd>
+  
+</dl>
+<div class="clear"></div>
+
+<h2>Overview</h2><div class="docstring">
+  <div class="discussion">
+    <p class="note private">
+  <strong>This class is part of a private API.</strong>
+  You should avoid using this class if possible, as it may be removed or be changed in the future.
+</p>
+<p>Represents an agent deployed by <span class='object_link'><a href="Bond.html#deploy_record_replay_agent-instance_method" title="Bond#deploy_record_replay_agent (method)">Bond#deploy_record_replay_agent</a></span>.
+Facilitates the use of a record-replay paradigm for recording the previous
+return value of a spy point (&quot;record&quot;) and returning that same value in
+subsequent executions (&quot;replay&quot;). If the agent is deployed in replay mode
+and no saved value is available, an error will be thrown. Should only be
+deployed on <code>spy_point</code> annotations, not on an explicit call to <span class='object_link'><a href="Bond.html#spy-instance_method" title="Bond#spy (method)">Bond#spy</a></span>.
+See <span class='object_link'><a href="Bond.html#deploy_record_replay_agent-instance_method" title="Bond#deploy_record_replay_agent (method)">Bond#deploy_record_replay_agent</a></span> for more information.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div>
+
+
+
+
+
+
+  
+    <h2>
+      Instance Method Summary
+      <small>(<a href="#" class="summary_toggle">collapse</a>)</small>
+    </h2>
+
+    <ul class="summary">
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#after_result-instance_method" title="#after_result (instance method)">- (Object) <strong>after_result</strong>(observation, inital_call_arg_obs) </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  <span class="private note title">private</span>
+
+  
+    <span class="summary_desc"><div class='inline'><p>The portion of the <code>result</code> which is performed <em>after</em> the real method is called.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#before_result-instance_method" title="#before_result (instance method)">- (Object) <strong>before_result</strong>(observation) </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  <span class="private note title">private</span>
+
+  
+    <span class="summary_desc"><div class='inline'><p>The portion of the <code>result</code> which is performed <em>before</em> the real method is called.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#edit_confirm_result-instance_method" title="#edit_confirm_result (instance method)">- (Object) <strong>edit_confirm_result</strong>(initial_call_arg_obs, current_result) </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  <span class="private note title">private</span>
+
+  
+    <span class="summary_desc"><div class='inline'><p>Given the observation dictionary from the initial call to the method (initial_call_arg_obs) and the result returned from the method (current_result), show this information to the user and ask them to accept or reject the result.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#format-instance_method" title="#format (instance method)">- (Object) <strong>format</strong>(observation) </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  <span class="private note title">private</span>
+
+  
+    <span class="summary_desc"><div class='inline'><p>Override; do nothing.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#get_index-instance_method" title="#get_index (instance method)">- (Object) <strong>get_index</strong>(observation) </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  <span class="private note title">private</span>
+
+  
+    <span class="summary_desc"><div class='inline'></div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#initialize-instance_method" title="#initialize (instance method)">- (RecordReplaySpyAgent) <strong>initialize</strong>(**opts) </a>
+    
+
+    
+  </span>
+  
+  
+    <span class="note title constructor">constructor</span>
+  
+  
+  
+  
+  
+  <span class="private note title">private</span>
+
+  
+    <span class="summary_desc"><div class='inline'><p>Initialize, setting the options for this RecordReplaySpyAgent.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#process%3F-instance_method" title="#process? (instance method)">- (Boolean) <strong>process?</strong>(observation) </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  <span class="private note title">private</span>
+
+  
+    <span class="summary_desc"><div class='inline'><p>Checks if this agent should process this observation.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#result-instance_method" title="#result (instance method)">- (Object) <strong>result</strong>(observation) </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  <span class="private note title">private</span>
+
+  
+    <span class="summary_desc"><div class='inline'><p>Retrieve the result for this agent; when in replay mode, looks for the correct value and returns that, throwing an error if none is found.</p>
+</div></span>
+  
+</li>
+
+      
+        <li class="public ">
+  <span class="summary_signature">
+    
+      <a href="#skip_save_observation-instance_method" title="#skip_save_observation (instance method)">- (Object) <strong>skip_save_observation</strong> </a>
+    
+
+    
+  </span>
+  
+  
+  
+  
+  
+  
+  <span class="private note title">private</span>
+
+  
+    <span class="summary_desc"><div class='inline'><p>Do not allowing skipping saving observation in record-replay mode since that is part of how the replay value gets saved.</p>
+</div></span>
+  
+</li>
+
+      
+    </ul>
+  
+
+
+  
+  
+  
+  
+  
+  
+  
+  
+  <h3 class="inherited">Methods inherited from <span class='object_link'><a href="SpyAgent.html" title="SpyAgent (class)">SpyAgent</a></span></h3>
+  <p class="inherited"><span class='object_link'><a href="SpyAgent.html#do-instance_method" title="SpyAgent#do (method)">#do</a></span></p>
+<div id="constructor_details" class="method_details_list">
+  <h2>Constructor Details</h2>
+  
+    <div class="method_details first">
+  <h3 class="signature first" id="initialize-instance_method">
+  
+    - (<tt><span class='object_link'><a href="" title="RecordReplaySpyAgent (class)">RecordReplaySpyAgent</a></span></tt>) <strong>initialize</strong>(**opts) 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p class="note private">
+  <strong>This method is part of a private API.</strong>
+  You should avoid using this method if possible, as it may be removed or be changed in the future.
+</p>
+<p>Initialize, setting the options for this RecordReplaySpyAgent.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  <p class="tag_title">Parameters:</p>
+<ul class="param">
+  
+    <li>
+      
+        <span class='name'>opts</span>
+      
+      
+        <span class='type'></span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>Key-value pairs that control whether the agent is
+active and what it does. The following keys are recognized:</p>
+
+<ul>
+<li><p>Keys that restrict for which invocations of bond.spy this
+agent is active. All of these conditions must be true for
+the agent to be the active one:</p>
+
+<ul>
+<li><code>key: val</code> - only when the observation dictionary contains
+the <code>key</code> with the given value</li>
+<li><code>key__contains: substr</code> - only when the observation dictionary
+contains the <code>key</code> with a string value that contains the given substr.</li>
+<li><code>key__startswith: substr</code> - only when the observation dictionary
+contains the <code>key</code> with a string value that starts with the given substr.</li>
+<li><code>key__endswith: substr</code> - only when the observation dictionary contains
+the <code>key</code> with a string value that ends with the given substr.</li>
+<li><code>filter: func</code> - only when the given func returns true when passed
+observation dictionary. The function should not make changes to
+the observation dictionary. Uses the observation before formatting.</li>
+</ul></li>
+<li><p>Keys that control what the observer does when processed:</p>
+
+<ul>
+<li><code>do: func</code> - executes the given function with the observation dictionary.
+func can also be a list of functions, executed in order.
+The function should not make changes to the observation dictionary.
+Uses the observation before formatting.</li>
+<li><code>record_mode: Boolean</code> - If true, this record-replay point will be in
+record mode. Upon calling the spy point, the value will be saved for use
+in future executions. Otherwise, this point will be in replay mode.
+This can also be specified for the entire test (e.g., to easily switch all
+RecordReplaySpyAgents simultaneously) using <code>bond.settings(record_mode: true)</code>.
+A <code>record_mode</code> parameter on an individual agent will override the test-wide setting.</li>
+<li><code>order_dependent: Boolean</code> - If true, this record-replay point will differentiate
+between multiple calls to the same method with the same arguments, returning
+different order-dependent replay values. Otherwise, once a replay value
+is recorded for a set of arguments, that same value is used every time that
+set of arguments is seen.</li>
+</ul></li>
+</ul>
+</div>
+      
+    </li>
+  
+</ul>
+
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
+200
+201
+202
+203
+204
+205</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/bond/spy_agent.rb', line 185</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_initialize'>initialize</span><span class='lparen'>(</span><span class='op'>**</span><span class='id identifier rubyid_opts'>opts</span><span class='rparen'>)</span>
+  <span class='ivar'>@current_call_args</span> <span class='op'>=</span> <span class='kw'>nil</span>
+  <span class='ivar'>@record_mode</span> <span class='op'>=</span> <span class='kw'>false</span>
+  <span class='ivar'>@order_dependent</span> <span class='op'>=</span> <span class='kw'>false</span>
+  <span class='ivar'>@args_seen</span> <span class='op'>=</span> <span class='const'>Hash</span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span><span class='lparen'>(</span><span class='int'>0</span><span class='rparen'>)</span> <span class='comment'># Map of argument observation -&gt; number of times seen
+</span>  <span class='ivar'>@doers</span> <span class='op'>=</span> <span class='lbracket'>[</span><span class='rbracket'>]</span>
+  <span class='ivar'>@filters</span> <span class='op'>=</span> <span class='lbracket'>[</span><span class='rbracket'>]</span>
+
+  <span class='id identifier rubyid_opts'>opts</span><span class='period'>.</span><span class='id identifier rubyid_each'>each</span> <span class='kw'>do</span> <span class='op'>|</span><span class='id identifier rubyid_k'>k</span><span class='comma'>,</span> <span class='id identifier rubyid_v'>v</span><span class='op'>|</span>
+    <span class='kw'>case</span> <span class='id identifier rubyid_k'>k</span><span class='period'>.</span><span class='id identifier rubyid_to_s'>to_s</span> <span class='comment'># Convert to string in case it was passed as a symbol
+</span>      <span class='kw'>when</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>record_mode</span><span class='tstring_end'>&#39;</span></span>
+        <span class='ivar'>@record_mode</span> <span class='op'>=</span> <span class='id identifier rubyid_v'>v</span>
+      <span class='kw'>when</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>order_dependent</span><span class='tstring_end'>&#39;</span></span>
+        <span class='ivar'>@order_dependent</span> <span class='op'>=</span> <span class='id identifier rubyid_v'>v</span>
+      <span class='kw'>when</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>do</span><span class='tstring_end'>&#39;</span></span>
+        <span class='ivar'>@doers</span> <span class='op'>=</span> <span class='lbracket'>[</span><span class='op'>*</span><span class='id identifier rubyid_v'>v</span><span class='rbracket'>]</span>
+      <span class='kw'>else</span> <span class='comment'># Must be a filter
+</span>        <span class='ivar'>@filters</span> <span class='op'>&lt;&lt;=</span> <span class='const'>SpyAgentFilter</span><span class='period'>.</span><span class='id identifier rubyid_new'>new</span><span class='lparen'>(</span><span class='id identifier rubyid_k'>k</span><span class='period'>.</span><span class='id identifier rubyid_to_s'>to_s</span><span class='comma'>,</span> <span class='id identifier rubyid_v'>v</span><span class='rparen'>)</span>
+    <span class='kw'>end</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+  
+</div>
+
+
+  <div id="instance_method_details" class="method_details_list">
+    <h2>Instance Method Details</h2>
+
+    
+      <div class="method_details first">
+  <h3 class="signature first" id="after_result-instance_method">
+  
+    - (<tt>Object</tt>) <strong>after_result</strong>(observation, inital_call_arg_obs) 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p class="note private">
+  <strong>This method is part of a private API.</strong>
+  You should avoid using this method if possible, as it may be removed or be changed in the future.
+</p>
+<p>The portion of the <code>result</code> which is performed <em>after</em> the real method is
+called.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+232
+233
+234
+235
+236
+237
+238
+239
+240
+241
+242
+243
+244</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/bond/spy_agent.rb', line 232</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_after_result'>after_result</span><span class='lparen'>(</span><span class='id identifier rubyid_observation'>observation</span><span class='comma'>,</span> <span class='id identifier rubyid_inital_call_arg_obs'>inital_call_arg_obs</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_observation'>observation</span><span class='lbracket'>[</span><span class='symbol'>:__replay_result__</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_end'>&#39;</span></span>
+  <span class='id identifier rubyid_ret'>ret</span> <span class='op'>=</span> <span class='kw'>if</span> <span class='ivar'>@record_mode</span> <span class='kw'>and</span> <span class='lparen'>(</span><span class='ivar'>@order_dependent</span> <span class='kw'>or</span> <span class='kw'>not</span> <span class='ivar'>@args_seen</span><span class='period'>.</span><span class='id identifier rubyid_has_key?'>has_key?</span><span class='lparen'>(</span><span class='id identifier rubyid_inital_call_arg_obs'>inital_call_arg_obs</span><span class='rparen'>)</span><span class='rparen'>)</span>
+    <span class='id identifier rubyid_current_result'>current_result</span> <span class='op'>=</span> <span class='id identifier rubyid_observation'>observation</span><span class='lbracket'>[</span><span class='symbol'>:result</span><span class='rbracket'>]</span>
+    <span class='id identifier rubyid_observation'>observation</span><span class='lbracket'>[</span><span class='symbol'>:result</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='id identifier rubyid_edit_confirm_result'>edit_confirm_result</span><span class='lparen'>(</span><span class='id identifier rubyid_inital_call_arg_obs'>inital_call_arg_obs</span><span class='comma'>,</span> <span class='id identifier rubyid_current_result'>current_result</span><span class='rparen'>)</span>
+    <span class='const'>Bond</span><span class='period'>.</span><span class='id identifier rubyid_instance'>instance</span><span class='period'>.</span><span class='id identifier rubyid_add_replay_value'>add_replay_value</span><span class='lparen'>(</span><span class='id identifier rubyid_inital_call_arg_obs'>inital_call_arg_obs</span><span class='comma'>,</span> <span class='id identifier rubyid_observation'>observation</span><span class='lbracket'>[</span><span class='symbol'>:result</span><span class='rbracket'>]</span><span class='rparen'>)</span>
+    <span class='lbrace'>{</span> <span class='label'>result:</span> <span class='id identifier rubyid_observation'>observation</span><span class='lbracket'>[</span><span class='symbol'>:result</span><span class='rbracket'>]</span><span class='comma'>,</span> <span class='label'>should_yield:</span> <span class='kw'>false</span><span class='comma'>,</span> <span class='label'>record_replay:</span> <span class='kw'>true</span> <span class='rbrace'>}</span>
+  <span class='kw'>else</span>
+    <span class='lbrace'>{</span> <span class='label'>result:</span> <span class='symbol'>:agent_result_none</span><span class='comma'>,</span> <span class='label'>should_yield:</span> <span class='kw'>false</span><span class='comma'>,</span> <span class='label'>record_replay:</span> <span class='kw'>true</span> <span class='rbrace'>}</span>
+  <span class='kw'>end</span>
+  <span class='ivar'>@args_seen</span><span class='lbracket'>[</span><span class='id identifier rubyid_inital_call_arg_obs'>inital_call_arg_obs</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='ivar'>@args_seen</span><span class='lbracket'>[</span><span class='id identifier rubyid_inital_call_arg_obs'>inital_call_arg_obs</span><span class='rbracket'>]</span> <span class='op'>+</span> <span class='int'>1</span>
+  <span class='id identifier rubyid_ret'>ret</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="before_result-instance_method">
+  
+    - (<tt>Object</tt>) <strong>before_result</strong>(observation) 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p class="note private">
+  <strong>This method is part of a private API.</strong>
+  You should avoid using this method if possible, as it may be removed or be changed in the future.
+</p>
+<p>The portion of the <code>result</code> which is performed <em>before</em> the real method is
+called.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+253
+254
+255
+256
+257
+258
+259
+260
+261
+262
+263
+264
+265</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/bond/spy_agent.rb', line 253</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_before_result'>before_result</span><span class='lparen'>(</span><span class='id identifier rubyid_observation'>observation</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_observation'>observation</span><span class='lbracket'>[</span><span class='symbol'>:__record_args__</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_end'>&#39;</span></span>
+  <span class='kw'>if</span> <span class='ivar'>@record_mode</span> <span class='kw'>and</span> <span class='lparen'>(</span><span class='ivar'>@order_dependent</span> <span class='kw'>or</span> <span class='kw'>not</span> <span class='ivar'>@args_seen</span><span class='period'>.</span><span class='id identifier rubyid_has_key?'>has_key?</span><span class='lparen'>(</span><span class='id identifier rubyid_observation'>observation</span><span class='rparen'>)</span><span class='rparen'>)</span>
+    <span class='kw'>return</span> <span class='lbrace'>{</span> <span class='label'>result:</span> <span class='symbol'>:agent_result_continue</span><span class='comma'>,</span> <span class='label'>should_yield:</span> <span class='kw'>false</span><span class='comma'>,</span> <span class='label'>record_replay:</span> <span class='kw'>true</span> <span class='rbrace'>}</span>
+  <span class='kw'>end</span>
+  <span class='id identifier rubyid_observation'>observation</span><span class='lbracket'>[</span><span class='symbol'>:__replay_index__</span><span class='rbracket'>]</span> <span class='op'>=</span> <span class='id identifier rubyid_get_index'>get_index</span><span class='lparen'>(</span><span class='id identifier rubyid_observation'>observation</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_val'>val</span> <span class='op'>=</span> <span class='const'>Bond</span><span class='period'>.</span><span class='id identifier rubyid_instance'>instance</span><span class='period'>.</span><span class='id identifier rubyid_get_replay_value'>get_replay_value</span><span class='lparen'>(</span><span class='id identifier rubyid_observation'>observation</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_observation'>observation</span><span class='period'>.</span><span class='id identifier rubyid_delete'>delete</span><span class='lparen'>(</span><span class='symbol'>:__replay_index__</span><span class='rparen'>)</span>
+  <span class='kw'>if</span> <span class='id identifier rubyid_val'>val</span> <span class='op'>==</span> <span class='symbol'>:agent_result_none</span>
+    <span class='id identifier rubyid_raise'>raise</span> <span class='const'>RuntimeError</span><span class='comma'>,</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>RecordReplaySpyAgent could not find a replay value to return for: </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_observation'>observation</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span>
+  <span class='kw'>end</span>
+  <span class='lbrace'>{</span> <span class='label'>result:</span> <span class='id identifier rubyid_val'>val</span><span class='comma'>,</span> <span class='label'>should_yield:</span> <span class='kw'>false</span><span class='comma'>,</span> <span class='label'>record_replay:</span> <span class='kw'>true</span> <span class='rbrace'>}</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="edit_confirm_result-instance_method">
+  
+    - (<tt>Object</tt>) <strong>edit_confirm_result</strong>(initial_call_arg_obs, current_result) 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p class="note private">
+  <strong>This method is part of a private API.</strong>
+  You should avoid using this method if possible, as it may be removed or be changed in the future.
+</p>
+<p>Given the observation dictionary from the initial call to the method
+(initial_call_arg_obs) and the result returned from the method (current_result),
+show this information to the user and ask them to accept or reject the
+result. They are also given the option of editing the result before accepting.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+271
+272
+273
+274
+275
+276
+277
+278
+279
+280
+281
+282
+283
+284
+285
+286
+287
+288
+289
+290
+291
+292
+293
+294
+295
+296
+297
+298
+299
+300</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/bond/spy_agent.rb', line 271</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_edit_confirm_result'>edit_confirm_result</span><span class='lparen'>(</span><span class='id identifier rubyid_initial_call_arg_obs'>initial_call_arg_obs</span><span class='comma'>,</span> <span class='id identifier rubyid_current_result'>current_result</span><span class='rparen'>)</span>
+  <span class='kw'>if</span> <span class='id identifier rubyid_current_result'>current_result</span><span class='period'>.</span><span class='id identifier rubyid_is_a?'>is_a?</span><span class='lparen'>(</span><span class='const'>String</span><span class='rparen'>)</span>
+    <span class='id identifier rubyid_content'>content</span> <span class='op'>=</span> <span class='id identifier rubyid_current_result'>current_result</span>
+    <span class='id identifier rubyid_use_json'>use_json</span> <span class='op'>=</span> <span class='kw'>false</span>
+  <span class='kw'>else</span>
+    <span class='id identifier rubyid_content'>content</span> <span class='op'>=</span> <span class='const'>Utils</span><span class='period'>.</span><span class='id identifier rubyid_observation_to_json'>observation_to_json</span><span class='lparen'>(</span><span class='id identifier rubyid_current_result'>current_result</span><span class='rparen'>)</span>
+    <span class='id identifier rubyid_use_json'>use_json</span> <span class='op'>=</span> <span class='kw'>true</span>
+  <span class='kw'>end</span>
+  <span class='id identifier rubyid_args'>args</span> <span class='op'>=</span> <span class='id identifier rubyid_initial_call_arg_obs'>initial_call_arg_obs</span><span class='period'>.</span><span class='id identifier rubyid_clone'>clone</span>
+  <span class='id identifier rubyid_args'>args</span><span class='period'>.</span><span class='id identifier rubyid_delete'>delete</span><span class='lparen'>(</span><span class='symbol'>:__spy_point__</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_args'>args</span><span class='period'>.</span><span class='id identifier rubyid_delete'>delete</span><span class='lparen'>(</span><span class='symbol'>:__record_args__</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_args'>args</span> <span class='op'>=</span> <span class='const'>Utils</span><span class='period'>.</span><span class='id identifier rubyid_observation_to_json'>observation_to_json</span><span class='lparen'>(</span><span class='id identifier rubyid_args'>args</span><span class='rparen'>)</span>
+  <span class='id identifier rubyid_before_prompt'>before_prompt</span> <span class='op'>=</span> <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>For test </span><span class='embexpr_beg'>#{</span><span class='const'>Bond</span><span class='period'>.</span><span class='id identifier rubyid_instance'>instance</span><span class='period'>.</span><span class='id identifier rubyid_test_name'>test_name</span><span class='embexpr_end'>}</span><span class='tstring_content'>:\n</span><span class='tstring_end'>&quot;</span></span> <span class='op'>+</span>
+      <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Below is the current result</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_use_json'>use_json</span> <span class='op'>?</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'> (JSON-serialized)</span><span class='tstring_end'>&#39;</span></span> <span class='op'>:</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_end'>&#39;</span></span><span class='embexpr_end'>}</span><span class='tstring_content'> returned by </span><span class='tstring_end'>&quot;</span></span> <span class='op'>+</span>
+      <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_initial_call_arg_obs'>initial_call_arg_obs</span><span class='lbracket'>[</span><span class='symbol'>:__spy_point__</span><span class='rbracket'>]</span><span class='embexpr_end'>}</span><span class='tstring_content'> when called with arguments as follows:\n\n</span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_args'>args</span><span class='embexpr_end'>}</span><span class='tstring_content'>\n</span><span class='tstring_end'>&quot;</span></span>
+  <span class='id identifier rubyid_after_prompt'>after_prompt</span> <span class='op'>=</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>Do you wish to save this result for future replay? You can also edit it before accepting.</span><span class='tstring_end'>&#39;</span></span>
+  <span class='id identifier rubyid_opt'>opt</span><span class='comma'>,</span> <span class='id identifier rubyid_new_content'>new_content</span> <span class='op'>=</span> <span class='const'>Utils</span><span class='period'>.</span><span class='id identifier rubyid_get_user_input_with_edits'>get_user_input_with_edits</span><span class='lparen'>(</span><span class='id identifier rubyid_before_prompt'>before_prompt</span><span class='comma'>,</span> <span class='id identifier rubyid_after_prompt'>after_prompt</span><span class='comma'>,</span> <span class='id identifier rubyid_content'>content</span><span class='comma'>,</span> <span class='qwords_beg'>%w&#39;</span><span class='tstring_content'>Accept</span><span class='words_sep'> </span><span class='tstring_content'>Reject</span><span class='words_sep'>&#39;</span><span class='rparen'>)</span>
+  <span class='kw'>if</span> <span class='id identifier rubyid_opt'>opt</span> <span class='op'>==</span> <span class='tstring'><span class='tstring_beg'>&#39;</span><span class='tstring_content'>Accept</span><span class='tstring_end'>&#39;</span></span>
+    <span class='kw'>if</span> <span class='id identifier rubyid_new_content'>new_content</span> <span class='op'>==</span> <span class='id identifier rubyid_content'>content</span>
+      <span class='id identifier rubyid_current_result'>current_result</span>
+    <span class='kw'>elsif</span> <span class='id identifier rubyid_use_json'>use_json</span>
+      <span class='const'>Utils</span><span class='period'>.</span><span class='id identifier rubyid_observation_from_json'>observation_from_json</span><span class='lparen'>(</span><span class='id identifier rubyid_new_content'>new_content</span><span class='rparen'>)</span>
+    <span class='kw'>else</span>
+      <span class='id identifier rubyid_new_content'>new_content</span>
+    <span class='kw'>end</span>
+  <span class='kw'>else</span>
+    <span class='id identifier rubyid_raise'>raise</span> <span class='const'>RuntimeError</span><span class='comma'>,</span>
+          <span class='tstring'><span class='tstring_beg'>&quot;</span><span class='tstring_content'>Unable to continue because the recorded value was not accepted for </span><span class='embexpr_beg'>#{</span><span class='id identifier rubyid_initial_call_arg_obs'>initial_call_arg_obs</span><span class='lbracket'>[</span><span class='symbol'>:__spy_point__</span><span class='rbracket'>]</span><span class='embexpr_end'>}</span><span class='tstring_end'>&quot;</span></span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="format-instance_method">
+  
+    - (<tt>Object</tt>) <strong>format</strong>(observation) 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p class="note private">
+  <strong>This method is part of a private API.</strong>
+  You should avoid using this method if possible, as it may be removed or be changed in the future.
+</p>
+<p>Override; do nothing.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+309</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/bond/spy_agent.rb', line 309</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_format'>format</span><span class='lparen'>(</span><span class='id identifier rubyid_observation'>observation</span><span class='rparen'>)</span> <span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="get_index-instance_method">
+  
+    - (<tt>Object</tt>) <strong>get_index</strong>(observation) 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p class="note private">
+  <strong>This method is part of a private API.</strong>
+  You should avoid using this method if possible, as it may be removed or be changed in the future.
+</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+246
+247
+248
+249</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/bond/spy_agent.rb', line 246</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_get_index'>get_index</span><span class='lparen'>(</span><span class='id identifier rubyid_observation'>observation</span><span class='rparen'>)</span>
+  <span class='kw'>return</span> <span class='int'>0</span> <span class='kw'>unless</span> <span class='ivar'>@order_dependent</span>
+  <span class='ivar'>@args_seen</span><span class='lbracket'>[</span><span class='id identifier rubyid_observation'>observation</span><span class='rbracket'>]</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="process?-instance_method">
+  
+    - (<tt>Boolean</tt>) <strong>process?</strong>(observation) 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p class="note private">
+  <strong>This method is part of a private API.</strong>
+  You should avoid using this method if possible, as it may be removed or be changed in the future.
+</p>
+<p>Checks if this agent should process this observation</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+<p class="tag_title">Returns:</p>
+<ul class="return">
+  
+    <li>
+      
+      
+        <span class='type'>(<tt>Boolean</tt>)</span>
+      
+      
+      
+        &mdash;
+        <div class='inline'><p>true iff this agent should process this observation</p>
+</div>
+      
+    </li>
+  
+</ul>
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+304
+305
+306</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/bond/spy_agent.rb', line 304</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_process?'>process?</span><span class='lparen'>(</span><span class='id identifier rubyid_observation'>observation</span><span class='rparen'>)</span>
+  <span class='kw'>super</span><span class='lparen'>(</span><span class='ivar'>@current_call_args</span><span class='period'>.</span><span class='id identifier rubyid_nil?'>nil?</span> <span class='op'>?</span> <span class='id identifier rubyid_observation'>observation</span> <span class='op'>:</span> <span class='ivar'>@current_call_args</span><span class='period'>.</span><span class='id identifier rubyid_merge'>merge</span><span class='lparen'>(</span><span class='id identifier rubyid_observation'>observation</span><span class='rparen'>)</span><span class='rparen'>)</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="result-instance_method">
+  
+    - (<tt>Object</tt>) <strong>result</strong>(observation) 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p class="note private">
+  <strong>This method is part of a private API.</strong>
+  You should avoid using this method if possible, as it may be removed or be changed in the future.
+</p>
+<p>Retrieve the result for this agent; when in replay mode, looks for the correct
+value and returns that, throwing an error if none is found.
+In record mode, this is called <em>both</em> before and after the real method is
+called; once before to record the call arguments, and once after to record
+the result. The second time, the result is displayed to the user, who can
+accept, edit, or reject it before saving for future replay.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+219
+220
+221
+222
+223
+224
+225
+226
+227
+228</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/bond/spy_agent.rb', line 219</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_result'>result</span><span class='lparen'>(</span><span class='id identifier rubyid_observation'>observation</span><span class='rparen'>)</span>
+  <span class='kw'>if</span> <span class='ivar'>@current_call_args</span><span class='period'>.</span><span class='id identifier rubyid_nil?'>nil?</span>
+    <span class='ivar'>@current_call_args</span> <span class='op'>=</span> <span class='id identifier rubyid_observation'>observation</span>
+    <span class='id identifier rubyid_before_result'>before_result</span><span class='lparen'>(</span><span class='id identifier rubyid_observation'>observation</span><span class='rparen'>)</span>
+  <span class='kw'>else</span>
+    <span class='id identifier rubyid_ret'>ret</span> <span class='op'>=</span> <span class='id identifier rubyid_after_result'>after_result</span><span class='lparen'>(</span><span class='id identifier rubyid_observation'>observation</span><span class='comma'>,</span> <span class='ivar'>@current_call_args</span><span class='rparen'>)</span>
+    <span class='ivar'>@current_call_args</span> <span class='op'>=</span> <span class='kw'>nil</span>
+    <span class='id identifier rubyid_ret'>ret</span>
+  <span class='kw'>end</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+      <div class="method_details ">
+  <h3 class="signature " id="skip_save_observation-instance_method">
+  
+    - (<tt>Object</tt>) <strong>skip_save_observation</strong> 
+  
+
+  
+
+  
+</h3><div class="docstring">
+  <div class="discussion">
+    <p class="note private">
+  <strong>This method is part of a private API.</strong>
+  You should avoid using this method if possible, as it may be removed or be changed in the future.
+</p>
+<p>Do not allowing skipping saving observation in record-replay mode since that is
+part of how the replay value gets saved.</p>
+
+
+  </div>
+</div>
+<div class="tags">
+  
+
+</div><table class="source_code">
+  <tr>
+    <td>
+      <pre class="lines">
+
+
+209
+210
+211</pre>
+    </td>
+    <td>
+      <pre class="code"><span class="info file"># File 'lib/bond/spy_agent.rb', line 209</span>
+
+<span class='kw'>def</span> <span class='id identifier rubyid_skip_save_observation'>skip_save_observation</span>
+  <span class='kw'>false</span>
+<span class='kw'>end</span></pre>
+    </td>
+  </tr>
+</table>
+</div>
+    
+  </div>
+
+</div>
+
+    <div id="footer">
+  Generated on Tue Mar 15 10:19:36 2016 by
+  <a href="http://yardoc.org" title="Yay! A Ruby Documentation Tool" target="_parent">yard</a>
+  0.8.7.6 (ruby-2.1.2).
+</div>
+
+  </body>
+</html>

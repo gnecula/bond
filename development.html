@@ -1,0 +1,237 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Bond Development &mdash; Bond - Testing with Spies and Mocks</title>
+    
+    <link rel="stylesheet" href="_static/bond_doc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '2.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Bond - Testing with Spies and Mocks" href="index.html" />
+    <link rel="next" title="Practice Testing with Spies and Mocks" href="buses_tutorial.html" />
+    <link rel="prev" title="Bond Usage Patterns" href="patterns.html" />
+    
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+    <script type='text/javascript' src='_static/my_ga.js'></script>
+    <!-- script type='text/javascript' src='_static/bond_doc.js'></script  -->
+    <script type='text/javascript' src='_static/bootstrap-3.3.5.min.js'></script>
+    <script type='text/javascript' src='_static/rst-tabbed-sections.js'></script>
+    <link rel='stylesheet' href='_static/bootstrap-3.3.5.min.css' type='text/css'></link>
+    <link rel='stylesheet' href='_static/bond_doc.css' type='text/css'></link>
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="bond-development">
+<h1>Bond Development<a class="headerlink" href="#bond-development" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="generating-documentation">
+<h2>Generating documentation<a class="headerlink" href="#generating-documentation" title="Permalink to this headline">¶</a></h2>
+<p>You must install Sphinx and dependencies:</p>
+<div class="code highlight-python"><div class="highlight"><pre>pip install -U Sphinx
+brew install graphviz
+pip install sphinxcontrib-plantuml
+gem install yard
+</pre></div>
+</div>
+<p>Then you can process the documentation</p>
+<div class="code highlight-python"><div class="highlight"><pre>make docs           # makes all the docs
+make -C docs html   # makes the RST docs (subset of above)
+</pre></div>
+</div>
+<p>To push it to GitHub Pages:</p>
+<div class="code highlight-python"><div class="highlight"><pre>GITHUB_USER=your_user_name make github_pages
+</pre></div>
+</div>
+</div>
+<div class="section" id="dependencies">
+<h2>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this headline">¶</a></h2>
+<p>See the <a class="reference internal" href="gettingstarted.html#gettingstarted"><span>Getting Started guide</span></a> to ensure you have all of the necessary dependencies.</p>
+</div>
+<div class="section" id="running-tests">
+<h2>Running tests<a class="headerlink" href="#running-tests" title="Permalink to this headline">¶</a></h2>
+<p>The best way to run tests is from PyCharm / RubyMine / IntelliJ / your favorite IDE. Just right-click in the body of a test, and you can select &#8220;Debug test...&#8221;</p>
+<p>To run all the tests from the command line:</p>
+<div class="code highlight-python"><div class="highlight"><pre>bond&gt; [BOND_RECONCILE=...] make run_tests
+</pre></div>
+</div>
+<p>To execute only tests for a single language, <code class="docutils literal"><span class="pre">make</span></code> using tasks <code class="docutils literal"><span class="pre">run_tests_py</span></code>, <code class="docutils literal"><span class="pre">run_tests_rb</span></code>, or <code class="docutils literal"><span class="pre">run_tests_java</span></code>.</p>
+<div class="tab-section-group container">
+<div class="tab-section-python container">
+<p>To execute only a subset of the Python tests:</p>
+<div class="code highlight-python"><div class="highlight"><pre>bond&gt; PYTHON_TEST_ARGS=tests.bond_test[.BondTest[.test_result]] make run_tests_py
+</pre></div>
+</div>
+</div>
+<div class="tab-section-ruby container">
+<p>To execute only a subset of the Ruby tests:</p>
+<div class="code highlight-python"><div class="highlight"><pre>bond&gt; cd rbond; rspec spec/test_file_spec.rb
+</pre></div>
+</div>
+</div>
+<div class="tab-section-java container">
+<p>To execute only a subset of the Java tests:</p>
+<div class="code highlight-python"><div class="highlight"><pre>bond&gt; cd jbond; ./gradlew :bond:test -Dtest.single=YourClassTest
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="deploying-a-new-version">
+<h2>Deploying a new version<a class="headerlink" href="#deploying-a-new-version" title="Permalink to this headline">¶</a></h2>
+<div class="tab-section-group container">
+<div class="tab-section-python container">
+<ul class="simple">
+<li>Increment the version number (<code class="docutils literal"><span class="pre">pybond/setup.py</span></code> and <code class="docutils literal"><span class="pre">pybond/bond/__init__.py</span></code>)</li>
+<li>Update docs/changelog.rst</li>
+<li>Test the submission to PyPi</li>
+<li>It is best to create an account on <a class="reference external" href="https://testpypi.python.org/pypi">https://testpypi.python.org/pypi</a></li>
+<li>Create the <code class="docutils literal"><span class="pre">~/.pypirc</span></code> as described at <a class="reference external" href="https://wiki.python.org/moin/TestPyPI">https://wiki.python.org/moin/TestPyPI</a></li>
+</ul>
+<div class="code highlight-python"><div class="highlight"><pre>make pypi_test     # Create the package and test it
+make pypi_upload   # Upload to Test PyPi
+</pre></div>
+</div>
+</div>
+<div class="tab-section-ruby container">
+<p>To install this gem onto your local machine, run <code class="docutils literal"><span class="pre">bundle</span> <span class="pre">exec</span> <span class="pre">rake</span> <span class="pre">install</span></code>. To release a
+new version, update the version number in <code class="docutils literal"><span class="pre">bond/version.rb</span></code> and the date in <code class="docutils literal"><span class="pre">bond.gemspec</span></code>,
+commit your changes, and tag the commit with <code class="docutils literal"><span class="pre">rbond-vX.X.X</span></code>. Please include &#8216;[rbond]&#8217; as the
+first part of any commit message related to the Ruby version of Bond to differentiate it from
+commits related to other parts of Bond. Push your commit up (including tags), build the gem
+using <code class="docutils literal"><span class="pre">gem</span> <span class="pre">build</span> <span class="pre">bond.gemspec</span></code>, and run <code class="docutils literal"><span class="pre">gem</span> <span class="pre">push</span> <span class="pre">bond-spy-X.X.X.gem</span></code> to release the .gem
+file to <a class="reference external" href="https://rubygems.org">rubygems.org</a>. For example:</p>
+<div class="code bash highlight-python"><div class="highlight"><pre>$ git commit -am &quot;[rbond] Release version 1.0.2&quot;
+$ git tag rbond-v1.0.2
+$ git push origin --tags
+$ git push origin
+$ gem build bond.gemspec
+$ gem push bond-spy-1.0.2.gem
+</pre></div>
+</div>
+</div>
+<div class="tab-section-java container">
+<p>To release a new version, update the version number in <code class="docutils literal"><span class="pre">build.gradle</span></code>,
+commit your changes, and tag the commit with <code class="docutils literal"><span class="pre">jbond-vX.X.X</span></code>. Please include &#8216;[jbond]&#8217; as the
+first part of any commit message related to the Java version of Bond to differentiate it from
+commits related to other parts of Bond. Push your commit up (including tags), and upload the
+new jar file to the Maven central repository using <code class="docutils literal"><span class="pre">./gradlew</span> <span class="pre">uploadArchives</span></code>. You will need
+to have an account with <a class="reference external" href="http://central.sonatype.org/pages/ossrh-guide.html">OSSRH</a> and have
+the credentials for this account, as well as PGP signature information, available in your
+<code class="docutils literal"><span class="pre">gradle.properties</span></code> file (should be located at <code class="docutils literal"><span class="pre">~/.gradle/gradle.properties</span></code>) as such
+(see the <a class="reference external" href="https://www.gnupg.org/documentation/howtos.html">GnuPG documentation</a>
+for information on generating a PGP key using GnuPG):</p>
+<div class="code highlight-python"><div class="highlight"><pre>signing.keyId=8-digit_hexadecimal_key_id
+signing.password=password_to_your_pgp_key
+signing.secretKeyRingFile=/home/user/.gnupg/secring.gpg
+
+ossrhUsername=yourUsername
+ossrhPassword=yourPassword
+</pre></div>
+</div>
+<p>This will put the artifact on OSSRH for staging; you can then promote the release manually
+on the <a class="reference external" href="https://oss.sonatype.org/">OSSRH</a> or use the command <code class="docutils literal"><span class="pre">./gradlew</span> <span class="pre">closeAndPromoteRepository</span></code>
+to automate the process through Gradle.</p>
+<div class="code bash highlight-python"><div class="highlight"><pre>$ git commit -am &quot;[jbond] Release version 1.0.2&quot;
+$ git tag jbond-v1.0.2
+$ git push origin --tags
+$ git push origin
+$ ./gradlew test
+$ ./gradlew uploadArchives
+$ ./gradlew closeAndPromoteRepository
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Bond Development</a><ul>
+<li><a class="reference internal" href="#generating-documentation">Generating documentation</a></li>
+<li><a class="reference internal" href="#dependencies">Dependencies</a></li>
+<li><a class="reference internal" href="#running-tests">Running tests</a></li>
+<li><a class="reference internal" href="#deploying-a-new-version">Deploying a new version</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="patterns.html" title="previous chapter">Bond Usage Patterns</a></li>
+      <li>Next: <a href="buses_tutorial.html" title="next chapter">Practice Testing with Spies and Mocks</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/development.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, George Necula, Erik Krogen.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+      |
+      <a href="_sources/development.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

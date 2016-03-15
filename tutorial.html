@@ -1,0 +1,1713 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Bond Tutorial &mdash; Bond - Testing with Spies and Mocks</title>
+    
+    <link rel="stylesheet" href="_static/bond_doc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '2.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Bond - Testing with Spies and Mocks" href="index.html" />
+    <link rel="next" title="Bond API Documentation" href="api.html" />
+    <link rel="prev" title="Getting Started with Bond" href="gettingstarted.html" />
+    
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+    <script type='text/javascript' src='_static/my_ga.js'></script>
+    <!-- script type='text/javascript' src='_static/bond_doc.js'></script  -->
+    <script type='text/javascript' src='_static/bootstrap-3.3.5.min.js'></script>
+    <script type='text/javascript' src='_static/rst-tabbed-sections.js'></script>
+    <link rel='stylesheet' href='_static/bootstrap-3.3.5.min.css' type='text/css'></link>
+    <link rel='stylesheet' href='_static/bond_doc.css' type='text/css'></link>
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="bond-tutorial">
+<span id="tutorial"></span><h1>Bond Tutorial<a class="headerlink" href="#bond-tutorial" title="Permalink to this headline">¶</a></h1>
+<p>Bond was designed to simplify the <strong>development and maintenance</strong> of automated tests. There are two main uses
+of Bond: spying and mocking. These use cases are all supported by a total of four Bond functions. We&#8217;ll discuss spying first.</p>
+<p>If you haven&#8217;t done so already, you should read the <a class="reference internal" href="gettingstarted.html#gettingstarted"><span>Getting Started guide</span></a>.</p>
+<div class="section" id="part-1-spying-with-bond">
+<h2>Part 1: Spying with Bond<a class="headerlink" href="#part-1-spying-with-bond" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="spying-inside-your-test-code">
+<h3>Spying inside your test code<a class="headerlink" href="#spying-inside-your-test-code" title="Permalink to this headline">¶</a></h3>
+<p>Note: All of the code for this part of the tutorial can be found within the <code class="docutils literal"><span class="pre">tutorials/binary_search_tree</span></code>
+directory (<code class="docutils literal"><span class="pre">tutorials/src/{main,test}/java/tutorial/binarysearchtree</span></code> for Java)
+of the <a class="reference external" href="http://github.com/necula01/bond">Bond sources</a>.</p>
+<p>Spying with Bond is meant to replace writting the common equality assertion calls in your tests, i.e., the validation
+that some state variable has some expected value. These assertions are tedious to write, and even more tedious to
+update when your code or your test fixture changes and you need to update the test. For this reason, people
+tend to write fewer assertions than they should.</p>
+<p>Consider, for example, that you have just implemented binary-search-trees (BST) and want to write tests.
+You may write the following testing code:</p>
+<div class="tab-section-group container">
+<div class="tab-section-python container">
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">test_bst</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="n">tree</span> <span class="o">=</span> <span class="n">BST</span><span class="p">()</span>
+    <span class="n">tree</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span>
+    <span class="n">tree</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">12</span><span class="p">)</span>
+    <span class="n">tree</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+    <span class="n">tree</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+    <span class="n">tree</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span>
+
+    <span class="c"># WITHOUT BOND: Add self.assertEquals here to verify the position in the tree</span>
+    <span class="c"># of all the data points, in the order in which they were inserted</span>
+<span class="hll">    <span class="bp">self</span><span class="o">.</span><span class="n">assertEquals</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="n">tree</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+</span><span class="hll">    <span class="bp">self</span><span class="o">.</span><span class="n">assertEquals</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="n">tree</span><span class="o">.</span><span class="n">right</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+</span><span class="hll">    <span class="bp">self</span><span class="o">.</span><span class="n">assertEquals</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">tree</span><span class="o">.</span><span class="n">left</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+</span><span class="hll">    <span class="bp">self</span><span class="o">.</span><span class="n">assertEquals</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">tree</span><span class="o">.</span><span class="n">left</span><span class="o">.</span><span class="n">right</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+</span><span class="hll">    <span class="bp">self</span><span class="o">.</span><span class="n">assertEquals</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="n">tree</span><span class="o">.</span><span class="n">left</span><span class="o">.</span><span class="n">right</span><span class="o">.</span><span class="n">right</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+</span></pre></div>
+</div>
+</div>
+<div class="tab-section-ruby container">
+<div class="highlight-ruby"><div class="highlight"><pre><span class="c1"># Using RSpec</span>
+<span class="n">describe</span> <span class="no">BST</span> <span class="k">do</span>
+
+    <span class="n">it</span> <span class="s1">&#39;should insert correctly&#39;</span> <span class="k">do</span>
+        <span class="n">tree</span> <span class="o">=</span> <span class="no">BST</span><span class="p">()</span>
+        <span class="n">tree</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span>
+        <span class="n">tree</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">12</span><span class="p">)</span>
+        <span class="n">tree</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+        <span class="n">tree</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+        <span class="n">tree</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span>
+
+<span class="hll">        <span class="n">expect</span><span class="p">(</span><span class="n">tree</span><span class="o">.</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">to</span> <span class="n">eq</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span>
+</span><span class="hll">        <span class="n">expect</span><span class="p">(</span><span class="n">tree</span><span class="o">.</span><span class="n">right</span><span class="o">.</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">to</span> <span class="n">eq</span><span class="p">(</span><span class="mi">12</span><span class="p">)</span>
+</span><span class="hll">        <span class="n">expect</span><span class="p">(</span><span class="n">tree</span><span class="o">.</span><span class="n">left</span><span class="o">.</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">to</span> <span class="n">eq</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+</span><span class="hll">        <span class="n">expect</span><span class="p">(</span><span class="n">tree</span><span class="o">.</span><span class="n">left</span><span class="o">.</span><span class="n">right</span><span class="o">.</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">to</span> <span class="n">eq</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+</span><span class="hll">        <span class="n">expect</span><span class="p">(</span><span class="n">tree</span><span class="o">.</span><span class="n">left</span><span class="o">.</span><span class="n">right</span><span class="o">.</span><span class="n">right</span><span class="o">.</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">to</span> <span class="n">eq</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span>
+</span>    <span class="k">end</span>
+<span class="k">end</span>
+</pre></div>
+</div>
+</div>
+<div class="tab-section-java container">
+<div class="highlight-java"><div class="highlight"><pre><span class="c1">// Using JUnit</span>
+<span class="nd">@Test</span>
+<span class="kd">public</span> <span class="kt">void</span> <span class="nf">testAdd</span><span class="o">()</span> <span class="o">{</span>
+  <span class="n">Node</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;</span> <span class="n">tree</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Node</span><span class="o">&lt;&gt;(</span><span class="mi">8</span><span class="o">);</span>
+  <span class="n">tree</span><span class="o">.</span><span class="na">insert</span><span class="o">(</span><span class="mi">12</span><span class="o">);</span>
+  <span class="n">tree</span><span class="o">.</span><span class="na">insert</span><span class="o">(</span><span class="mi">3</span><span class="o">);</span>
+  <span class="n">tree</span><span class="o">.</span><span class="na">insert</span><span class="o">(</span><span class="mi">4</span><span class="o">);</span>
+  <span class="n">tree</span><span class="o">.</span><span class="na">insert</span><span class="o">(</span><span class="mi">6</span><span class="o">);</span>
+
+<span class="hll">  <span class="n">assertEquals</span><span class="o">(</span><span class="mi">8</span><span class="o">,</span> <span class="n">tree</span><span class="o">.</span><span class="na">data</span><span class="o">.</span><span class="na">intValue</span><span class="o">());</span>
+</span><span class="hll">  <span class="n">assertEquals</span><span class="o">(</span><span class="mi">12</span><span class="o">,</span> <span class="n">tree</span><span class="o">.</span><span class="na">right</span><span class="o">.</span><span class="na">data</span><span class="o">.</span><span class="na">intValue</span><span class="o">());</span>
+</span><span class="hll">  <span class="n">assertNull</span><span class="o">(</span><span class="n">tree</span><span class="o">.</span><span class="na">right</span><span class="o">.</span><span class="na">left</span><span class="o">);</span>
+</span><span class="hll">  <span class="n">assertNull</span><span class="o">(</span><span class="n">tree</span><span class="o">.</span><span class="na">right</span><span class="o">.</span><span class="na">right</span><span class="o">);</span>
+</span><span class="hll">  <span class="n">assertEquals</span><span class="o">(</span><span class="mi">3</span><span class="o">,</span> <span class="n">tree</span><span class="o">.</span><span class="na">left</span><span class="o">.</span><span class="na">data</span><span class="o">.</span><span class="na">intValue</span><span class="o">());</span>
+</span><span class="hll">  <span class="n">assertEquals</span><span class="o">(</span><span class="mi">4</span><span class="o">,</span> <span class="n">tree</span><span class="o">.</span><span class="na">left</span><span class="o">.</span><span class="na">right</span><span class="o">.</span><span class="na">data</span><span class="o">.</span><span class="na">intValue</span><span class="o">());</span>
+</span><span class="hll">  <span class="n">assertEquals</span><span class="o">(</span><span class="mi">6</span><span class="o">,</span> <span class="n">tree</span><span class="o">.</span><span class="na">left</span><span class="o">.</span><span class="na">right</span><span class="o">.</span><span class="na">right</span><span class="o">.</span><span class="na">data</span><span class="o">.</span><span class="na">intValue</span><span class="o">());</span>
+</span><span class="o">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>That is a lot of asserting, and in fact, it is not even a complete test, because you&#8217;d have to
+test, e.g., that 6 is a leaf node.</p>
+<p>The alternative with Bond is as follows:</p>
+<div class="tab-section-group container">
+<div class="tab-section-python container">
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">test_bst</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="hll">    <span class="n">bond</span><span class="o">.</span><span class="n">start_test</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>              <span class="c"># Initialize Bond for this test</span>
+</span>
+    <span class="n">tree</span> <span class="o">=</span> <span class="n">BST</span><span class="p">()</span>
+    <span class="n">tree</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span>
+    <span class="n">tree</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">12</span><span class="p">)</span>
+    <span class="n">tree</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+    <span class="n">tree</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+    <span class="n">tree</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span>
+
+    <span class="c"># WITH BOND: record the value of the tree variable, and compare it</span>
+    <span class="c"># with previous recordings.</span>
+<span class="hll">    <span class="n">bond</span><span class="o">.</span><span class="n">spy</span><span class="p">(</span><span class="n">tree</span><span class="o">=</span><span class="n">tree</span><span class="p">)</span>  <span class="c"># Spy the whole tree</span>
+</span></pre></div>
+</div>
+</div>
+<div class="tab-section-ruby container">
+<div class="highlight-ruby"><div class="highlight"><pre><span class="c1"># Necessary to get the bond context</span>
+<span class="nb">require</span> <span class="s1">&#39;bond/spec_helper&#39;</span>
+
+<span class="c1"># Using RSpec</span>
+<span class="n">describe</span> <span class="no">BST</span> <span class="k">do</span>
+    <span class="c1"># Automatically initializes Bond</span>
+<span class="hll">    <span class="n">include_context</span> <span class="ss">:bond</span>
+</span>
+    <span class="n">it</span> <span class="s1">&#39;should insert correctly&#39;</span> <span class="k">do</span>
+        <span class="n">tree</span> <span class="o">=</span> <span class="no">BST</span><span class="p">()</span>
+        <span class="n">tree</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span>
+        <span class="n">tree</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">12</span><span class="p">)</span>
+        <span class="n">tree</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+        <span class="n">tree</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+        <span class="n">tree</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span>
+
+        <span class="c1"># WITH BOND: record the value of the tree variable, and compare it</span>
+        <span class="c1"># with previous recordings.</span>
+<span class="hll">        <span class="n">bond</span><span class="o">.</span><span class="n">spy</span><span class="p">(</span><span class="ss">tree</span><span class="p">:</span> <span class="n">tree</span><span class="p">)</span>  <span class="c1"># Spy the whole tree</span>
+</span>    <span class="k">end</span>
+<span class="k">end</span>
+</pre></div>
+</div>
+</div>
+<div class="tab-section-java container">
+<div class="highlight-java"><div class="highlight"><pre><span class="c1">// Automatically initializes Bond</span>
+<span class="hll"><span class="nd">@Rule</span>
+</span><span class="hll"><span class="kd">public</span> <span class="n">BondTestRule</span> <span class="n">btr</span> <span class="o">=</span> <span class="k">new</span> <span class="n">BondTestRule</span><span class="o">()</span>
+</span>
+<span class="c1">// Using JUnit</span>
+<span class="nd">@Test</span>
+<span class="kd">public</span> <span class="kt">void</span> <span class="nf">testAdd</span><span class="o">()</span> <span class="o">{</span>
+  <span class="n">Node</span><span class="o">&lt;</span><span class="n">Integer</span><span class="o">&gt;</span> <span class="n">tree</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Node</span><span class="o">&lt;&gt;(</span><span class="mi">8</span><span class="o">);</span>
+  <span class="n">tree</span><span class="o">.</span><span class="na">insert</span><span class="o">(</span><span class="mi">12</span><span class="o">);</span>
+  <span class="n">tree</span><span class="o">.</span><span class="na">insert</span><span class="o">(</span><span class="mi">3</span><span class="o">);</span>
+  <span class="n">tree</span><span class="o">.</span><span class="na">insert</span><span class="o">(</span><span class="mi">4</span><span class="o">);</span>
+  <span class="n">tree</span><span class="o">.</span><span class="na">insert</span><span class="o">(</span><span class="mi">6</span><span class="o">);</span>
+
+<span class="hll">  <span class="n">Bond</span><span class="o">.</span><span class="na">obs</span><span class="o">(</span><span class="s">&quot;tree&quot;</span><span class="o">,</span> <span class="n">tree</span><span class="o">).</span><span class="na">spy</span><span class="o">(</span><span class="s">&quot;testAdd&quot;</span><span class="o">);</span>
+</span><span class="o">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>What is happening there is that we call the <code class="docutils literal"><span class="pre">spy</span></code> function to tell Bond to record the value of the
+<code class="docutils literal"><span class="pre">tree</span></code> variable. There could be multiple calls to <code class="docutils literal"><span class="pre">spy</span></code> during a test.
+The spied values (observations) are recorded in a file saved by default in a subdirectory called <code class="docutils literal"><span class="pre">test_observations</span></code>
+(except for Java, which does not support a default). This file should be checked in your repository along with
+your sources. Next time Bond runs the same test it will compare the current observation with the reference one.
+If there are differences, before concluding that the test has failed, you will get the opportunity to interact
+with Bond to select what you want to be the new reference.</p>
+<p>Here is the test observation spied by the test case we wrote above:</p>
+<div class="tab-section-group container">
+<div class="tab-section-python container">
+<div class="highlight-javascript"><div class="highlight"><pre><span class="p">[</span>
+<span class="p">{</span>
+    <span class="s2">&quot;__spy_point__&quot;</span><span class="o">:</span> <span class="s2">&quot;testAdd1&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;tree&quot;</span><span class="o">:</span> <span class="p">{</span>
+        <span class="s2">&quot;data&quot;</span><span class="o">:</span> <span class="mi">8</span><span class="p">,</span>
+        <span class="s2">&quot;left&quot;</span><span class="o">:</span> <span class="p">{</span>
+            <span class="s2">&quot;data&quot;</span><span class="o">:</span> <span class="mi">3</span><span class="p">,</span>
+            <span class="s2">&quot;right&quot;</span><span class="o">:</span> <span class="p">{</span>
+                <span class="s2">&quot;data&quot;</span><span class="o">:</span> <span class="mi">4</span><span class="p">,</span>
+                <span class="s2">&quot;right&quot;</span><span class="o">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;data&quot;</span><span class="o">:</span> <span class="mi">6</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;right&quot;</span><span class="o">:</span> <span class="p">{</span>
+            <span class="s2">&quot;data&quot;</span><span class="o">:</span> <span class="mi">12</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="tab-section-ruby container">
+<div class="highlight-javascript"><div class="highlight"><pre><span class="p">[</span>
+<span class="p">{</span>
+    <span class="s2">&quot;__spy_point__&quot;</span><span class="o">:</span> <span class="s2">&quot;testAdd1&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;tree&quot;</span><span class="o">:</span> <span class="p">{</span>
+        <span class="s2">&quot;data&quot;</span><span class="o">:</span> <span class="mi">8</span><span class="p">,</span>
+        <span class="s2">&quot;left&quot;</span><span class="o">:</span> <span class="p">{</span>
+            <span class="s2">&quot;data&quot;</span><span class="o">:</span> <span class="mi">3</span><span class="p">,</span>
+            <span class="s2">&quot;right&quot;</span><span class="o">:</span> <span class="p">{</span>
+                <span class="s2">&quot;data&quot;</span><span class="o">:</span> <span class="mi">4</span><span class="p">,</span>
+                <span class="s2">&quot;right&quot;</span><span class="o">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;data&quot;</span><span class="o">:</span> <span class="mi">6</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;right&quot;</span><span class="o">:</span> <span class="p">{</span>
+            <span class="s2">&quot;data&quot;</span><span class="o">:</span> <span class="mi">12</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="tab-section-java container">
+<div class="highlight-javascript"><div class="highlight"><pre><span class="p">[</span>
+<span class="p">{</span>
+  <span class="s2">&quot;__spy_point__&quot;</span><span class="o">:</span> <span class="s2">&quot;testAdd&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;tree&quot;</span><span class="o">:</span> <span class="p">{</span>
+    <span class="s2">&quot;data&quot;</span><span class="o">:</span> <span class="mi">8</span><span class="p">,</span>
+    <span class="s2">&quot;left&quot;</span><span class="o">:</span> <span class="p">{</span>
+      <span class="s2">&quot;data&quot;</span><span class="o">:</span> <span class="mi">3</span><span class="p">,</span>
+      <span class="s2">&quot;left&quot;</span><span class="o">:</span> <span class="kc">null</span><span class="p">,</span>
+      <span class="s2">&quot;right&quot;</span><span class="o">:</span> <span class="p">{</span>
+        <span class="s2">&quot;data&quot;</span><span class="o">:</span> <span class="mi">4</span><span class="p">,</span>
+        <span class="s2">&quot;left&quot;</span><span class="o">:</span> <span class="kc">null</span><span class="p">,</span>
+        <span class="s2">&quot;right&quot;</span><span class="o">:</span> <span class="p">{</span>
+          <span class="s2">&quot;data&quot;</span><span class="o">:</span> <span class="mi">6</span>
+          <span class="s2">&quot;left&quot;</span><span class="o">:</span> <span class="kc">null</span><span class="p">,</span>
+          <span class="s2">&quot;right&quot;</span><span class="o">:</span> <span class="kc">null</span>
+        <span class="p">}</span>
+      <span class="p">}</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;right&quot;</span><span class="o">:</span> <span class="p">{</span>
+      <span class="s2">&quot;data&quot;</span><span class="o">:</span> <span class="mi">12</span>
+      <span class="s2">&quot;left&quot;</span><span class="o">:</span> <span class="kc">null</span><span class="p">,</span>
+      <span class="s2">&quot;right&quot;</span><span class="o">:</span> <span class="kc">null</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Note that this observation acts implicitly as 15 equality assertions (5 for the data values, and 10 more for
+the <code class="docutils literal"><span class="pre">left</span></code> and <code class="docutils literal"><span class="pre">right</span></code> pointers on the nodes).
+Furthermore, the assertions are presented in a structure that is much easier
+to read that a sequence of equality assertions. Finally, with Bond your test code contains only the names
+of the variables you want to assert on; the values they are equal to are saved separated from your test.
+This will turn out to be crucial next.</p>
+<p>If you need to make a change in the code, or in the testing setup, it is very tedious to fix the assertions.
+Let&#8217;s say that you decide that you get a better test coverage with a different tree where instead of 4 you want to
+insert 7 in the tree. If you run the traditional test, you will see the familiar test failure:</p>
+<div class="tab-section-group container">
+<div class="tab-section-python container">
+<div class="highlight-diff"><div class="highlight"><pre><span class="gh">======================================================================</span>
+FAIL: testAdd1 (bst_tests.NodeTest)
+<span class="gd">----------------------------------------------------------------------</span>
+Traceback (most recent call last):
+  File &quot;bond/pybond/tutorials/binary_search_tree/bst_tests.py&quot;, line 49, in test_bst
+    self.assertEquals(4, tree.left.right.data)
+AssertionError: 4 != 7
+</pre></div>
+</div>
+</div>
+<div class="tab-section-ruby container">
+<div class="highlight-diff"><div class="highlight"><pre>Failures:
+
+  1) Node should add nodes to the BST correctly, testing without Bond
+     Failure/Error: expect(tree.left.right.data).to eq(4)
+
+       expected: 4
+            got: 7
+
+       (compared using ==)
+     # ./bst_spec.rb:20:in `block (2 levels) in &lt;top (required)&gt;&#39;
+</pre></div>
+</div>
+</div>
+<div class="tab-section-java container">
+<div class="highlight-diff"><div class="highlight"><pre>tutorial.binarysearchtree.BinarySearchTreeTest &gt; testAdd FAILED
+    java.lang.AssertionError: expected:&lt;4&gt; but was:&lt;7&gt;
+        at org.junit.Assert.fail(Assert.java:88)
+        at org.junit.Assert.failNotEquals(Assert.java:834)
+        at org.junit.Assert.assertEquals(Assert.java:645)
+        at org.junit.Assert.assertEquals(Assert.java:631)
+        at tutorial.binarysearchtree.BinarySearchTreeTest.testAdd(BinarySearchTreeTest.java:37)
+</pre></div>
+</div>
+</div>
+</div>
+<p>Not only does your test abort on the first assertion, but it turns out that you have to fix
+several of the assertions because the tree structure has changed. This is a common scenario when
+your tests are aggressive about validating the data, and your test scenario or the underlying code
+inevitably evolves.</p>
+<p>With Bond, there is absolutely no change to the test code, precisely because the actual expected
+tree shape is not part of your code! Instead, the test notices a discrepancy in the
+observations, and tries to reconcile the observations.</p>
+<div class="tab-section-group container">
+<div class="tab-section-python container">
+You can read more about <code class="docutils literal"><span class="pre">bond.start_test</span></code> and <code class="docutils literal"><span class="pre">bond.spy</span></code> in the <a class="reference internal" href="api.html#api-spy"><span>API documentation</span></a>.</div>
+<div class="tab-section-ruby container">
+You can read more about the <code class="docutils literal"><span class="pre">:bond</span></code> context and <a class="reference external" href="rbond/Bond.html#spy-instance_method">bond#spy</a>
+in the <a class="reference external" href="rbond/Bond.html">API documentation</a>.</div>
+<div class="tab-section-java container">
+You can read more about the <a class="reference external" href="jbond/bond/BondTestRule.html">BondTestRule</a> and
+<a class="reference external" href="jbond/bond/Bond.html#spy--">Bond.spy</a> in the <a class="reference external" href="jbond/index.html">API documentation</a>.</div>
+</div>
+</div>
+<div class="section" id="reconciling-bond-observations">
+<h3>Reconciling Bond observations<a class="headerlink" href="#reconciling-bond-observations" title="Permalink to this headline">¶</a></h3>
+<p>Following along the previous example, when a test run finishes it compares the set of
+spied observations with the saved reference ones. If there are no differences,
+testing proceeds as before. If there are differences, there are multiple possible
+reconciliation methods. By default, you will be presented with a diff of the changes
+and a small reconciliation menu, as shown below:</p>
+<div class="tab-section-group container">
+<div class="tab-section-python container">
+<div class="highlight-diff"><div class="highlight"><pre><span class="gd">--- reference</span>
+<span class="gi">+++ current</span>
+<span class="gu">@@ -6,8 +6,8 @@</span>
+         &quot;left&quot;: {
+             &quot;data&quot;: 3,
+             &quot;right&quot;: {
+<span class="gd">-                &quot;data&quot;: 4,</span>
+<span class="gd">-                &quot;right&quot;: {</span>
+<span class="gi">+                &quot;data&quot;: 7,</span>
+<span class="gi">+                &quot;left&quot;: {</span>
+                     &quot;data&quot;: 6
+                 }
+             }
+
+There were differences in observations for NodeTest.test_bst:
+Do you want to accept the changes (NodeTest.test_bst) ? ( [y]es | [k]diff3 | [n]o):
+</pre></div>
+</div>
+</div>
+<div class="tab-section-ruby container">
+<div class="highlight-diff"><div class="highlight"><pre><span class="gd">--- reference</span>
+<span class="gi">+++ current</span>
+<span class="gu">@@ -6,8 +6,8 @@</span>
+     &quot;left&quot;: {
+       &quot;data&quot;: 3,
+       &quot;right&quot;: {
+<span class="gd">-        &quot;data&quot;: 4,</span>
+<span class="gd">-        &quot;right&quot;: {</span>
+<span class="gi">+        &quot;data&quot;: 7,</span>
+<span class="gi">+        &quot;left&quot;: {</span>
+           &quot;data&quot;: 6
+         }
+       }
+
+There were differences in observations for bst_spec.Node_should_add_nodes_to_the_BST_correctly__testing_with_Bond:
+Do you want to accept the changes (bst_spec.Node_should_add_nodes_to_the_BST_correctly__testing_with_Bond) ? ( [y]es | [k]diff3 | [n]o):
+</pre></div>
+</div>
+</div>
+<div class="tab-section-java container">
+<div class="highlight-diff"><div class="highlight"><pre>There were differences in observations for tutorial.binarysearchtree.BinarySearchTreeTest.testAdd
+<span class="gd">--- reference</span>
+<span class="gi">+++ current</span>
+<span class="gu">@@ -6,15 +6,15 @@</span>
+     &quot;left&quot;: {
+       &quot;data&quot;: 3,
+       &quot;left&quot;: null,
+       &quot;right&quot;: {
+<span class="gd">-        &quot;data&quot;: 4,</span>
+<span class="gd">-        &quot;left&quot;: null,</span>
+<span class="gd">-        &quot;right&quot;: {</span>
+<span class="gi">+        &quot;data&quot;: 7,</span>
+<span class="gi">+        &quot;left&quot;: {</span>
+           &quot;data&quot;: 6,
+           &quot;left&quot;: null,
+           &quot;right&quot;: null
+<span class="gd">-        }</span>
+<span class="gi">+        },</span>
+<span class="gi">+        &quot;right&quot;: null</span>
+       }
+     },
+     &quot;right&quot;: {
+       &quot;data&quot;: 12,
+There were differences in observations for tutorial.binarysearchtree.BinarySearchTreeTest.testAdd
+
+Do you want to accept the changes (tutorial.binarysearchtree.BinarySearchTreeTest.testAdd)?
+</pre></div>
+</div>
+</div>
+</div>
+<p>At this  point you can click &#8220;y&#8221; to accept the new changes (they will be saved as the new reference
+and the test will pass), or &#8220;n&#8221; to abort the test. Furthermore, if you click &#8220;k&#8221; at the above prompt,
+Bond will invoke a visual merging tool (in this case <code class="docutils literal"><span class="pre">kdiff3</span></code>),
+that allows you to navigate all differences, see the context in which they appeared by
+inspecting nearby observations, select easily for each difference, or for all, whether the
+new observed behavior is correct. If all differences are accepted, Bond will save the new observation file as
+future reference. Voila! You have just updated the expected values with a click of a button. Bond gives you
+deep assertions about your test while keeping the assertion maintenance cost low.</p>
+<img alt="_images/kdiff3_bst1.png" src="_images/kdiff3_bst1.png" />
+<p>You can control the reconciliation method using a parameter to <code class="docutils literal"><span class="pre">bond.start_test</span></code> in Python / a parameter to <code class="docutils literal"><span class="pre">:include_context</span> <span class="pre">:bond</span></code> in Ruby / the <a class="reference external" href="jbond/bond/BondTestRule.html#withReconciliationMethod-bond.reconcile.ReconcileType-">withReconciliationMethod()</a> method on <a class="reference external" href="jbond/bond/BondTestRule.html">BondTestRule</a> in Java, or with the environment
+variable <code class="docutils literal"><span class="pre">BOND_RECONCILE</span></code>, with possible values:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">accept</span></code> : accept the new observations and change the reference</li>
+<li><code class="docutils literal"><span class="pre">abort</span></code> : abort the test</li>
+<li><code class="docutils literal"><span class="pre">console</span></code> : show the above console interaction menu, falling back to a dialog box if a console is not available</li>
+<li><code class="docutils literal"><span class="pre">dialog</span></code> : ask for user input via a popup dialog box</li>
+<li><code class="docutils literal"><span class="pre">kdiff3</span></code>: invoke the <code class="docutils literal"><span class="pre">kdiff3</span></code> merging tool (must have it installed and available in your <code class="docutils literal"><span class="pre">PATH</span></code>)</li>
+</ul>
+<p>If the test fails, then you will still be shown the differences in the observations, but you will not have
+the choice to accept them as the new reference observations.</p>
+<p>The following is the UML sequence diagram for the interaction between the
+test, the system-under-test (e.g., the binary-search tree example code from above),
+and the Bond library:</p>
+<p class="plantuml">
+<img src="_images/plantuml-ab138eb7098329a618b2987b5166e781fe755781.png" alt="&#64;startuml
+
+participant Test
+participant SUT as &quot;System-under-test&quot;
+participant Bond
+actor Diff as &quot;Interactive merging tool&quot;
+
+activate Test
+[-&gt; Test
+group &quot;prepare test&quot;
+    activate Bond
+    Test -&gt; Bond : start_test*()
+    Bond -&gt; Test
+end
+Test -&gt; SUT : insert()
+SUT -&gt; Bond : spy('intermediate data')
+SUT -&gt; Test
+Test -&gt; Bond : spy('data')
+Test -&gt; Bond : spy('more data')
+
+group &quot;finish test&quot;
+    Test -&gt; Bond: end_test*()
+    Bond -&gt; Bond : save\nobservations
+
+    alt observations different from reference
+       Bond -&gt; Diff: interactive reconcile
+       Diff -&gt; Bond
+    end
+
+    Bond -&gt; Test
+end
+deactivate Bond
+deactivate Test
+&#64;enduml" />
+</p>
+<p>Once <code class="docutils literal"><span class="pre">start_test()</span></code> has been called, any subsequent call to
+<code class="docutils literal"><span class="pre">bond.spy</span></code> will record the observations, which are saved at the end
+of the test. Both the test and the system-under-test can spy values.
+If the saved observations are different from the
+reference ones, an interactive merging session is initiated to decide
+whether the current observations should be the new reference ones.</p>
+<p>Note that the <code class="docutils literal"><span class="pre">start_test()</span></code> method is explicit in Python, but is
+implicit in Ruby, if you add <code class="docutils literal"><span class="pre">include_context</span> <span class="pre">:bond</span></code> to the RSpec
+test, and in Java, if you add the JUnit &#64;Rule <a class="reference external" href="jbond/bond/BondTestRule.html">BondTestRule</a>. The <code class="docutils literal"><span class="pre">end_test()</span></code> method call is automatic at the end of the
+test in all languages.</p>
+</div>
+<div class="section" id="spying-inside-your-production-code-while-testing">
+<h3>Spying inside your production code while testing<a class="headerlink" href="#spying-inside-your-production-code-while-testing" title="Permalink to this headline">¶</a></h3>
+<p>Sometimes you want to validate the behavior of your code during testing, beyond just
+checking the state at the end of the test. For this purpose you
+can use <code class="docutils literal"><span class="pre">bond.spy</span></code> in your production code. This function has effect only if you
+called <code class="docutils literal"><span class="pre">bond.start_test</span></code> first.</p>
+<p>In the next section we will see another Bond function for spying, and mocking, inside
+your production code.</p>
+<p>For a pattern to use when including Bond in production code, see <a class="reference internal" href="patterns.html#pattern-bond-import"><span>Including Bond in Production Code</span></a>.</p>
+</div>
+</div>
+<div class="section" id="part-2-mocking-with-bond">
+<h2>Part 2: Mocking with Bond<a class="headerlink" href="#part-2-mocking-with-bond" title="Permalink to this headline">¶</a></h2>
+<div class="tab-section-group container">
+<div class="tab-section-python container">
+<p>Sometimes you want not only to spy values from your production code,
+but also to replace some of those values. Spying and mocking together
+can be achieved if you place the <code class="docutils literal"><span class="pre">bond.spy_point</span></code> annotation on a
+function or a method in your production code.  Let&#8217;s assume that the
+code to be tested (system under test) is expected to invoke a
+collaborator method called <code class="docutils literal"><span class="pre">make_request</span></code>, whose
+purpose is to make HTTP requests to other services. You may want to
+spy how many times this method is called in your tests, and with what
+arguments, and possibly what it returns for each call. You also want
+your tests to be able to bypass the actual HTTP request and provide
+mock results for this function.  This can be achieved with the
+<code class="docutils literal"><span class="pre">bond.spy_point</span></code> function annotation, as shown below:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="hll"><span class="nd">@bond.spy_point</span><span class="p">()</span>
+</span><span class="c"># Among other things, has the effect of injecting a call to</span>
+<span class="c">#</span>
+<span class="c">#     bond.spy(spy_point_name=&#39;module.make_request&#39;, url=url, data=data)</span>
+<span class="c">#</span>
+<span class="c"># where `module` is the name of the module containing make_request.</span>
+<span class="c"># If make_request was contained within a class, the default spy point</span>
+<span class="c"># name would be `Class.make_request`.</span>
+<span class="k">def</span> <span class="nf">make_request</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="s">&quot;HTTP request (GET, or POST if the data is provided)&quot;</span>
+    <span class="n">resp</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">resp</span><span class="o">.</span><span class="n">getcode</span><span class="p">(),</span> <span class="n">resp</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+</pre></div>
+</div>
+<p>Just like <code class="docutils literal"><span class="pre">bond.spy</span></code>, this annotation has effect only if <code class="docutils literal"><span class="pre">bond.start_test</span></code> has been called,
+meaning that this is a test run. One of the effects of this annotation is to inject a call
+to <code class="docutils literal"><span class="pre">bond.spy</span></code> with the method name as the spy point and the arguments as the observation,
+as shown in the code example above.</p>
+<p>You can read more about <code class="docutils literal"><span class="pre">bond.spy_point</span></code> in the <a class="reference internal" href="api.html#api-spy-point"><span>API documentation</span></a>.
+Read on to find out what else you can do with spy point annotations.</p>
+<p>A spy point annotation on a method is also able to inject code to execute on every call to the
+method. This code can do multiple things, and can be controlled from the test code:</p>
+<ul class="simple">
+<li>further decide on which invocations of the spy point they activate, based on various
+filters on the function arguments.</li>
+<li>spy the values of the arguments, and optionally the result also.</li>
+<li>control which arguments are spied and how the observations are formatted.</li>
+<li>execute additional test code on each call.</li>
+<li>bypass the actual body of the method and return a result prepared by the testing code,
+or throw an exception when the call is reached.</li>
+</ul>
+</div>
+<div class="tab-section-ruby container">
+<p>Sometimes you want not only to spy values from your production code,
+but also to replace some of those values. Spying and mocking together
+can be achieved if you place the <code class="docutils literal"><span class="pre">bond.spy_point</span></code> annotation on a
+function or a method in your production code.  Let&#8217;s assume that the
+code to be tested (system under test) is expected to invoke a
+collaborator method called <code class="docutils literal"><span class="pre">make_request</span></code>, whose
+purpose is to make HTTP requests to other services. You may want to
+spy how many times this method is called in your tests, and with what
+arguments, and possibly what it returns for each call. You also want
+your tests to be able to bypass the actual HTTP request and provide
+mock results for this function.  This can be achieved with the
+<code class="docutils literal"><span class="pre">bond.spy_point</span></code> function annotation, as shown below (note that
+any class or module which you wish to spy on must <code class="docutils literal"><span class="pre">extend</span> <span class="pre">BondTargetable</span></code>):</p>
+<div class="highlight-ruby"><div class="highlight"><pre><span class="k">class</span> <span class="nc">MyClass</span>
+    <span class="c1"># Denotes this class as being able to be targetted by Bond</span>
+<span class="hll">    <span class="kp">extend</span> <span class="no">BondTargetable</span>
+</span>
+<span class="hll">    <span class="n">bond</span><span class="o">.</span><span class="n">spy_point</span>
+</span>    <span class="c1"># Among other things, has the effect of injecting a call to</span>
+    <span class="c1">#</span>
+    <span class="c1">#     bond.spy(&#39;MyClass#make_request&#39;, url: url, data: data)</span>
+    <span class="c1">#</span>
+    <span class="c1"># If make_request was a class method, `MyClass.make_request`</span>
+    <span class="c1"># would have been used instead.</span>
+    <span class="k">def</span> <span class="nf">make_request</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kp">nil</span><span class="p">)</span>
+        <span class="n">uri</span> <span class="o">=</span> <span class="no">URI</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">nil?</span>
+            <span class="n">resp</span> <span class="o">=</span> <span class="no">Net</span><span class="o">::</span><span class="no">HTTP</span><span class="o">.</span><span class="n">get_response</span><span class="p">(</span><span class="n">uri</span><span class="p">)</span>
+        <span class="k">else</span>
+            <span class="n">resp</span> <span class="o">=</span> <span class="no">Net</span><span class="o">::</span><span class="no">HTTP</span><span class="o">.</span><span class="n">post_form</span><span class="p">(</span><span class="n">uri</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+        <span class="k">end</span>
+        <span class="k">return</span> <span class="o">[</span><span class="n">resp</span><span class="o">.</span><span class="n">code</span><span class="p">,</span> <span class="n">resp</span><span class="o">.</span><span class="n">message</span><span class="o">]</span>
+    <span class="k">end</span>
+<span class="k">end</span>
+</pre></div>
+</div>
+<p>Just like <code class="docutils literal"><span class="pre">bond.spy</span></code>, this annotation has effect only if <code class="docutils literal"><span class="pre">bond.start_test</span></code> has been called,
+meaning that this is a test run. One of the effects of this annotation is to inject a call
+to <code class="docutils literal"><span class="pre">bond.spy</span></code> with the method name as the spy point and the arguments as the observation,
+as shown in the code example above.</p>
+<p>You can read more about <code class="docutils literal"><span class="pre">bond.spy_point</span></code> in the
+<a class="reference external" href="rbond/BondTargetable.html#spy_point-instance_method">API documentation</a>.
+Read on to find out what else you can do with spy point annotations.</p>
+<p>A spy point annotation on a method is also able to inject code to execute on every call to the
+method. This code can do multiple things, and can be controlled from the test code:</p>
+<ul class="simple">
+<li>further decide on which invocations of the spy point they activate, based on various
+filters on the function arguments.</li>
+<li>spy the values of the arguments, and optionally the result also.</li>
+<li>control which arguments are spied and how the observations are formatted.</li>
+<li>execute additional test code on each call.</li>
+<li>bypass the actual body of the method and return a result prepared by the testing code,
+or throw an exception when the call is reached.</li>
+</ul>
+</div>
+<div class="tab-section-java container">
+<p>Sometimes you want not only to spy values from your production code,
+but also to replace some of those values. Let&#8217;s assume that the
+code to be tested (system under test) is expected to invoke a
+collaborator method called <code class="docutils literal"><span class="pre">makeRequest</span></code>, whose
+purpose is to make HTTP requests to other services. You may want to
+spy how many times this method is called in your tests, and with what
+arguments, and possibly what it returns for each call. You also want
+your tests to be able to bypass the actual HTTP request and provide
+mock results for this function. This can be achieved with the
+<code class="docutils literal"><span class="pre">SpyPoint</span></code> method annotation, as shown below:</p>
+<div class="highlight-java"><div class="highlight"><pre><span class="kd">public</span> <span class="kd">class</span> <span class="nc">MyClass</span> <span class="o">{</span>
+
+<span class="hll">  <span class="nd">@SpyPoint</span>
+</span>  <span class="c1">// Among other things, has the effect of injecting a call to</span>
+  <span class="c1">//</span>
+  <span class="c1">//   Bond.obs(&quot;arg0[String]&quot;, url).spy(&quot;MyClass.makeRequest&quot;)</span>
+  <span class="c1">//</span>
+  <span class="c1">// In Java 7, names of parameters are not available, so they are</span>
+  <span class="c1">// spied as arg0, arg1, etc., along with their type. In Java 8,</span>
+  <span class="c1">// if you compile with the `-parameters` flag, their names will</span>
+  <span class="c1">// used instead.</span>
+  <span class="kd">public</span> <span class="n">String</span> <span class="nf">makeRequest</span><span class="o">(</span><span class="n">String</span> <span class="n">url</span><span class="o">)</span> <span class="o">{</span>
+    <span class="c1">// The actual production code for making a GET request</span>
+  <span class="o">}</span>
+</pre></div>
+</div>
+<p>Just like <code class="docutils literal"><span class="pre">Bond.spy</span></code>, this annotation has effect only if <code class="docutils literal"><span class="pre">Bond.startTest</span></code> has been called
+(or <code class="docutils literal"><span class="pre">BondTestRule</span></code> has been used), meaning that this is a test run. Unfortunately, there are
+some additional restrictions: you must also run your JUnit test using PowerMock with one of its
+test runners. See <a class="reference external" href="jbond/bond/spypoint/BondMockPolicy.html">BondMockPolicy</a> for more details
+and specifics of how to set up your test for mocking, and
+<a class="reference external" href="jbond/bond/spypoint/SpyPoint.html">SpyPoint</a> for the options you can use on a <code class="docutils literal"><span class="pre">&#64;SpyPoint</span></code>.</p>
+<p>One of the effects of this annotation is to inject a call to <code class="docutils literal"><span class="pre">Bond.spy</span></code> with the method name
+as the spy point and the arguments as the observation, as shown in the code example above.
+A spy point annotation on a method is also able to inject code to execute on every call to the
+method. This code can do multiple things, and can be controlled from the test code:</p>
+<ul class="simple">
+<li>further decide on which invocations of the spy point they activate, based on various
+filters on the function arguments.</li>
+<li>spy the values of the arguments, and optionally the result also.</li>
+<li>control which arguments are spied and how the observations are formatted.</li>
+<li>execute additional test code on each call.</li>
+<li>bypass the actual body of the method and return a result prepared by the testing code,
+or throw an exception when the call is reached.</li>
+</ul>
+<p>If you don&#8217;t want to use PowerMock to run your tests, you can achieve a similar effect
+by calling <code class="docutils literal"><span class="pre">Bond.spy</span></code> at the start of the method you would like to mock, and if a result
+was returned (which is guaranteed to be false if you are not currently testing), using that
+result instead of the production code. Note that you can also use
+<a class="reference external" href="jbond/bond/Bond.html#isActive--">Bond.isActive()</a> to achieve similar results
+(see the <a class="reference external" href="patterns.html#inline-spy-and-mock-points">inline spy point example</a>).
+For example:</p>
+<div class="highlight-java"><div class="highlight"><pre><span class="kd">public</span> <span class="kd">class</span> <span class="nc">MyClass</span> <span class="o">{</span>
+  <span class="kd">public</span> <span class="n">String</span> <span class="nf">makeRequest</span><span class="o">(</span><span class="n">String</span> <span class="n">url</span><span class="o">)</span> <span class="o">{</span>
+<span class="hll">    <span class="c1">// Spy and check if mocked</span>
+</span><span class="hll">    <span class="n">SpyResult</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">result</span> <span class="o">=</span> <span class="n">Bond</span><span class="o">.</span><span class="na">obs</span><span class="o">(</span><span class="s">&quot;url&quot;</span><span class="o">,</span> <span class="n">url</span><span class="o">)</span>
+</span><span class="hll">                                   <span class="o">.</span><span class="na">spy</span><span class="o">(</span><span class="s">&quot;MyClass.makeRequest&quot;</span><span class="o">,</span> <span class="n">String</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
+</span><span class="hll">    <span class="k">if</span> <span class="o">(</span><span class="n">result</span><span class="o">.</span><span class="na">isPresent</span><span class="o">())</span> <span class="o">{</span>
+</span><span class="hll">      <span class="k">return</span> <span class="n">result</span><span class="o">.</span><span class="na">get</span><span class="o">();</span>
+</span>    <span class="o">}</span>
+    <span class="c1">// The actual production code for making a GET request</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Using <code class="docutils literal"><span class="pre">spy</span></code> to return a value will return a <a class="reference external" href="jbond/bond/SpyResult.html">SpyResult</a>, on which
+<code class="docutils literal"><span class="pre">isPresent()</span></code> will be true if a value was available for the given spy point name. You can then
+use <code class="docutils literal"><span class="pre">get</span></code> to retrieve that value.</p>
+</div>
+</div>
+<p>The behavior of spy points can be controlled with agents that are deployed from the
+test code, as shown in the following example, where the test is deploying two
+agents for the <code class="docutils literal"><span class="pre">make_request</span></code> spy point that we have instrumented earlier.</p>
+<div class="tab-section-group container">
+<div class="tab-section-python container">
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">test_with_mocking</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="hll">    <span class="n">bond</span><span class="o">.</span><span class="n">start_test</span><span class="p">()</span>
+</span><span class="hll">    <span class="n">bond</span><span class="o">.</span><span class="n">deploy_agent</span><span class="p">(</span><span class="s">&#39;module.make_request&#39;</span><span class="p">,</span>
+</span><span class="hll">                      <span class="n">url__endswith</span><span class="o">=</span><span class="s">&#39;/books&#39;</span><span class="p">,</span>
+</span><span class="hll">                      <span class="n">result</span><span class="o">=</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">mock_books_response</span><span class="p">)))</span>
+</span><span class="hll">    <span class="n">bond</span><span class="o">.</span><span class="n">deploy_agent</span><span class="p">(</span><span class="s">&#39;module.make_request&#39;</span><span class="p">,</span>
+</span><span class="hll">                      <span class="n">url__contains</span><span class="o">=</span><span class="s">&#39;/books/100&#39;</span><span class="p">,</span>
+</span><span class="hll">                      <span class="n">result</span><span class="o">=</span><span class="p">(</span><span class="mi">404</span><span class="p">,</span> <span class="s">&#39;Book not found&#39;</span><span class="p">))</span>
+</span>
+    <span class="n">call_my_code_that_will_make_request</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="tab-section-ruby container">
+<div class="highlight-ruby"><div class="highlight"><pre><span class="n">it</span> <span class="s1">&#39;should be able to call out to mock services&#39;</span> <span class="k">do</span>
+<span class="hll">     <span class="n">bond</span><span class="o">.</span><span class="n">deploy_agent</span><span class="p">(</span><span class="s1">&#39;MyClass#make_request&#39;</span><span class="p">,</span>
+</span><span class="hll">                       <span class="ss">url__endswith</span><span class="p">:</span> <span class="s1">&#39;/books&#39;</span><span class="p">,</span>
+</span><span class="hll">                       <span class="ss">result</span><span class="p">:</span> <span class="o">[</span><span class="mi">200</span><span class="p">,</span> <span class="n">mock_books_response</span><span class="o">.</span><span class="n">to_json</span><span class="o">]</span><span class="p">)</span>
+</span><span class="hll">     <span class="n">bond</span><span class="o">.</span><span class="n">deploy_agent</span><span class="p">(</span><span class="s1">&#39;MyClass#make_request&#39;</span><span class="p">,</span>
+</span><span class="hll">                       <span class="ss">url__contains</span><span class="p">:</span> <span class="s1">&#39;/books/100&#39;</span><span class="p">,</span>
+</span><span class="hll">                       <span class="ss">result</span><span class="p">:</span> <span class="o">[</span><span class="mi">404</span><span class="p">,</span> <span class="s1">&#39;Book not found&#39;</span><span class="o">]</span><span class="p">)</span>
+</span>
+     <span class="n">call_my_code_that_will_make_request</span><span class="p">()</span>
+<span class="k">end</span>
+</pre></div>
+</div>
+</div>
+<div class="tab-section-java container">
+<div class="highlight-java"><div class="highlight"><pre><span class="nd">@Test</span>
+<span class="kd">public</span> <span class="kt">void</span> <span class="nf">testWithMocking</span><span class="o">()</span> <span class="o">{</span>
+<span class="hll">   <span class="c1">// Deploy an agent to intercept the /books request</span>
+</span><span class="hll">   <span class="n">SpyAgent</span> <span class="n">makeRequestBooksAgent</span> <span class="o">=</span> <span class="k">new</span> <span class="n">SpyAgent</span><span class="o">()</span>
+</span><span class="hll">          <span class="o">.</span><span class="na">withFilterKeyEndsWith</span><span class="o">(</span><span class="s">&quot;arg0[String]&quot;</span><span class="o">,</span> <span class="s">&quot;/books&quot;</span><span class="o">)</span>
+</span><span class="hll">          <span class="o">.</span><span class="na">withResult</span><span class="o">(</span><span class="n">mockBookResponse</span><span class="o">);</span>
+</span><span class="hll">   <span class="n">Bond</span><span class="o">.</span><span class="na">deployAgent</span><span class="o">(</span><span class="s">&quot;MyClass.makeRequest&quot;</span><span class="o">,</span> <span class="n">makeRequestBooksAgent</span><span class="o">);</span>
+</span><span class="hll">
+</span><span class="hll">   <span class="c1">// Deploy another agent to simulate error for a given book</span>
+</span><span class="hll">   <span class="n">SpyAgent</span> <span class="n">makeRequestBookMissingAgent</span> <span class="o">=</span> <span class="k">new</span> <span class="n">SpyAgent</span><span class="o">()</span>
+</span><span class="hll">          <span class="o">.</span><span class="na">withFilterKeyContains</span><span class="o">(</span><span class="s">&quot;arg0[String]&quot;</span><span class="o">,</span> <span class="s">&quot;/books/100&quot;</span><span class="o">)</span>
+</span><span class="hll">          <span class="o">.</span><span class="na">withException</span><span class="o">(</span><span class="k">new</span> <span class="n">HttpException</span><span class="o">(</span><span class="mi">404</span><span class="o">));</span>
+</span><span class="hll">   <span class="n">Bond</span><span class="o">.</span><span class="na">deployAgent</span><span class="o">(</span><span class="s">&quot;MyClass.makeRequest&quot;</span><span class="o">,</span> <span class="n">makeRequestBookMissingAgent</span><span class="o">);</span>
+</span>
+   <span class="n">callMyCodeThatWillMakeRequest</span><span class="o">();</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>In the above example the first agent will instruct the <code class="docutils literal"><span class="pre">make_request</span></code> spy point to
+skip the actual body of the method and return immediately a respose with status code
+200 (in Python/Ruby) and the body being some mocked data structure. The value provided
+as <code class="docutils literal"><span class="pre">result</span></code> by the agent is used directly in place of the normal return of the method.
+The second agent simulates a 404 error when a particular url is encountered.</p>
+<p>The later deployed spy agents override previously deployed ones. This is useful when you want to
+deploy a default agent, e.g., return success on every HTTP request, and then for specific tests,
+or during a test, you want to deploy a more specific agent that has another behavior.</p>
+<div class="tab-section-group container">
+<div class="tab-section-python container">
+You can read more about <code class="docutils literal"><span class="pre">bond.deploy_agent</span></code> in the <a class="reference internal" href="api.html#api-deploy-agent"><span>API documentation</span></a>.</div>
+<div class="tab-section-ruby container">
+You can read more about <code class="docutils literal"><span class="pre">bond.deploy_agent</span></code> in the
+<a class="reference external" href="rbond/Bond.html#deploy_agent-instance_method">API documentation</a>.</div>
+<div class="tab-section-java container">
+You can read more about <code class="docutils literal"><span class="pre">Bond.deployAgent()</span></code> in the
+<a class="reference external" href="jbond/bond/Bond.html#deployAgent-java.lang.String-bond.SpyAgent-">API documentation</a>.</div>
+</div>
+<p>The following is the UML sequence diagram for using Bond for mocking:</p>
+<p class="plantuml">
+<img src="_images/plantuml-fc9b483a8bfe31ed5dce2c81f18e82caf940a414.png" alt="&#64;startuml
+
+participant Test
+participant SUT as &quot;System-under-test&quot;
+participant DOC as &quot;Collaborator\nlibrary&quot;
+participant Bond
+actor Diff as &quot;Interactive merging tool&quot;
+
+activate Test
+[-&gt; Test
+activate Bond
+group &quot;prepare test&quot;
+    Test -&gt; Bond : start_test*()
+    Bond -&gt; Test
+    Test -&gt; Bond : deploy_agent(...)
+    Test -&gt; Bond : deploy_agent(...)
+end
+
+Test -&gt; SUT : call_my_code()
+SUT -&gt; DOC : make_request(url)
+DOC -&gt; Bond : spy('make_request', url=url)
+Bond -&gt; Bond : find and use\nactive agent
+Bond -&gt; SUT : mock response
+SUT -&gt; Test
+
+group &quot;finish test&quot;
+   Test -&gt; Bond: end_test*()
+   Bond -&gt; Bond : save\nobservations
+
+   alt observations different from reference
+      Bond -&gt; Diff: interactive reconcile
+      Diff -&gt; Bond
+   end
+
+   Bond -&gt; Test
+end
+deactivate Bond
+&#64;enduml" />
+</p>
+<p>In the above diagrams we see that the test would deploy a number of
+agents for specific spy points that would be reached during the
+execution, before the test invokes the system under test. When the
+system under test invokes the collaborator method on which a spy point
+has been declared, Bond is going to look for an active deployed agent
+for that spy point and use the mock result provided by the agent.</p>
+<p>To learn more about usage patterns visit <a class="reference internal" href="patterns.html#patterns"><span>Bond Usage Patterns</span></a>.</p>
+<p>That&#8217;s it! Bond is simple but the possibilities are endless. You can be a pro now!</p>
+</div>
+<div class="section" id="part-3-a-larger-example-of-bond-usage">
+<span id="examples"></span><h2>Part 3: A Larger Example of Bond Usage<a class="headerlink" href="#part-3-a-larger-example-of-bond-usage" title="Permalink to this headline">¶</a></h2>
+<p>We discuss here how you could use Bond to test a hypothetical example of a
+program that monitors the changes of temperature over time. The code will
+read the temperature and the current time, will compute the rate of change,
+and depending on the rate of change will transition between several states:</p>
+<ul class="simple">
+<li>&#8220;Critical&#8221; (temperature is raising faster than 2 degrees a minute; next
+temperature reading in 10 seconds);</li>
+<li>&#8220;Warning&#8221; (temperature is raising between 1 and 2 degrees a minute; next
+temperature reading in 10 seconds);</li>
+<li>&#8220;Ok&#8221; (temperature is decreasing or constant, or is increasing slower than 1
+degree a minute; next temperature reading in 60 seconds)</li>
+</ul>
+<p>The program sends alerts when there are state changes, and every 10 minutes
+when it is in the Warning or Critical state.</p>
+<p>This logic is hard to test without mocks because:</p>
+<ul class="simple">
+<li>Tests would be slow if they were to take a sample every 10 seconds;</li>
+<li>We may not have access to the sensor for reading the temperature;
+furthermore, it is impractical to simulate complex temperature changing
+scenarios using real sensors.</li>
+<li>We do not want to send actual alerts when testing</li>
+</ul>
+<p>We are showing here how to use Bond to observe (spy) what the code is doing,
+and to use mocks to create interesting scenarios. In real life, in addition to
+these tests, you will probably want to run a system test where you test the
+system also with the actual sensors and alerters, but the corner cases would
+be tested with mocks. Also in real life, you would probably refactor this code
+so that it is even more easily testable.</p>
+<div class="section" id="how-to-use-this-example">
+<h3>How to use this example<a class="headerlink" href="#how-to-use-this-example" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic">
+<li><p class="first">If you want to fully experience this example, you can copy and paste this
+code into your computer, or you can find it in the <code class="docutils literal"><span class="pre">tutorials/heat_watcher</span></code>
+directory (<code class="docutils literal"><span class="pre">tutorials/src/{main,test}/java/tutorial/heatwatcher</span></code> for Java)
+of the <a class="reference external" href="http://github.com/necula01/bond">Bond sources</a>.</p>
+</li>
+<li><p class="first">You can run the tests, and you can observe in your debugger how the different
+functions are called.</p>
+<div class="tab-section-group container">
+<div class="tab-section-python container">
+<div class="highlight-bash"><div class="highlight"><pre>./run_tests.sh
+<span class="c"># OR</span>
+<span class="nv">PYTHONPATH</span><span class="o">=</span>../../ python heat_watcher_test.py
+</pre></div>
+</div>
+</div>
+<div class="tab-section-ruby container">
+<div class="highlight-bash"><div class="highlight"><pre>./run_tests.sh
+<span class="c"># OR</span>
+<span class="nv">RUBYLIB</span><span class="o">=</span>../../lib rspec heat_watcher_spec.rb
+</pre></div>
+</div>
+</div>
+<div class="tab-section-java container">
+<div class="highlight-bash"><div class="highlight"><pre><span class="c"># within jbond root directory:</span>
+./gradlew :tutorials:test -Dtest.single<span class="o">=</span>HeatWatcherTest
+
+<span class="c"># OR, within the tutorials module:</span>
+./gradlew <span class="nb">test</span> -Dtest.single<span class="o">=</span>HeatWatcherTest
+</pre></div>
+</div>
+</div>
+</div>
+</li>
+<li><p class="first">You can write more tests to test more complex scenarios.</p>
+</li>
+<li><p class="first">Finally, to fully experience the power of the Bond observations, make a change
+to the logic to compute the alerts and re-run the tests. You will see how the
+observations change and you will have a chance to reconcile visually the old
+and the new observations.</p>
+</li>
+</ol>
+</div>
+<div class="section" id="the-code-to-be-tested">
+<h3>The code to be tested<a class="headerlink" href="#the-code-to-be-tested" title="Permalink to this headline">¶</a></h3>
+<div class="tab-section-group container">
+<div class="tab-section-python container">
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">urllib</span><span class="o">,</span> <span class="nn">urllib2</span>
+<span class="kn">from</span> <span class="nn">bond</span> <span class="kn">import</span> <span class="n">bond</span>
+
+<span class="k">class</span> <span class="nc">HeatWatcher</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Monitor temperature rise over time.</span>
+<span class="sd">    See description in the Bond documentation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_temp</span> <span class="o">=</span> <span class="bp">None</span>  <span class="c"># The last temp measurement</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_time</span> <span class="o">=</span> <span class="bp">None</span>  <span class="c"># The time when we took the last measurement</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_alert_state</span> <span class="o">=</span> <span class="s">&#39;Ok&#39;</span>   <span class="c"># Ok, Warning, Critical</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_alert_time</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s">&#39;-inf&#39;</span><span class="p">)</span>  <span class="c"># Time when we sent the last alert</span>
+
+    <span class="k">def</span> <span class="nf">monitor_loop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                     <span class="n">exit_time</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Monitor the temperature and send alerts</span>
+<span class="sd">        :param exit_time: the time when to exit the monitor loop.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+            <span class="n">temp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_temperature</span><span class="p">()</span>
+            <span class="n">now</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_time</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">exit_time</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">now</span> <span class="o">&gt;=</span> <span class="n">exit_time</span><span class="p">:</span>
+                <span class="k">return</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_temp</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="c"># First reading</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">last_temp</span> <span class="o">=</span> <span class="n">temp</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">last_time</span> <span class="o">=</span> <span class="n">now</span>
+                <span class="n">interval</span> <span class="o">=</span> <span class="mi">60</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">change_rate</span> <span class="o">=</span> <span class="p">(</span><span class="n">temp</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">last_temp</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">now</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">last_time</span><span class="p">)</span> <span class="o">*</span> <span class="mi">60</span>
+                <span class="k">if</span> <span class="n">change_rate</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">interval</span> <span class="o">=</span> <span class="mi">60</span>
+                    <span class="n">alert_state</span> <span class="o">=</span> <span class="s">&#39;Ok&#39;</span>
+                <span class="k">elif</span> <span class="n">change_rate</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+                    <span class="n">interval</span> <span class="o">=</span> <span class="mi">10</span>
+                    <span class="n">alert_state</span> <span class="o">=</span> <span class="s">&#39;Warning&#39;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">interval</span> <span class="o">=</span> <span class="mi">10</span>
+                    <span class="n">alert_state</span> <span class="o">=</span> <span class="s">&#39;Critical&#39;</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">last_temp</span> <span class="o">=</span> <span class="n">temp</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">last_time</span> <span class="o">=</span> <span class="n">now</span>
+
+                <span class="k">if</span> <span class="p">(</span><span class="n">alert_state</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_alert_state</span> <span class="ow">or</span>
+                        <span class="p">(</span><span class="n">alert_state</span> <span class="o">!=</span> <span class="s">&#39;Ok&#39;</span> <span class="ow">and</span>
+                            <span class="n">now</span> <span class="o">&gt;=</span> <span class="mi">600</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_alert_time</span><span class="p">)):</span>
+                    <span class="c"># Send an alert</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">send_alert</span><span class="p">(</span><span class="s">&quot;{}: Temperature is rising at {:.1f} deg/min&quot;</span>
+                                    <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">alert_state</span><span class="p">,</span> <span class="n">change_rate</span><span class="p">))</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">last_alert_time</span> <span class="o">=</span> <span class="n">now</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">last_alert_state</span> <span class="o">=</span> <span class="n">alert_state</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">interval</span><span class="p">)</span>
+
+
+    <span class="c"># Spy this function, want to spy the result</span>
+    <span class="nd">@bond.spy_point</span><span class="p">(</span><span class="n">spy_result</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">mock_only</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">get_temperature</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Read the temperature from a sensor</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">resp_code</span><span class="p">,</span> <span class="n">temp_data</span> <span class="o">=</span> \
+            <span class="bp">self</span><span class="o">.</span><span class="n">make_request</span><span class="p">(</span><span class="s">&#39;http://system.server.com/temperature&#39;</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">resp_code</span> <span class="o">==</span> <span class="mi">200</span><span class="p">,</span> <span class="s">&#39;Error while retrieving temperature!&#39;</span>
+        <span class="n">match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s">&#39;&lt;temperature&gt;([0-9.]+)&lt;/temperature&gt;&#39;</span><span class="p">,</span> <span class="n">temp_data</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">match</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> \
+            <span class="s">&#39;Error while parsing temperature from: {}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">temp_data</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+
+    <span class="nd">@bond.spy_point</span><span class="p">(</span><span class="n">mock_only</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">get_current_time</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Read the current time</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+    <span class="nd">@bond.spy_point</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">sleep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seconds</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sleep a few seconds</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">seconds</span><span class="p">)</span>
+
+    <span class="nd">@bond.spy_point</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">send_alert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Send an alert</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">make_request</span><span class="p">(</span><span class="s">&#39;http://backend.server.com/messages&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s">&#39;message&#39;</span><span class="p">:</span> <span class="n">message</span><span class="p">})</span>
+
+    <span class="nd">@bond.spy_point</span><span class="p">(</span><span class="n">require_agent_result</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">make_request</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        HTTP request (GET, or POST if the data is provided)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">resp</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">urllib</span><span class="o">.</span><span class="n">urlencode</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">resp</span><span class="o">.</span><span class="n">getcode</span><span class="p">(),</span> <span class="n">resp</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+</pre></div>
+</div>
+</div>
+<div class="tab-section-ruby container">
+<div class="highlight-ruby"><div class="highlight"><pre><span class="nb">require</span> <span class="s1">&#39;bond&#39;</span>
+
+<span class="c1"># Monitor temperature rise over time.</span>
+<span class="c1"># See description in the Bond documentation.</span>
+<span class="k">class</span> <span class="nc">HeatWatcher</span>
+  <span class="c1"># Marks this class as being able to be spied on. Exports `bond` method</span>
+  <span class="c1"># to use as e.g. bond.spy and bond.spy_point.</span>
+  <span class="kp">extend</span> <span class="no">BondTargetable</span>
+
+  <span class="k">def</span> <span class="nf">initialize</span>
+    <span class="vi">@last_temp</span> <span class="o">=</span> <span class="kp">nil</span> <span class="c1"># The last temp measurement</span>
+    <span class="vi">@last_time</span> <span class="o">=</span> <span class="kp">nil</span>  <span class="c1"># The time when we took the last measurement</span>
+    <span class="vi">@last_alert_state</span> <span class="o">=</span> <span class="s1">&#39;Ok&#39;</span>   <span class="c1"># Ok, Warning, Critical</span>
+    <span class="vi">@last_alert_time</span> <span class="o">=</span> <span class="o">-</span><span class="nb">Float</span><span class="o">::</span><span class="no">INFINITY</span> <span class="c1"># The time when we sent the last alert</span>
+  <span class="k">end</span>
+
+  <span class="c1"># Monitor the temperature and send alerts</span>
+  <span class="c1"># @param exit_time the time when to exit the monitor loop.</span>
+  <span class="k">def</span> <span class="nf">monitor_loop</span><span class="p">(</span><span class="n">exit_time</span> <span class="o">=</span> <span class="kp">nil</span><span class="p">)</span>
+    <span class="kp">loop</span> <span class="k">do</span>
+      <span class="n">temp</span> <span class="o">=</span> <span class="n">get_temperature</span>
+      <span class="n">now</span> <span class="o">=</span> <span class="n">get_current_time</span>
+      <span class="k">return</span> <span class="k">if</span> <span class="o">!</span><span class="n">exit_time</span><span class="o">.</span><span class="n">nil?</span> <span class="o">&amp;&amp;</span> <span class="n">now</span> <span class="o">&gt;=</span> <span class="n">exit_time</span>
+
+      <span class="k">if</span> <span class="vi">@last_temp</span><span class="o">.</span><span class="n">nil?</span>
+        <span class="c1"># First reading</span>
+        <span class="vi">@last_temp</span> <span class="o">=</span> <span class="n">temp</span>
+        <span class="vi">@last_time</span> <span class="o">=</span> <span class="n">now</span>
+        <span class="n">interval</span> <span class="o">=</span> <span class="mi">60</span>
+      <span class="k">else</span>
+        <span class="n">change_rate</span> <span class="o">=</span> <span class="p">(</span><span class="n">temp</span> <span class="o">-</span> <span class="vi">@last_temp</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">now</span> <span class="o">-</span> <span class="vi">@last_time</span><span class="p">)</span> <span class="o">*</span> <span class="mi">60</span>
+        <span class="k">if</span> <span class="n">change_rate</span> <span class="o">&lt;</span> <span class="mi">1</span>
+            <span class="n">interval</span> <span class="o">=</span> <span class="mi">60</span>
+            <span class="n">alert_state</span> <span class="o">=</span> <span class="s1">&#39;Ok&#39;</span>
+        <span class="k">elsif</span> <span class="n">change_rate</span> <span class="o">&lt;</span> <span class="mi">2</span>
+            <span class="n">interval</span> <span class="o">=</span> <span class="mi">10</span>
+            <span class="n">alert_state</span> <span class="o">=</span> <span class="s1">&#39;Warning&#39;</span>
+        <span class="k">else</span>
+            <span class="n">interval</span> <span class="o">=</span> <span class="mi">10</span>
+            <span class="n">alert_state</span> <span class="o">=</span> <span class="s1">&#39;Critical&#39;</span>
+        <span class="k">end</span>
+
+        <span class="vi">@last_temp</span> <span class="o">=</span> <span class="n">temp</span>
+        <span class="vi">@last_time</span> <span class="o">=</span> <span class="n">now</span>
+
+        <span class="k">if</span> <span class="n">alert_state</span> <span class="o">!=</span> <span class="vi">@last_alert_state</span> <span class="o">||</span>
+                        <span class="p">(</span><span class="n">alert_state</span> <span class="o">!=</span> <span class="s1">&#39;Ok&#39;</span> <span class="o">&amp;&amp;</span> <span class="n">now</span> <span class="o">&gt;=</span> <span class="mi">600</span> <span class="o">+</span> <span class="vi">@last_alert_time</span><span class="p">)</span>
+          <span class="c1"># Send an alert</span>
+          <span class="n">send_alert</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">#{</span><span class="n">alert_state</span><span class="si">}</span><span class="s2">: Temperature is rising at </span><span class="si">#{</span><span class="n">change_rate</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="si">}</span><span class="s2"> deg/min&quot;</span><span class="p">)</span>
+          <span class="vi">@last_alert_time</span> <span class="o">=</span> <span class="n">now</span>
+        <span class="k">end</span>
+
+        <span class="vi">@last_alert_state</span> <span class="o">=</span> <span class="n">alert_state</span>
+      <span class="k">end</span>
+
+      <span class="nb">sleep</span><span class="p">(</span><span class="n">interval</span><span class="p">)</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+
+  <span class="c1"># Spy this function, want to spy the result</span>
+  <span class="n">bond</span><span class="o">.</span><span class="n">spy_point</span><span class="p">(</span><span class="ss">spy_result</span><span class="p">:</span> <span class="kp">true</span><span class="p">,</span> <span class="ss">mock_only</span><span class="p">:</span> <span class="kp">true</span><span class="p">)</span>
+  <span class="c1"># Read the temperature from a sensor</span>
+  <span class="k">def</span> <span class="nf">get_temperature</span>
+    <span class="n">resp_code</span><span class="p">,</span> <span class="n">temp_data</span> <span class="o">=</span>
+        <span class="n">make_request</span><span class="p">(</span><span class="s1">&#39;http://system.server.com/temperature&#39;</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="s1">&#39;Error while retrieving temperature!&#39;</span> <span class="k">unless</span> <span class="n">resp_code</span> <span class="o">==</span> <span class="mi">200</span>
+    <span class="n">match</span> <span class="o">=</span> <span class="sr">/&lt;temperature&gt;([0-9.]+)&lt;\/temperature&gt;/</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">temp_data</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="s2">&quot;Error while parsing temperature from: </span><span class="si">#{</span><span class="n">temp_data</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="n">match</span><span class="o">.</span><span class="n">nil?</span>
+    <span class="n">match</span><span class="o">[</span><span class="mi">1</span><span class="o">].</span><span class="n">to_f</span>
+  <span class="k">end</span>
+
+  <span class="n">bond</span><span class="o">.</span><span class="n">spy_point</span><span class="p">(</span><span class="ss">mock_only</span><span class="p">:</span> <span class="kp">true</span><span class="p">)</span>
+  <span class="c1"># Read the current time</span>
+  <span class="k">def</span> <span class="nf">get_current_time</span>
+      <span class="no">Time</span><span class="o">.</span><span class="n">now</span><span class="o">.</span><span class="n">to_i</span>
+  <span class="k">end</span>
+
+
+  <span class="n">bond</span><span class="o">.</span><span class="n">spy_point</span>
+  <span class="c1"># Sleep a few seconds</span>
+  <span class="k">def</span> <span class="nf">sleep</span><span class="p">(</span><span class="n">seconds</span><span class="p">)</span>
+    <span class="nb">sleep</span><span class="p">(</span><span class="n">seconds</span><span class="p">)</span>
+  <span class="k">end</span>
+
+  <span class="n">bond</span><span class="o">.</span><span class="n">spy_point</span>
+  <span class="c1"># Send an alert</span>
+  <span class="k">def</span> <span class="nf">send_alert</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+    <span class="n">make_request</span><span class="p">(</span><span class="s1">&#39;http://backend.server.com/messages&#39;</span><span class="p">,</span> <span class="p">{</span><span class="ss">message</span><span class="p">:</span> <span class="n">message</span><span class="p">})</span>
+  <span class="k">end</span>
+
+  <span class="n">bond</span><span class="o">.</span><span class="n">spy_point</span><span class="p">(</span><span class="ss">require_agent_result</span><span class="p">:</span> <span class="kp">true</span><span class="p">)</span>
+  <span class="c1"># HTTP request (GET, or POST if the data is provided)</span>
+  <span class="k">def</span> <span class="nf">make_request</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="kp">nil</span><span class="p">)</span>
+    <span class="n">full_url</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">#{</span><span class="n">url</span><span class="si">}</span><span class="s2">?</span><span class="si">#{</span><span class="no">URI</span><span class="o">.</span><span class="n">encode_www_form</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="n">resp</span> <span class="o">=</span> <span class="no">Net</span><span class="o">::</span><span class="no">HTTP</span><span class="o">.</span><span class="n">get_response</span><span class="p">(</span><span class="no">URI</span><span class="p">(</span><span class="n">full_url</span><span class="p">))</span>
+    <span class="o">[</span><span class="n">resp</span><span class="o">.</span><span class="n">code</span><span class="o">.</span><span class="n">to_i</span><span class="p">,</span> <span class="n">resp</span><span class="o">.</span><span class="n">body</span><span class="o">]</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</pre></div>
+</div>
+</div>
+<div class="tab-section-java container">
+<div class="highlight-java"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">bond.spypoint.SpyPoint</span><span class="o">;</span>
+
+<span class="kn">import</span> <span class="nn">java.util.regex.Matcher</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.util.regex.Pattern</span><span class="o">;</span>
+
+
+<span class="cm">/**</span>
+<span class="cm"> * Monitor temperature rise over time.</span>
+<span class="cm"> * See description in Bond documentation.</span>
+<span class="cm"> */</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">HeatWatcher</span> <span class="o">{</span>
+
+  <span class="kd">private</span> <span class="kt">double</span> <span class="n">lastTemp</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="o">;</span> <span class="c1">// The last temp measurement</span>
+  <span class="kd">private</span> <span class="kt">double</span> <span class="n">lastTime</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="o">;</span> <span class="c1">// The time when we took the last measurement</span>
+
+  <span class="kd">public</span> <span class="kd">enum</span> <span class="n">AlertState</span> <span class="o">{</span><span class="n">OK</span><span class="o">,</span> <span class="n">WARNING</span><span class="o">,</span> <span class="n">CRITICAL</span><span class="o">}</span>
+
+  <span class="kd">private</span> <span class="n">AlertState</span> <span class="n">lastAlertState</span> <span class="o">=</span> <span class="n">AlertState</span><span class="o">.</span><span class="na">OK</span><span class="o">;</span>
+  <span class="c1">// Time when we sent the last alert</span>
+  <span class="kd">private</span> <span class="kt">double</span> <span class="n">lastAlertTime</span> <span class="o">=</span> <span class="n">Double</span><span class="o">.</span><span class="na">NEGATIVE_INFINITY</span><span class="o">;</span>
+
+  <span class="cm">/**</span>
+<span class="cm">   * Run the monitoring loop</span>
+<span class="cm">   *</span>
+<span class="cm">   * @param exitTime: the time when to stop (for testing, default -1)</span>
+<span class="cm">   */</span>
+  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">monitorLoop</span><span class="o">(</span><span class="kt">double</span> <span class="n">exitTime</span><span class="o">)</span> <span class="o">{</span>
+    <span class="kt">int</span> <span class="n">interval</span><span class="o">;</span> <span class="c1">// Interval in seconds until next reading</span>
+
+    <span class="k">while</span> <span class="o">(</span><span class="kc">true</span><span class="o">)</span> <span class="o">{</span>
+      <span class="kt">double</span> <span class="n">temp</span> <span class="o">=</span> <span class="n">getTemperature</span><span class="o">();</span>
+      <span class="kt">double</span> <span class="n">now</span> <span class="o">=</span> <span class="n">getCurrentTime</span><span class="o">();</span>
+      <span class="k">if</span> <span class="o">(</span><span class="n">exitTime</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mi">1</span> <span class="o">&amp;&amp;</span> <span class="n">now</span> <span class="o">&gt;=</span> <span class="n">exitTime</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">return</span><span class="o">;</span>
+      <span class="o">}</span>
+      <span class="k">if</span> <span class="o">(</span><span class="n">lastTemp</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="o">)</span> <span class="o">{</span>
+        <span class="c1">// First temperature reading</span>
+        <span class="n">lastTemp</span> <span class="o">=</span> <span class="n">temp</span><span class="o">;</span>
+        <span class="n">lastTime</span> <span class="o">=</span> <span class="n">now</span><span class="o">;</span>
+        <span class="n">interval</span> <span class="o">=</span> <span class="mi">60</span><span class="o">;</span>
+      <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+        <span class="c1">// Change rate since last reading</span>
+        <span class="kt">double</span> <span class="n">changeRate</span> <span class="o">=</span> <span class="o">(</span><span class="n">temp</span> <span class="o">-</span> <span class="n">lastTemp</span><span class="o">)</span> <span class="o">/</span> <span class="o">(</span><span class="n">now</span> <span class="o">-</span> <span class="n">lastTime</span><span class="o">)</span> <span class="o">*</span> <span class="mf">60.0</span><span class="o">;</span>
+        <span class="n">AlertState</span> <span class="n">alertState</span><span class="o">;</span>
+
+        <span class="k">if</span> <span class="o">(</span><span class="n">changeRate</span> <span class="o">&lt;</span> <span class="mf">1.0</span><span class="o">)</span> <span class="o">{</span>
+          <span class="n">interval</span> <span class="o">=</span> <span class="mi">60</span><span class="o">;</span>
+          <span class="n">alertState</span> <span class="o">=</span> <span class="n">AlertState</span><span class="o">.</span><span class="na">OK</span><span class="o">;</span>
+        <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">changeRate</span> <span class="o">&lt;</span> <span class="mf">2.0</span><span class="o">)</span> <span class="o">{</span>
+          <span class="n">interval</span> <span class="o">=</span> <span class="mi">10</span><span class="o">;</span>
+          <span class="n">alertState</span> <span class="o">=</span> <span class="n">AlertState</span><span class="o">.</span><span class="na">WARNING</span><span class="o">;</span>
+        <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+          <span class="n">interval</span> <span class="o">=</span> <span class="mi">10</span><span class="o">;</span>
+          <span class="n">alertState</span> <span class="o">=</span> <span class="n">AlertState</span><span class="o">.</span><span class="na">CRITICAL</span><span class="o">;</span>
+        <span class="o">}</span>
+
+        <span class="n">lastTemp</span> <span class="o">=</span> <span class="n">temp</span><span class="o">;</span>
+        <span class="n">lastTime</span> <span class="o">=</span> <span class="n">now</span><span class="o">;</span>
+
+        <span class="k">if</span> <span class="o">((</span><span class="n">alertState</span> <span class="o">!=</span> <span class="n">lastAlertState</span><span class="o">)</span> <span class="o">||</span>
+                <span class="o">(</span><span class="n">alertState</span> <span class="o">!=</span> <span class="n">AlertState</span><span class="o">.</span><span class="na">OK</span> <span class="o">&amp;&amp;</span> <span class="n">now</span> <span class="o">&gt;=</span> <span class="mi">600</span> <span class="o">+</span> <span class="n">lastAlertTime</span><span class="o">))</span> <span class="o">{</span>
+          <span class="c1">// Send an alert</span>
+          <span class="n">sendAlert</span><span class="o">(</span><span class="n">String</span><span class="o">.</span><span class="na">format</span><span class="o">(</span><span class="s">&quot;%s: Temperature is rising at %.1f deg/min&quot;</span><span class="o">,</span>
+              <span class="n">alertState</span><span class="o">,</span> <span class="n">changeRate</span><span class="o">));</span>
+          <span class="n">lastAlertTime</span> <span class="o">=</span> <span class="n">now</span><span class="o">;</span>
+        <span class="o">}</span>
+        <span class="n">lastAlertState</span> <span class="o">=</span> <span class="n">alertState</span><span class="o">;</span>
+      <span class="o">}</span>
+      <span class="k">try</span> <span class="o">{</span>
+        <span class="n">sleep</span><span class="o">(</span><span class="n">interval</span><span class="o">);</span>
+      <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">InterruptedException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">return</span><span class="o">;</span>
+      <span class="o">}</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+
+  <span class="c1">// Read the temperature from a sensor</span>
+  <span class="nd">@SpyPoint</span><span class="o">(</span><span class="n">spyResult</span> <span class="o">=</span> <span class="kc">true</span><span class="o">,</span> <span class="n">mockOnly</span> <span class="o">=</span> <span class="kc">true</span><span class="o">)</span>
+  <span class="kt">double</span> <span class="nf">getTemperature</span><span class="o">()</span> <span class="o">{</span>
+    <span class="n">String</span> <span class="n">tempData</span> <span class="o">=</span> <span class="n">makeRequest</span><span class="o">(</span><span class="s">&quot;http://system.server.com/temperature&quot;</span><span class="o">,</span> <span class="kc">null</span><span class="o">);</span>
+    <span class="n">Pattern</span> <span class="n">tempPattern</span> <span class="o">=</span> <span class="n">Pattern</span><span class="o">.</span><span class="na">compile</span><span class="o">(</span><span class="s">&quot;&lt;temperature&gt;([0-9.]+)&lt;/temperature&gt;&quot;</span><span class="o">);</span>
+    <span class="n">Matcher</span> <span class="n">m</span> <span class="o">=</span> <span class="n">tempPattern</span><span class="o">.</span><span class="na">matcher</span><span class="o">(</span><span class="n">tempData</span><span class="o">);</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">m</span><span class="o">.</span><span class="na">find</span><span class="o">())</span> <span class="o">{</span>
+      <span class="k">return</span> <span class="n">Double</span><span class="o">.</span><span class="na">parseDouble</span><span class="o">(</span><span class="n">m</span><span class="o">.</span><span class="na">group</span><span class="o">(</span><span class="mi">1</span><span class="o">));</span>
+    <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+      <span class="k">throw</span> <span class="k">new</span> <span class="n">IllegalArgumentException</span><span class="o">(</span><span class="s">&quot;Cannot parse temperature&quot;</span><span class="o">);</span>
+    <span class="o">}</span>
+  <span class="o">}</span>
+
+  <span class="c1">// Get the current time, in Unix epoch seconds</span>
+  <span class="nd">@SpyPoint</span><span class="o">(</span><span class="n">mockOnly</span> <span class="o">=</span> <span class="kc">true</span><span class="o">)</span>
+  <span class="kt">double</span> <span class="nf">getCurrentTime</span><span class="o">()</span> <span class="o">{</span>
+    <span class="k">return</span> <span class="o">((</span><span class="kt">double</span><span class="o">)</span> <span class="n">System</span><span class="o">.</span><span class="na">currentTimeMillis</span><span class="o">()</span> <span class="o">/</span> <span class="mf">1000.0</span><span class="o">);</span>
+  <span class="o">}</span>
+
+  <span class="c1">// Sleep a number of seconds</span>
+  <span class="nd">@SpyPoint</span>
+  <span class="kt">void</span> <span class="nf">sleep</span><span class="o">(</span><span class="kt">int</span> <span class="n">seconds</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">InterruptedException</span> <span class="o">{</span>
+    <span class="n">Thread</span><span class="o">.</span><span class="na">sleep</span><span class="o">(</span><span class="mi">1000</span> <span class="o">*</span> <span class="n">seconds</span><span class="o">);</span>
+
+  <span class="o">}</span>
+
+  <span class="c1">// Send an alert</span>
+  <span class="nd">@SpyPoint</span>
+  <span class="kt">void</span> <span class="nf">sendAlert</span><span class="o">(</span><span class="n">String</span> <span class="n">message</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">makeRequest</span><span class="o">(</span><span class="s">&quot;http://backend.server.com/messages&quot;</span><span class="o">,</span> <span class="n">message</span><span class="o">);</span>
+  <span class="o">}</span>
+
+  <span class="c1">// Make a GET or POST request</span>
+  <span class="nd">@SpyPoint</span><span class="o">(</span><span class="n">requireAgentResult</span> <span class="o">=</span> <span class="kc">true</span><span class="o">)</span>
+  <span class="n">String</span> <span class="nf">makeRequest</span><span class="o">(</span><span class="n">String</span> <span class="n">url</span><span class="o">,</span> <span class="n">String</span> <span class="n">data</span><span class="o">)</span> <span class="o">{</span>
+    <span class="c1">// Actual code not shown for brevity</span>
+    <span class="k">return</span> <span class="s">&quot;_not_implemented_&quot;</span><span class="o">;</span>
+  <span class="o">}</span>
+
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="the-tests-using-bond">
+<h3>The tests using Bond<a class="headerlink" href="#the-tests-using-bond" title="Permalink to this headline">¶</a></h3>
+<p>The most testworthy code in our example is the <code class="docutils literal"><span class="pre">monitor_loop</span></code> method. Note
+that we have added a parameter <code class="docutils literal"><span class="pre">exit_time</span></code> to enable us to run the loop for a
+finite number of iterations.</p>
+<p>We will need to use a time mocker. This is pretty simple for our application.
+We store the current mocked value of the time, and upon call to <code class="docutils literal"><span class="pre">sleep</span></code> we
+advance the mock time, as shown below:</p>
+<div class="tab-section-group container">
+<div class="tab-section-python container">
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">TimeMocker</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A class to mock time</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">current_time</span><span class="o">=</span><span class="mi">1445567700</span><span class="p">):</span>
+        <span class="c"># Default 10/23/2015 @ 2:35am (UTC)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_time</span> <span class="o">=</span> <span class="n">current_time</span>
+
+    <span class="k">def</span> <span class="nf">time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">observation</span><span class="o">=</span><span class="p">{}):</span>
+        <span class="c"># Bond expects result functions to take in the observations hash</span>
+        <span class="c"># as a parameter, so we keep it here even though it isn&#39;t used.</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_time</span>
+
+    <span class="k">def</span> <span class="nf">sleep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">observation</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_time</span> <span class="o">+=</span> <span class="n">observation</span><span class="p">[</span><span class="s">&#39;seconds&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="tab-section-ruby container">
+<div class="highlight-ruby"><div class="highlight"><pre><span class="c1"># A class to mock time</span>
+<span class="k">class</span> <span class="nc">TimeMocker</span>
+  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="n">current_time</span> <span class="o">=</span> <span class="mi">1445567700</span><span class="p">)</span>
+    <span class="c1"># Default 10/23/2015 @ 2:35am (UTC)</span>
+    <span class="vi">@current_time</span> <span class="o">=</span> <span class="n">current_time</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">time</span>
+    <span class="vi">@current_time</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">sleep</span><span class="p">(</span><span class="n">seconds</span><span class="p">)</span>
+    <span class="vi">@current_time</span> <span class="o">+=</span> <span class="n">seconds</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</pre></div>
+</div>
+</div>
+<div class="tab-section-java container">
+<div class="highlight-java"><div class="highlight"><pre><span class="c1">// A class for mocking time</span>
+<span class="kd">class</span> <span class="nc">TimeMocker</span> <span class="o">{</span>
+  <span class="kd">private</span> <span class="kt">double</span> <span class="n">currentTime</span><span class="o">;</span>
+
+  <span class="kd">public</span> <span class="nf">TimeMocker</span><span class="o">(</span><span class="kt">double</span> <span class="n">now</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">currentTime</span> <span class="o">=</span> <span class="n">now</span><span class="o">;</span>
+  <span class="o">}</span>
+
+  <span class="kd">public</span> <span class="kt">double</span> <span class="nf">getCurrentTime</span><span class="o">()</span> <span class="o">{</span>
+    <span class="k">return</span> <span class="n">currentTime</span><span class="o">;</span>
+  <span class="o">}</span>
+
+  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">sleep</span><span class="o">(</span><span class="kt">int</span> <span class="n">seconds</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">currentTime</span> <span class="o">+=</span> <span class="n">seconds</span><span class="o">;</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>In order to mock the temperature changes, we will implement a mock that can be
+programmed to start at a given temperature and change the temperature at a
+certain rate for various time intervals, as shown below:</p>
+<div class="tab-section-group container">
+<div class="tab-section-python container">
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">TemperatureMocker</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A class to mock temperature</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time_mocker</span><span class="p">,</span> <span class="n">temp_start</span><span class="p">,</span> <span class="n">temp_rates</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param time_mocker: a reference to the current time mocker</span>
+<span class="sd">        :param temp_start: the starting temperature</span>
+<span class="sd">        :param temp_rates: a list of pairs (time_since_start,</span>
+<span class="sd">                                            temp_increase_rate_per_min)</span>
+<span class="sd">                           ordered by time_since_start</span>
+<span class="sd">                           (first time_since_start should be 0)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">time_mocker</span> <span class="o">=</span> <span class="n">time_mocker</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_time</span> <span class="o">=</span> <span class="n">time_mocker</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">temp_start</span> <span class="o">=</span> <span class="n">temp_start</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">temp_rates</span> <span class="o">=</span> <span class="n">temp_rates</span>
+
+    <span class="k">def</span> <span class="nf">get_temperature</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">observation</span><span class="o">=</span><span class="p">{}):</span>
+        <span class="n">time_since_start</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">time_mocker</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_time</span>
+        <span class="n">temp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">temp_start</span>
+        <span class="n">last_time</span><span class="p">,</span> <span class="n">last_rate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">temp_rates</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="c"># Loop through all of the rates, adding up their contributions</span>
+        <span class="k">for</span> <span class="n">r_time</span><span class="p">,</span> <span class="n">r_rate</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">temp_rates</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+            <span class="k">if</span> <span class="n">time_since_start</span> <span class="o">&lt;=</span> <span class="n">r_time</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="n">temp</span> <span class="o">+=</span> <span class="p">(</span><span class="n">r_time</span> <span class="o">-</span> <span class="n">last_time</span><span class="p">)</span> <span class="o">*</span> <span class="n">last_rate</span> <span class="o">/</span> <span class="mf">60.0</span>
+            <span class="n">last_time</span><span class="p">,</span> <span class="n">last_rate</span> <span class="o">=</span> <span class="n">r_time</span><span class="p">,</span> <span class="n">r_rate</span>
+        <span class="k">return</span> <span class="n">temp</span> <span class="o">+</span> <span class="p">(</span><span class="n">time_since_start</span> <span class="o">-</span> <span class="n">last_time</span><span class="p">)</span> <span class="o">*</span> <span class="n">last_rate</span> <span class="o">/</span> <span class="mf">60.0</span>
+</pre></div>
+</div>
+</div>
+<div class="tab-section-ruby container">
+<div class="highlight-ruby"><div class="highlight"><pre><span class="c1"># A class to mock temperature</span>
+<span class="k">class</span> <span class="nc">TemperatureMocker</span>
+
+  <span class="c1"># @param time_mocker a reference to the current time mocker</span>
+  <span class="c1"># @param temp_start the starting temperature</span>
+  <span class="c1"># @param temp_rates a list of pairs (time_since_start,</span>
+  <span class="c1">#     temperature_increase_rate_per_min) ordered by time_since_start</span>
+  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="ss">time_mocker</span><span class="p">:,</span> <span class="ss">temp_start</span><span class="p">:,</span> <span class="ss">temp_rates</span><span class="p">:</span> <span class="o">[]</span><span class="p">)</span>
+    <span class="vi">@time_mocker</span> <span class="o">=</span> <span class="n">time_mocker</span>
+    <span class="vi">@start_time</span> <span class="o">=</span> <span class="n">time_mocker</span><span class="o">.</span><span class="n">time</span>
+    <span class="vi">@temp_start</span> <span class="o">=</span> <span class="n">temp_start</span>
+    <span class="vi">@temp_rates</span> <span class="o">=</span> <span class="n">temp_rates</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">temperature</span>
+    <span class="n">now</span> <span class="o">=</span> <span class="vi">@time_mocker</span><span class="o">.</span><span class="n">time</span>
+    <span class="n">time_since_start</span> <span class="o">=</span> <span class="n">now</span> <span class="o">-</span> <span class="vi">@start_time</span>
+
+    <span class="n">temp</span> <span class="o">=</span> <span class="vi">@temp_start</span>
+    <span class="n">last_time</span><span class="p">,</span> <span class="n">last_rate</span> <span class="o">=</span> <span class="vi">@temp_rates</span><span class="o">[</span><span class="mi">0</span><span class="o">]</span>
+
+    <span class="vi">@temp_rates</span><span class="o">[</span><span class="mi">1</span><span class="o">..-</span><span class="mi">1</span><span class="o">].</span><span class="n">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">r_time</span><span class="p">,</span> <span class="n">r_rate</span><span class="o">|</span>
+      <span class="k">break</span> <span class="k">if</span> <span class="n">time_since_start</span> <span class="o">&lt;=</span> <span class="n">r_time</span>
+      <span class="n">temp</span> <span class="o">+=</span> <span class="p">(</span><span class="n">r_time</span> <span class="o">-</span> <span class="n">last_time</span><span class="p">)</span> <span class="o">*</span> <span class="n">last_rate</span> <span class="o">/</span> <span class="mi">60</span><span class="o">.</span><span class="mi">0</span>
+      <span class="n">last_time</span><span class="p">,</span> <span class="n">last_rate</span> <span class="o">=</span> <span class="n">r_time</span><span class="p">,</span> <span class="n">r_rate</span>
+    <span class="k">end</span>
+
+    <span class="n">temp</span> <span class="o">+</span> <span class="p">(</span><span class="n">time_since_start</span> <span class="o">-</span> <span class="n">last_time</span><span class="p">)</span> <span class="o">*</span> <span class="n">last_rate</span> <span class="o">/</span> <span class="mi">60</span><span class="o">.</span><span class="mi">0</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</pre></div>
+</div>
+</div>
+<div class="tab-section-java container">
+<div class="highlight-java"><div class="highlight"><pre><span class="c1">// A class for mocking temperature</span>
+<span class="kd">class</span> <span class="nc">TemperatureMocker</span> <span class="o">{</span>
+
+  <span class="kd">private</span> <span class="kt">double</span><span class="o">[]</span> <span class="n">tempRates</span><span class="o">;</span>
+  <span class="kd">private</span> <span class="kt">double</span> <span class="n">tempStart</span><span class="o">;</span>
+  <span class="kd">private</span> <span class="n">TimeMocker</span> <span class="n">timeMocker</span><span class="o">;</span>
+  <span class="kd">private</span> <span class="kt">double</span> <span class="n">startTime</span><span class="o">;</span>
+
+  <span class="cm">/**</span>
+<span class="cm">   * @param timeMocker: a TimeMocker</span>
+<span class="cm">   * @param tempStart:  the starting temperature</span>
+<span class="cm">   * @param tempRates:  an array of timeSinceStart, tempIncreaseRatePerMin, ...</span>
+<span class="cm">   */</span>
+  <span class="kd">public</span> <span class="nf">TemperatureMocker</span><span class="o">(</span><span class="n">TimeMocker</span> <span class="n">timeMocker</span><span class="o">,</span>
+                           <span class="kt">double</span> <span class="n">tempStart</span><span class="o">,</span>
+                           <span class="kt">double</span><span class="o">[]</span> <span class="n">tempRates</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">this</span><span class="o">.</span><span class="na">timeMocker</span> <span class="o">=</span> <span class="n">timeMocker</span><span class="o">;</span>
+    <span class="k">this</span><span class="o">.</span><span class="na">tempStart</span> <span class="o">=</span> <span class="n">tempStart</span><span class="o">;</span>
+    <span class="k">this</span><span class="o">.</span><span class="na">tempRates</span> <span class="o">=</span> <span class="n">tempRates</span><span class="o">;</span>
+    <span class="n">startTime</span> <span class="o">=</span> <span class="n">timeMocker</span><span class="o">.</span><span class="na">getCurrentTime</span><span class="o">();</span>
+
+  <span class="o">}</span>
+
+  <span class="c1">// Get the current temperature, based on the current time</span>
+  <span class="kd">public</span> <span class="kt">double</span> <span class="nf">getTemperature</span><span class="o">()</span> <span class="o">{</span>
+    <span class="kt">double</span> <span class="n">timeSinceStart</span> <span class="o">=</span> <span class="n">timeMocker</span><span class="o">.</span><span class="na">getCurrentTime</span><span class="o">()</span> <span class="o">-</span> <span class="n">startTime</span><span class="o">;</span>
+    <span class="kt">double</span> <span class="n">temp</span> <span class="o">=</span> <span class="n">tempStart</span><span class="o">;</span>
+
+    <span class="kt">double</span> <span class="n">lastTime</span> <span class="o">=</span> <span class="n">tempRates</span><span class="o">[</span><span class="mi">0</span><span class="o">];</span>
+    <span class="kt">double</span> <span class="n">lastRate</span> <span class="o">=</span> <span class="n">tempRates</span><span class="o">[</span><span class="mi">1</span><span class="o">];</span>
+
+    <span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">2</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">tempRates</span><span class="o">.</span><span class="na">length</span><span class="o">;</span> <span class="n">i</span> <span class="o">+=</span> <span class="mi">2</span><span class="o">)</span> <span class="o">{</span>
+      <span class="kt">double</span> <span class="n">rTime</span> <span class="o">=</span> <span class="n">tempRates</span><span class="o">[</span><span class="n">i</span><span class="o">];</span>
+      <span class="kt">double</span> <span class="n">rRate</span> <span class="o">=</span> <span class="n">tempRates</span><span class="o">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="o">];</span>
+      <span class="k">if</span> <span class="o">(</span><span class="n">timeSinceStart</span> <span class="o">&lt;=</span> <span class="n">rTime</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">break</span><span class="o">;</span>
+      <span class="o">}</span>
+      <span class="n">temp</span> <span class="o">+=</span> <span class="o">(</span><span class="n">rTime</span> <span class="o">-</span> <span class="n">lastTime</span><span class="o">)</span> <span class="o">*</span> <span class="n">lastRate</span> <span class="o">/</span> <span class="mf">60.0</span><span class="o">;</span>
+      <span class="n">lastTime</span> <span class="o">=</span> <span class="n">rTime</span><span class="o">;</span>
+      <span class="n">lastRate</span> <span class="o">=</span> <span class="n">rRate</span><span class="o">;</span>
+    <span class="o">}</span>
+    <span class="k">return</span> <span class="n">temp</span> <span class="o">+</span> <span class="o">(</span><span class="n">timeSinceStart</span> <span class="o">-</span> <span class="n">lastTime</span><span class="o">)</span> <span class="o">*</span> <span class="n">lastRate</span> <span class="o">/</span> <span class="mf">60.0</span><span class="o">;</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Finally the actual tests. We show two different common ways of mocking: mocking out
+higher-level functions that eventually make calls to outside services, and mocking
+out a utility function (<code class="docutils literal"><span class="pre">make_request</span></code>), changing behavior based on the parameters.</p>
+<div class="tab-section-group container">
+<div class="tab-section-python container">
+<div class="highlight-python"><div class="highlight"><pre><span class="c">#</span>
+<span class="c"># Tests using Bond for the heat_watcher.py app</span>
+<span class="c">#</span>
+<span class="c"># See a full explanation of this example at</span>
+<span class="c"># http://necula01.github.io/bond/example_heat.html</span>
+<span class="c">#</span>
+
+<span class="kn">import</span> <span class="nn">unittest</span>
+<span class="kn">from</span> <span class="nn">bond</span> <span class="kn">import</span> <span class="n">bond</span>
+<span class="kn">from</span> <span class="nn">heat_watcher</span> <span class="kn">import</span> <span class="n">HeatWatcher</span>
+
+
+<span class="k">class</span> <span class="nc">HeatWatcherTest</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">bond</span><span class="o">.</span><span class="n">start_test</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">deploy_time_mock</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">&quot;Helper function to setup the time mocks and agents&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">time_mocker</span> <span class="o">=</span> <span class="n">TimeMocker</span><span class="p">()</span>
+
+        <span class="n">bond</span><span class="o">.</span><span class="n">deploy_agent</span><span class="p">(</span><span class="s">&#39;HeatWatcher.get_current_time&#39;</span><span class="p">,</span>
+                          <span class="n">result</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">time_mocker</span><span class="o">.</span><span class="n">time</span><span class="p">)</span>
+        <span class="n">bond</span><span class="o">.</span><span class="n">deploy_agent</span><span class="p">(</span><span class="s">&#39;HeatWatcher.sleep&#39;</span><span class="p">,</span>
+                          <span class="n">result</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">time_mocker</span><span class="o">.</span><span class="n">sleep</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">test_ok_warning</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        A test where the higher-level functions get_temperature and send_alert are</span>
+<span class="sd">        mocked out to return specified temperatures and do nothing, respectively.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">deploy_time_mock</span><span class="p">()</span>
+        <span class="n">temp_rates</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span> <span class="p">(</span><span class="mi">60</span><span class="p">,</span> <span class="mf">1.3</span><span class="p">),</span> <span class="p">(</span><span class="mi">110</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">temp_mocker</span> <span class="o">=</span> <span class="n">TemperatureMocker</span><span class="p">(</span><span class="n">time_mocker</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">time_mocker</span><span class="p">,</span>
+                                             <span class="n">temp_start</span><span class="o">=</span><span class="mi">70</span><span class="p">,</span>
+                                             <span class="n">temp_rates</span><span class="o">=</span><span class="n">temp_rates</span><span class="p">)</span>
+
+        <span class="n">bond</span><span class="o">.</span><span class="n">deploy_agent</span><span class="p">(</span><span class="s">&#39;HeatWatcher.get_temperature&#39;</span><span class="p">,</span>
+                          <span class="n">result</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">temp_mocker</span><span class="o">.</span><span class="n">get_temperature</span><span class="p">)</span>
+        <span class="n">bond</span><span class="o">.</span><span class="n">deploy_agent</span><span class="p">(</span><span class="s">&#39;HeatWatcher.send_alert&#39;</span><span class="p">,</span>
+                          <span class="n">result</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+
+        <span class="n">HeatWatcher</span><span class="p">()</span><span class="o">.</span><span class="n">monitor_loop</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">time_mocker</span><span class="o">.</span><span class="n">current_time</span> <span class="o">+</span> <span class="mi">400</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">test_critical</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        A test where make_request is mocked out, and returns different responses</span>
+<span class="sd">        depending on the URL that is passed in. This can allow you to test that the</span>
+<span class="sd">        parsing logic in get_temperature is working correctly.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">deploy_time_mock</span><span class="p">()</span>
+        <span class="n">temp_rates</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span> <span class="p">(</span><span class="mi">60</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">),</span> <span class="p">(</span><span class="mi">120</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="p">(</span><span class="mi">140</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">temp_mocker</span> <span class="o">=</span> <span class="n">TemperatureMocker</span><span class="p">(</span><span class="n">time_mocker</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">time_mocker</span><span class="p">,</span>
+                                             <span class="n">temp_start</span><span class="o">=</span><span class="mi">70</span><span class="p">,</span>
+                                             <span class="n">temp_rates</span><span class="o">=</span><span class="n">temp_rates</span><span class="p">)</span>
+
+        <span class="n">bond</span><span class="o">.</span><span class="n">deploy_agent</span><span class="p">(</span><span class="s">&#39;HeatWatcher.make_request&#39;</span><span class="p">,</span>
+                          <span class="n">url__contains</span><span class="o">=</span><span class="s">&#39;messages&#39;</span><span class="p">,</span>
+                          <span class="n">result</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+        <span class="n">bond</span><span class="o">.</span><span class="n">deploy_agent</span><span class="p">(</span><span class="s">&#39;HeatWatcher.make_request&#39;</span><span class="p">,</span>
+                          <span class="n">url__contains</span><span class="o">=</span><span class="s">&#39;temperature&#39;</span><span class="p">,</span>
+                          <span class="n">result</span><span class="o">=</span><span class="k">lambda</span> <span class="n">obs</span><span class="p">:</span> <span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="s">&#39;&lt;temperature&gt;{}&lt;/temperature&gt;&#39;</span>
+                          <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">temp_mocker</span><span class="o">.</span><span class="n">get_temperature</span><span class="p">())))</span>
+
+        <span class="n">HeatWatcher</span><span class="p">()</span><span class="o">.</span><span class="n">monitor_loop</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">time_mocker</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">+</span> <span class="mi">210</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="tab-section-ruby container">
+<div class="highlight-ruby"><div class="highlight"><pre><span class="c1">#</span>
+<span class="c1"># Tests using Bond for the heat_watcher.py app</span>
+<span class="c1">#</span>
+<span class="c1"># See a full explanation of this example at</span>
+<span class="c1"># http://necula01.github.io/bond/example_heat.html</span>
+<span class="c1">#</span>
+
+<span class="nb">require</span> <span class="s1">&#39;bond/spec_helper&#39;</span>
+<span class="n">require_relative</span> <span class="s1">&#39;heat_watcher&#39;</span>
+
+<span class="n">describe</span> <span class="no">HeatWatcher</span> <span class="k">do</span>
+  <span class="c1"># Sets up the testing environment to use Bond. Exports bond as a variable</span>
+  <span class="c1"># to use as e.g. bond.deploy_agent.</span>
+  <span class="n">include_context</span> <span class="ss">:bond</span>
+
+  <span class="c1"># Helper function to setup the time mocks and agents</span>
+  <span class="k">def</span> <span class="nf">deploy_time_mock</span>
+    <span class="vi">@time_mocker</span> <span class="o">=</span> <span class="no">TimeMocker</span><span class="o">.</span><span class="n">new</span>
+
+    <span class="n">bond</span><span class="o">.</span><span class="n">deploy_agent</span><span class="p">(</span><span class="s1">&#39;HeatWatcher#get_current_time&#39;</span><span class="p">,</span>
+                      <span class="ss">result</span><span class="p">:</span> <span class="nb">lambda</span> <span class="p">{</span> <span class="o">|</span><span class="n">_</span><span class="o">|</span> <span class="vi">@time_mocker</span><span class="o">.</span><span class="n">time</span> <span class="p">})</span>
+    <span class="n">bond</span><span class="o">.</span><span class="n">deploy_agent</span><span class="p">(</span><span class="s1">&#39;HeatWatcher#sleep&#39;</span><span class="p">,</span>
+                      <span class="ss">result</span><span class="p">:</span> <span class="nb">lambda</span> <span class="p">{</span> <span class="o">|</span><span class="n">obs</span><span class="o">|</span> <span class="vi">@time_mocker</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">obs</span><span class="o">[</span><span class="ss">:seconds</span><span class="o">]</span><span class="p">)</span> <span class="p">})</span>
+  <span class="k">end</span>
+
+  <span class="n">it</span> <span class="s1">&#39;should properly report warnings and switch back to OK status&#39;</span> <span class="k">do</span>
+    <span class="c1"># A test where the higher-level functions get_temperature and send_alert</span>
+    <span class="c1"># are mocked out to return specified temperatures and do nothing, respectively.</span>
+    <span class="n">deploy_time_mock</span>
+    <span class="vi">@temp_mocker</span> <span class="o">=</span> <span class="no">TemperatureMocker</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">time_mocker</span><span class="p">:</span> <span class="vi">@time_mocker</span><span class="p">,</span>
+                                         <span class="ss">temp_start</span><span class="p">:</span> <span class="mi">70</span><span class="p">,</span>
+                                         <span class="ss">temp_rates</span><span class="p">:</span> <span class="o">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="o">.</span><span class="mi">5</span><span class="o">]</span><span class="p">,</span> <span class="o">[</span><span class="mi">60</span><span class="p">,</span> <span class="mi">1</span><span class="o">.</span><span class="mi">3</span><span class="o">]</span><span class="p">,</span> <span class="o">[</span><span class="mi">110</span><span class="p">,</span> <span class="mi">0</span><span class="o">.</span><span class="mi">1</span><span class="o">]]</span><span class="p">)</span>
+
+    <span class="n">bond</span><span class="o">.</span><span class="n">deploy_agent</span><span class="p">(</span><span class="s1">&#39;HeatWatcher#get_temperature&#39;</span><span class="p">,</span>
+                      <span class="ss">result</span><span class="p">:</span> <span class="nb">lambda</span> <span class="p">{</span> <span class="o">|</span><span class="n">_</span><span class="o">|</span> <span class="vi">@temp_mocker</span><span class="o">.</span><span class="n">temperature</span> <span class="p">})</span>
+    <span class="n">bond</span><span class="o">.</span><span class="n">deploy_agent</span><span class="p">(</span><span class="s1">&#39;HeatWatcher#send_alert&#39;</span><span class="p">,</span>
+                      <span class="ss">result</span><span class="p">:</span> <span class="kp">nil</span><span class="p">)</span>
+
+    <span class="no">HeatWatcher</span><span class="o">.</span><span class="n">new</span><span class="o">.</span><span class="n">monitor_loop</span><span class="p">(</span><span class="vi">@time_mocker</span><span class="o">.</span><span class="n">time</span> <span class="o">+</span> <span class="mi">400</span><span class="p">)</span>
+  <span class="k">end</span>
+
+  <span class="n">it</span> <span class="s1">&#39;should properly report critical errors&#39;</span> <span class="k">do</span>
+    <span class="c1"># A test where make_request is mocked out, and returns different responses</span>
+    <span class="c1"># depending on the URL that is passed in. This can allow you to test that the</span>
+    <span class="c1"># parsing logic in get_temperature is working correctly.</span>
+    <span class="n">deploy_time_mock</span>
+    <span class="vi">@temp_mocker</span> <span class="o">=</span> <span class="no">TemperatureMocker</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">time_mocker</span><span class="p">:</span> <span class="vi">@time_mocker</span><span class="p">,</span>
+                                         <span class="ss">temp_start</span><span class="p">:</span> <span class="mi">70</span><span class="p">,</span>
+                                         <span class="ss">temp_rates</span><span class="p">:</span> <span class="o">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="o">.</span><span class="mi">5</span><span class="o">]</span><span class="p">,</span> <span class="o">[</span><span class="mi">60</span><span class="p">,</span> <span class="mi">2</span><span class="o">.</span><span class="mi">5</span><span class="o">]</span><span class="p">,</span> <span class="o">[</span><span class="mi">120</span><span class="p">,</span> <span class="mi">3</span><span class="o">]</span><span class="p">,</span> <span class="o">[</span><span class="mi">140</span><span class="p">,</span> <span class="mi">0</span><span class="o">.</span><span class="mi">5</span><span class="o">]]</span><span class="p">)</span>
+
+    <span class="n">bond</span><span class="o">.</span><span class="n">deploy_agent</span><span class="p">(</span><span class="s1">&#39;HeatWatcher#make_request&#39;</span><span class="p">,</span>
+                      <span class="ss">url__contains</span><span class="p">:</span> <span class="s1">&#39;messages&#39;</span><span class="p">,</span>
+                      <span class="ss">result</span><span class="p">:</span> <span class="kp">nil</span><span class="p">)</span>
+    <span class="n">bond</span><span class="o">.</span><span class="n">deploy_agent</span><span class="p">(</span><span class="s1">&#39;HeatWatcher#make_request&#39;</span><span class="p">,</span>
+                      <span class="ss">url__contains</span><span class="p">:</span> <span class="s1">&#39;temperature&#39;</span><span class="p">,</span>
+                      <span class="ss">result</span><span class="p">:</span> <span class="nb">lambda</span> <span class="k">do</span> <span class="o">|</span><span class="n">_</span><span class="o">|</span>
+                        <span class="o">[</span><span class="mi">200</span><span class="p">,</span> <span class="s2">&quot;&lt;temperature&gt;</span><span class="si">#{</span><span class="vi">@temp_mocker</span><span class="o">.</span><span class="n">temperature</span><span class="si">}</span><span class="s2">&lt;/temperature&gt;&quot;</span><span class="o">]</span>
+                      <span class="k">end</span><span class="p">)</span>
+
+    <span class="no">HeatWatcher</span><span class="o">.</span><span class="n">new</span><span class="o">.</span><span class="n">monitor_loop</span><span class="p">(</span><span class="vi">@time_mocker</span><span class="o">.</span><span class="n">time</span> <span class="o">+</span> <span class="mi">210</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</pre></div>
+</div>
+</div>
+<div class="tab-section-java container">
+<div class="highlight-java"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">bond.*</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">bond.spypoint.BondMockPolicy</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.junit.Rule</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.junit.Test</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.junit.runner.RunWith</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.powermock.core.classloader.annotations.MockPolicy</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.powermock.core.classloader.annotations.PowerMockIgnore</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.powermock.modules.junit4.PowerMockRunner</span><span class="o">;</span>
+
+<span class="kn">import</span> <span class="nn">java.util.Map</span><span class="o">;</span>
+
+<span class="c1">// These three annotations are necessary to enable mocking of methods.</span>
+<span class="c1">// See http://necula01.github.io/bond/jbond/bond/spypoint/BondMockPolicy.html</span>
+<span class="c1">// for more detail</span>
+<span class="nd">@RunWith</span><span class="o">(</span><span class="n">PowerMockRunner</span><span class="o">.</span><span class="na">class</span><span class="o">)</span>
+<span class="nd">@PowerMockIgnore</span><span class="o">(</span><span class="s">&quot;javax.swing.*&quot;</span><span class="o">)</span>
+<span class="nd">@MockPolicy</span><span class="o">(</span><span class="n">HeatWatcherMockPolicy</span><span class="o">.</span><span class="na">class</span><span class="o">)</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">HeatWatcherTest</span> <span class="o">{</span>
+
+  <span class="c1">// This is how to enable Bond for this class</span>
+  <span class="nd">@Rule</span>
+  <span class="kd">public</span> <span class="n">BondTestRule</span> <span class="n">btr</span> <span class="o">=</span> <span class="k">new</span> <span class="n">BondTestRule</span><span class="o">();</span>
+
+  <span class="kd">private</span> <span class="n">TimeMocker</span> <span class="n">timeMocker</span><span class="o">;</span>
+  <span class="kd">private</span> <span class="n">TemperatureMocker</span> <span class="n">tempMocker</span><span class="o">;</span>
+
+  <span class="c1">// A test where the higher-level functions getTemperature is mocked out.</span>
+  <span class="c1">// No alerts.</span>
+  <span class="nd">@Test</span>
+  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">testOkWarning</span><span class="o">()</span> <span class="o">{</span>
+    <span class="n">deployTimeMock</span><span class="o">();</span>
+
+    <span class="c1">// Instantiate TemperatureMocker with starting temperature and</span>
+    <span class="c1">// temperature rates, as pairs of timeSinceStart, tempIncrRatePerMinute</span>
+    <span class="n">tempMocker</span> <span class="o">=</span> <span class="k">new</span> <span class="n">TemperatureMocker</span><span class="o">(</span><span class="n">timeMocker</span><span class="o">,</span> <span class="mi">70</span><span class="o">,</span>
+                                       <span class="k">new</span> <span class="kt">double</span><span class="o">[]</span> <span class="o">{</span><span class="mi">0</span><span class="o">,</span> <span class="mf">0.5</span><span class="o">,</span> <span class="mi">60</span><span class="o">,</span> <span class="mf">1.2</span><span class="o">,</span> <span class="mi">110</span><span class="o">,</span> <span class="mf">0.12</span><span class="o">});</span>
+
+    <span class="c1">// Deploy a Bond agent for getTemperature</span>
+    <span class="n">SpyAgent</span> <span class="n">getTemperatureAgent</span> <span class="o">=</span> <span class="k">new</span> <span class="n">SpyAgent</span><span class="o">()</span>
+        <span class="o">.</span><span class="na">withResult</span><span class="o">(</span><span class="k">new</span> <span class="n">Resulter</span><span class="o">()</span> <span class="o">{</span>
+          <span class="kd">public</span> <span class="n">Double</span> <span class="nf">accept</span><span class="o">(</span><span class="n">Map</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Object</span><span class="o">&gt;</span> <span class="n">map</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">return</span> <span class="n">tempMocker</span><span class="o">.</span><span class="na">getTemperature</span><span class="o">();</span>
+          <span class="o">}</span>
+        <span class="o">});</span>
+    <span class="n">Bond</span><span class="o">.</span><span class="na">deployAgent</span><span class="o">(</span><span class="s">&quot;HeatWatcher.getTemperature&quot;</span><span class="o">,</span> <span class="n">getTemperatureAgent</span><span class="o">);</span>
+
+    <span class="c1">// Specify a result (even though it won&#39;t be used) to prevent the real function</span>
+    <span class="c1">// from being called</span>
+    <span class="n">Bond</span><span class="o">.</span><span class="na">deployAgent</span><span class="o">(</span><span class="s">&quot;HeatWatcher.sendAlert&quot;</span><span class="o">,</span> <span class="k">new</span> <span class="n">SpyAgent</span><span class="o">().</span><span class="na">withResult</span><span class="o">(</span><span class="kc">null</span><span class="o">));</span>
+
+    <span class="c1">// Now invoke the code</span>
+    <span class="n">HeatWatcher</span> <span class="n">watcher</span> <span class="o">=</span> <span class="k">new</span> <span class="n">HeatWatcher</span><span class="o">();</span>
+    <span class="n">watcher</span><span class="o">.</span><span class="na">monitorLoop</span><span class="o">(</span><span class="n">timeMocker</span><span class="o">.</span><span class="na">getCurrentTime</span><span class="o">()</span> <span class="o">+</span> <span class="mi">400</span><span class="o">);</span>
+  <span class="o">}</span>
+
+  <span class="c1">// A test where makeRequest is mocked out, and returns different responses</span>
+  <span class="c1">// depending on the URL that is passed in. This can allow you to test that the</span>
+  <span class="c1">// parsing logic in getTemperature is working correctly.</span>
+  <span class="nd">@Test</span>
+  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">testCritical</span><span class="o">()</span> <span class="o">{</span>
+    <span class="n">deployTimeMock</span><span class="o">();</span>
+
+    <span class="kt">double</span><span class="o">[]</span> <span class="n">tempRates</span> <span class="o">=</span> <span class="o">{</span><span class="mi">0</span><span class="o">,</span> <span class="mf">0.5</span><span class="o">,</span> <span class="mi">60</span><span class="o">,</span> <span class="mf">2.5</span><span class="o">,</span> <span class="mi">120</span><span class="o">,</span> <span class="mf">3.0</span><span class="o">,</span> <span class="mi">140</span><span class="o">,</span> <span class="mf">0.5</span><span class="o">};</span>
+    <span class="n">tempMocker</span> <span class="o">=</span> <span class="k">new</span> <span class="n">TemperatureMocker</span><span class="o">(</span><span class="n">timeMocker</span><span class="o">,</span> <span class="mi">70</span><span class="o">,</span> <span class="n">tempRates</span><span class="o">);</span>
+
+    <span class="c1">// Do not deploy an agent for getTemperature, let it call makeRequest</span>
+    <span class="n">SpyAgent</span> <span class="n">makeRequestMessagesAgent</span> <span class="o">=</span> <span class="k">new</span> <span class="n">SpyAgent</span><span class="o">()</span>
+        <span class="o">.</span><span class="na">withFilterKeyContains</span><span class="o">(</span><span class="s">&quot;arg0[String]&quot;</span><span class="o">,</span> <span class="s">&quot;messages&quot;</span><span class="o">)</span>
+        <span class="o">.</span><span class="na">withResult</span><span class="o">(</span><span class="n">HeatWatcher</span><span class="o">.</span><span class="na">AlertState</span><span class="o">.</span><span class="na">OK</span><span class="o">.</span><span class="na">toString</span><span class="o">());</span>
+    <span class="n">Bond</span><span class="o">.</span><span class="na">deployAgent</span><span class="o">(</span><span class="s">&quot;HeatWatcher.makeRequest&quot;</span><span class="o">,</span> <span class="n">makeRequestMessagesAgent</span><span class="o">);</span>
+
+    <span class="c1">// Deploy an agent for the makeRequest to return a temperature</span>
+    <span class="n">SpyAgent</span> <span class="n">makeRequestTemperatureAgent</span> <span class="o">=</span> <span class="k">new</span> <span class="n">SpyAgent</span><span class="o">()</span>
+        <span class="o">.</span><span class="na">withFilterKeyContains</span><span class="o">(</span><span class="s">&quot;arg0[String]&quot;</span><span class="o">,</span> <span class="s">&quot;temperature&quot;</span><span class="o">)</span>
+        <span class="o">.</span><span class="na">withResult</span><span class="o">(</span><span class="k">new</span> <span class="n">Resulter</span><span class="o">()</span> <span class="o">{</span>
+          <span class="kd">public</span> <span class="n">String</span> <span class="nf">accept</span><span class="o">(</span><span class="n">Map</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Object</span><span class="o">&gt;</span> <span class="n">map</span><span class="o">)</span> <span class="o">{</span>
+            <span class="kt">double</span> <span class="n">temp</span> <span class="o">=</span> <span class="n">tempMocker</span><span class="o">.</span><span class="na">getTemperature</span><span class="o">();</span>
+            <span class="k">return</span> <span class="s">&quot;&lt;temperature&gt;&quot;</span> <span class="o">+</span> <span class="n">temp</span> <span class="o">+</span> <span class="s">&quot;&lt;/temperature&gt;&quot;</span><span class="o">;</span>
+          <span class="o">}</span>
+        <span class="o">});</span>
+    <span class="n">Bond</span><span class="o">.</span><span class="na">deployAgent</span><span class="o">(</span><span class="s">&quot;HeatWatcher.makeRequest&quot;</span><span class="o">,</span> <span class="n">makeRequestTemperatureAgent</span><span class="o">);</span>
+
+    <span class="c1">// Now invoke the code</span>
+    <span class="n">HeatWatcher</span> <span class="n">watcher</span> <span class="o">=</span> <span class="k">new</span> <span class="n">HeatWatcher</span><span class="o">();</span>
+    <span class="n">watcher</span><span class="o">.</span><span class="na">monitorLoop</span><span class="o">(</span><span class="n">timeMocker</span><span class="o">.</span><span class="na">getCurrentTime</span><span class="o">()</span> <span class="o">+</span> <span class="mi">210</span><span class="o">);</span>
+  <span class="o">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Bond Tutorial</a><ul>
+<li><a class="reference internal" href="#part-1-spying-with-bond">Part 1: Spying with Bond</a><ul>
+<li><a class="reference internal" href="#spying-inside-your-test-code">Spying inside your test code</a></li>
+<li><a class="reference internal" href="#reconciling-bond-observations">Reconciling Bond observations</a></li>
+<li><a class="reference internal" href="#spying-inside-your-production-code-while-testing">Spying inside your production code while testing</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#part-2-mocking-with-bond">Part 2: Mocking with Bond</a></li>
+<li><a class="reference internal" href="#part-3-a-larger-example-of-bond-usage">Part 3: A Larger Example of Bond Usage</a><ul>
+<li><a class="reference internal" href="#how-to-use-this-example">How to use this example</a></li>
+<li><a class="reference internal" href="#the-code-to-be-tested">The code to be tested</a></li>
+<li><a class="reference internal" href="#the-tests-using-bond">The tests using Bond</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="gettingstarted.html" title="previous chapter">Getting Started with Bond</a></li>
+      <li>Next: <a href="api.html" title="next chapter">Bond API Documentation</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/tutorial.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, George Necula, Erik Krogen.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+      |
+      <a href="_sources/tutorial.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

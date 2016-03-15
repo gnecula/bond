@@ -1,0 +1,511 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Practice Testing with Spies and Mocks &mdash; Bond - Testing with Spies and Mocks</title>
+    
+    <link rel="stylesheet" href="_static/bond_doc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '2.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Bond - Testing with Spies and Mocks" href="index.html" />
+    <link rel="prev" title="Bond Development" href="development.html" />
+    
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+    <script type='text/javascript' src='_static/my_ga.js'></script>
+    <!-- script type='text/javascript' src='_static/bond_doc.js'></script  -->
+    <script type='text/javascript' src='_static/bootstrap-3.3.5.min.js'></script>
+    <script type='text/javascript' src='_static/rst-tabbed-sections.js'></script>
+    <link rel='stylesheet' href='_static/bootstrap-3.3.5.min.css' type='text/css'></link>
+    <link rel='stylesheet' href='_static/bond_doc.css' type='text/css'></link>
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="practice-testing-with-spies-and-mocks">
+<span id="buses-tutorial"></span><h1>Practice Testing with Spies and Mocks<a class="headerlink" href="#practice-testing-with-spies-and-mocks" title="Permalink to this headline">¶</a></h1>
+<p>In this tutorial you will write tests with mocking for a simple application that we provide.
+This will teach you a little about spying and mocking in general, and you should also get
+comfortable with using Bond in a real project.
+The application finds out what are the closest buses to a particular stop on a bus route, e.g.,
+the 51B route (Alameda County Transit Authority). The app first prompts the user to select
+the stop among the list of stops on the route.</p>
+<a class="reference internal image-reference" href="_images/bus_stop.jpg"><img alt="_images/bus_stop.jpg" src="_images/bus_stop.jpg" style="height: 200px;" /></a>
+<p>The app works by finding out the geographic coordinates of the desired bus stop, and the live locations
+of the buses on that route. Using the geographic coordinates the app will estimate the (straight line)
+distance from each bus to the bus stop and will compute a list of running buses sorted on the increasing
+distance to the bus stop.</p>
+<p>Disclaimer: There are certainly approximations in this app, perhaps even bugs.</p>
+<div class="section" id="acknowledgements">
+<h2>Acknowledgements<a class="headerlink" href="#acknowledgements" title="Permalink to this headline">¶</a></h2>
+<p>The idea for this particular application came from Jonathan Indig and Davis Shepherd.</p>
+<p>The data for bus stops and running buses is obtained from <a class="reference external" href="http://nextbus.cubic.com/About/Vision">NextBus</a>.
+For details on the API please see <a class="reference external" href="https://www.nextbus.com/xmlFeedDocs/NextBusXMLFeed.pdf">https://www.nextbus.com/xmlFeedDocs/NextBusXMLFeed.pdf</a>
+(although you do not really need to look at that document to complete this tutorial).</p>
+</div>
+<div class="section" id="important-request">
+<h2>Important Request<a class="headerlink" href="#important-request" title="Permalink to this headline">¶</a></h2>
+<p>The project is provided as is to anybody who wants to learn mocking. However, we ask
+that you do not post the solutions in any location that is searchable. Please do not push these solutions
+to a public GitHub repository. We would like everybody who wants to do this project in the future
+to have the same pristine experience that you are having now.</p>
+</div>
+<div class="section" id="task-1-get-started-with-the-provided-files">
+<h2>Task 1: Get Started with the Provided Files<a class="headerlink" href="#task-1-get-started-with-the-provided-files" title="Permalink to this headline">¶</a></h2>
+<p>To help you start we have provided some boilerplate files that you will have to
+modify to implement the project.</p>
+<ul>
+<li><p class="first">This tutorial has been developed on Mac OS X and Linux. You can probably use Windows with
+an installation of <code class="docutils literal"><span class="pre">python</span></code> / <code class="docutils literal"><span class="pre">ruby</span></code> / <code class="docutils literal"><span class="pre">mvn</span></code> or <code class="docutils literal"><span class="pre">gradle</span></code> (for Java), but we have not tested this.</p>
+</li>
+<li><p class="first">Download the support files</p>
+<ul class="simple">
+<li>Clone the Bond repository (<a class="reference external" href="https://github.com/necula01/bond">https://github.com/necula01/bond</a>)</li>
+<li>The <code class="docutils literal"><span class="pre">buses_tutorial</span></code> directory is what we will be interested in for this tutorial</li>
+</ul>
+</li>
+<li><p class="first">This tutorial can be done in Python, Ruby, or Java. Once you have cloned the repository
+you should see the following directory structure within <code class="docutils literal"><span class="pre">buses_tutorial</span></code>:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="50%" />
+<col width="50%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">py</span></code></td>
+<td>Files for the Python version of the tutorial</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">py/buses.py</span></code></td>
+<td>The buses app</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">py/buses_tests.py</span></code></td>
+<td>The tests for buses app</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">rb</span></code></td>
+<td>Files for the Ruby version of the tutorial</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">rb/buses.rb</span></code></td>
+<td>The buses app</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">rb/buses_spec.py</span></code></td>
+<td>The RSpec tests for buses app</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">java</span></code></td>
+<td>Files for the Java version of the tutorial</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">java/pom.xml</span></code></td>
+<td>Maven pom file defining the Java project and its dependencies</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">java/build.gradle</span></code></td>
+<td>Gradle build file defining the Java project and its dependencies</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">java/src/main/java/bond/example/Buses.java</span></code></td>
+<td>Source file of the Buses app</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">java/src/test/java/bond/example/BusesTest.java</span></code></td>
+<td>Tests for the Buses app</td>
+</tr>
+</tbody>
+</table>
+</li>
+<li><p class="first">Note that for Java we have included both a pom.xml file for Maven and a build.gradle
+file for Gradle; either build system will work and you don&#8217;t need both.</p>
+</li>
+<li><p class="first">For Python and Ruby you will also need to install Bond (in Java this is taken care of
+automatically by Maven/Gradle). This can be done via <code class="docutils literal"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">bond</span></code> (Python) or
+<code class="docutils literal"><span class="pre">gem</span> <span class="pre">install</span> <span class="pre">bond-spy</span></code> (Ruby).</p>
+</li>
+<li><p class="first">(Optional, but recommended) You should install the tool <code class="docutils literal"><span class="pre">kdiff3</span></code> if you
+have not installed it already. It is a generally good tool for any kind of
+merging, including using for <code class="docutils literal"><span class="pre">git</span> <span class="pre">mergetool</span></code>. Make sure to add the
+installation directory to the PATH so that you can invoke the tool from the
+terminal.</p>
+<ul>
+<li><p class="first">Visit the <a class="reference external" href="http://kdiff3.sourceforge.net/">Kdiff3 web site</a></p>
+</li>
+<li><p class="first">For Mac, this involves downloading and installing the DMG file, and then
+adding to your PATH environment variable <code class="docutils literal"><span class="pre">/Applications/kdiff3.app/Contents/MacOS/kdiff3</span></code>.
+If running a Debian flavor of Linux, you should be able to run <code class="docutils literal"><span class="pre">sudo</span> <span class="pre">apt-get</span> <span class="pre">install</span> <span class="pre">kdiff3</span></code>.</p>
+<div class="code highlight-python"><div class="highlight"><pre><span class="n">kdiff3</span>    <span class="c">#  should open the kdiff3 window</span>
+</pre></div>
+</div>
+</li>
+</ul>
+<p>If you do install <code class="docutils literal"><span class="pre">kdiff3</span></code> you can use it in place of the default
+<code class="docutils literal"><span class="pre">console</span></code> by using <code class="docutils literal"><span class="pre">BOND_RECONCILE=kdiff3</span></code> instead of
+<code class="docutils literal"><span class="pre">BOND_RECONCILE=console</span></code> in the command line (see below).</p>
+</li>
+</ul>
+</div>
+<div class="section" id="task-2-run-the-buses-application">
+<h2>Task 2: Run the buses application<a class="headerlink" href="#task-2-run-the-buses-application" title="Permalink to this headline">¶</a></h2>
+<p>Try out the application to undestand what it does, and to make sure it works properly:
+(these commands should be executed within the directory for the language you will be working in)</p>
+<div class="tab-section-group container">
+<div class="tab-section-python container">
+<div class="highlight-bash"><div class="highlight"><pre>python buses.py
+</pre></div>
+</div>
+</div>
+<div class="tab-section-ruby container">
+<div class="highlight-bash"><div class="highlight"><pre>ruby buses.rb
+</pre></div>
+</div>
+</div>
+<div class="tab-section-java container">
+<div class="highlight-bash"><div class="highlight"><pre>mvn compile <span class="nb">exec</span>:java
+<span class="c"># OR</span>
+gradle --console plain run
+</pre></div>
+</div>
+</div>
+</div>
+<p>You should see a list of stops on the 51B bus route through Berkeley, and a
+prompt to pick one of the stops. If you enter something that is not a number
+in the required range, the interactive loop will repeat. Once you pick the
+stop, you should see a list of a few buses that are currently running that
+route sorted in increasing order of the distance from the bus stop you picked.</p>
+<p>Note: if you try to do this part at night, when the 51B bus is not running,
+you may not get any running buses. You can change the code to use the route
+851 (an all nighter) in that case.</p>
+<p>Take a look at the code for the app, it should be easy to follow.</p>
+<p>In the rest of the tutorial you will have to write the tests for this app.
+Ideally, the person who wrote the app would have used test-driven development
+and the app would have tests already - but that would leave nothing for you to do!</p>
+</div>
+<div class="section" id="task-3-run-the-initial-tests">
+<h2>Task 3: Run the initial tests<a class="headerlink" href="#task-3-run-the-initial-tests" title="Permalink to this headline">¶</a></h2>
+<p>We provided a skeleton test framework for you to use.</p>
+<div class="tab-section-group container">
+<div class="tab-section-python container">
+<p>The tests are in the file <code class="docutils literal"><span class="pre">buses_tests.py</span></code> and are using the Python <code class="docutils literal"><span class="pre">unittest</span></code> test framework.</p>
+<div class="code highlight-python"><div class="highlight"><pre>python buses_tests.py
+</pre></div>
+</div>
+<p>You should see one test passing: <code class="docutils literal"><span class="pre">test_distance_computation</span></code>.</p>
+</div>
+<div class="tab-section-ruby container">
+<p>The tests are in the file <code class="docutils literal"><span class="pre">buses_spec.rb</span></code> and are using the Ruby <code class="docutils literal"><span class="pre">rspec</span></code> test framework.
+You may need to install this gem using <code class="docutils literal"><span class="pre">gem</span> <span class="pre">install</span> <span class="pre">rspec</span></code>.</p>
+<div class="code highlight-python"><div class="highlight"><pre>rspec buses_spec.rb
+</pre></div>
+</div>
+<p>You should see one test passing: <code class="docutils literal"><span class="pre">it</span> <span class="pre">'should</span> <span class="pre">properly</span> <span class="pre">compute</span> <span class="pre">distance</span> <span class="pre">between</span> <span class="pre">points'</span></code></p>
+</div>
+<div class="tab-section-java container">
+<p>The tests are in the file <code class="docutils literal"><span class="pre">BusesTest.java</span></code> and are using the Java JUnit test framework.</p>
+<div class="highlight-bash"><div class="highlight"><pre>mvn <span class="nb">test</span>
+<span class="c"># OR</span>
+gradle <span class="nb">test</span>
+</pre></div>
+</div>
+<p>You should see one test passing: <code class="docutils literal"><span class="pre">testDistanceComputation</span></code>.</p>
+</div>
+</div>
+</div>
+<div class="section" id="task-4-read-the-documentation-for-the-bond-spying-and-mocking-library">
+<h2>Task 4: Read the documentation for the Bond spying and mocking library<a class="headerlink" href="#task-4-read-the-documentation-for-the-bond-spying-and-mocking-library" title="Permalink to this headline">¶</a></h2>
+<p>This tutorial assumes you are already familiar with the rest of the Bond documentation;
+if you have not already done so, you should read it now:</p>
+<ul class="simple">
+<li><a class="reference external" href="http://necula01.github.io/bond/tutorial.html">Read the Bond tutorial</a></li>
+<li><a class="reference external" href="http://necula01.github.io/bond/example_heat.html">Read the Bond example</a></li>
+<li><a class="reference external" href="http://necula01.github.io/bond/api.html">Skim the API documentation</a> You
+will have to refer back to the API documentation as you are working on this project.</li>
+</ul>
+</div>
+<div class="section" id="task-5-use-spying-for-a-simple-unit-test">
+<h2>Task 5: Use spying for a simple unit test<a class="headerlink" href="#task-5-use-spying-for-a-simple-unit-test" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic">
+<li><p class="first">Use <code class="docutils literal"><span class="pre">bond.spy</span></code> to replace the assertions in the unit test <code class="docutils literal"><span class="pre">test_distance_computation</span></code> /
+<code class="docutils literal"><span class="pre">should</span> <span class="pre">properly</span> <span class="pre">compute</span> <span class="pre">distance</span> <span class="pre">between</span> <span class="pre">points</span></code> / <code class="docutils literal"><span class="pre">testDistanceComputation</span></code>.
+You can use a single call to spy in place of the 3 calls to <code class="docutils literal"><span class="pre">assertEquals</span></code> / <code class="docutils literal"><span class="pre">expect</span></code>.</p>
+</li>
+<li><div class="tab-section-group first container">
+<div class="tab-section-python container">
+<p>You must initialize the bond library by calling <code class="docutils literal"><span class="pre">bond.start_test</span></code> in your test.</p>
+</div>
+<div class="tab-section-ruby container">
+<ul class="simple">
+<li>You must install RSpec: <code class="docutils literal"><span class="pre">gem</span> <span class="pre">install</span> <span class="pre">rspec</span></code></li>
+<li>You must <code class="docutils literal"><span class="pre">include_context</span> <span class="pre">:bond</span></code> in your RSpec <code class="docutils literal"><span class="pre">describe</span></code>
+block. We have prepared this for you, all you have is to uncomment the
+line.</li>
+</ul>
+</div>
+<div class="tab-section-java container">
+<p>For Java: You must include the <code class="docutils literal"><span class="pre">BondTestRule</span></code> JUnit <code class="docutils literal"><span class="pre">&#64;Rule</span></code> in your test class
+to enable Bond, and there are a number of other requirements to enable mocking
+(see the <a class="reference external" href="jbond/bond/spypoint/BondMockPolicy.html">API docs for BondMockPolicy</a> for more detail).
+We have prepared all of this for you, all you have to do is uncomment the <code class="docutils literal"><span class="pre">BondTestRule</span></code>
+lines at the top of the class.</p>
+</div>
+</div>
+</li>
+<li><p class="first">Now run the tests, this time setting the environment variable
+<code class="docutils literal"><span class="pre">BOND_RECONCILE</span></code> to the value <code class="docutils literal"><span class="pre">console</span></code> (or <code class="docutils literal"><span class="pre">kdiff3</span></code> if you installed it).
+You can use any method you know for setting the environment
+variable. In our examples, we will just set the environment variable
+at the begining of the shell command for running the tests:</p>
+<div class="tab-section-group container">
+<div class="tab-section-python container">
+<div class="code highlight-python"><div class="highlight"><pre>BOND_RECONCILE=console python buses_tests.py
+</pre></div>
+</div>
+</div>
+<div class="tab-section-ruby container">
+<div class="code highlight-python"><div class="highlight"><pre>BOND_RECONCILE=console rspec buses_spec.rb
+</pre></div>
+</div>
+</div>
+<div class="tab-section-java container">
+<div class="highlight-bash"><div class="highlight"><pre><span class="nv">BOND_RECONCILE</span><span class="o">=</span>console mvn <span class="nb">test</span>
+<span class="c"># OR</span>
+<span class="nv">BOND_RECONCILE</span><span class="o">=</span>console gradle <span class="nb">test</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>For the rest of this assignment this is how you should run the tests.</p>
+</li>
+<li><p class="first">You will be prompted to accept the new spy observations. Verify that they are
+correct (same values as what you had in <code class="docutils literal"><span class="pre">assertEquals</span></code> / <code class="docutils literal"><span class="pre">expect</span></code>), and then
+accept the changes. Hint: In <code class="docutils literal"><span class="pre">kdiff3</span></code> you can accept change individually by
+clicking on the red up/down arrows to position to the next difference, and click
+B to accept the new observations (shown in panel B in the UI). You can accept all
+changes by going to the <code class="docutils literal"><span class="pre">Merge</span></code> menu.</p>
+</li>
+<li><p class="first">You will now see a subdirectory called <code class="docutils literal"><span class="pre">test_observations</span></code>.</p>
+</li>
+</ol>
+</div>
+<div class="section" id="task-6-write-the-first-mock">
+<h2>Task 6: Write the first mock<a class="headerlink" href="#task-6-write-the-first-mock" title="Permalink to this headline">¶</a></h2>
+<p>Next you will write a test for the <code class="docutils literal"><span class="pre">select_stop_interactive</span></code> function. This
+function takes a list of bus-stop records with fields like <code class="docutils literal"><span class="pre">lat</span></code>, <code class="docutils literal"><span class="pre">lon</span></code>, and
+<code class="docutils literal"><span class="pre">title</span></code>, prints a menu of stops, indexed from 1 to however many there are,
+prompts the user to enter a valid stop index, and then returns the record
+corresponding to that index.</p>
+<ol class="arabic simple">
+<li>Add to the testing module a new test named <code class="docutils literal"><span class="pre">test_select_stop_0</span></code> (Python) /
+<code class="docutils literal"><span class="pre">it</span> <span class="pre">'should</span> <span class="pre">select</span> <span class="pre">the</span> <span class="pre">first</span> <span class="pre">bus</span> <span class="pre">when</span> <span class="pre">stop</span> <span class="pre">1</span> <span class="pre">is</span> <span class="pre">specified'</span></code> (Ruby) /
+<code class="docutils literal"><span class="pre">testSelectStop0</span></code> (Java). In this
+test you will call the <code class="docutils literal"><span class="pre">select_stop_interactive</span></code> method. You should write code
+in the test to construct a list of two bus-stop records and pass it to the function.</li>
+<li>Add to your test a call to Bond to spy the value returned from the <code class="docutils literal"><span class="pre">select_stop_interactive</span></code> function
+(instead of adding asserts that the call returns a record with the right fields)</li>
+<li>If you try to run the test at this point, it is going to wait for
+user input. This is not acceptable in automated tests.
+You will need to intercept this operation and
+mock the response to &#8220;1&#8221; (to select the first stop).<ul>
+<li>The app code has already been refactored to allow
+you to insert a spy point for mocking with Bond the reading from the
+console.</li>
+<li>The spy point should spy its result (we want to save in the observations
+the returned value).</li>
+<li>Also, we want to tell the spy point to abort the execution if there is no
+mock result, since we never want to actually wait for user input in
+automated tests.</li>
+<li>The test code should deploy an agent to provide a mock result for
+reading from the console.  In Bond, an agent must specify the precise spy point
+name. See the <a class="reference external" href="http://necula01.github.io/bond/api.html">Bond API documentation</a> for
+how spy point names are constructed. You can also see the spy point name
+in the observation dictionary if you run the test.</li>
+</ul>
+</li>
+<li>Run the tests, verify and accept the initial observations for the new test.</li>
+</ol>
+</div>
+<div class="section" id="task-7-write-a-more-complex-mock-for-reading-input">
+<h2>Task 7: Write a more complex mock for reading input<a class="headerlink" href="#task-7-write-a-more-complex-mock-for-reading-input" title="Permalink to this headline">¶</a></h2>
+<p>The <code class="docutils literal"><span class="pre">select_stop_interactive</span></code> function contains logic to reject invalid
+input and re-prompt the user. Now you will write a test to exercise that
+logic.</p>
+<p><strong>Please note that this task is a bit trickier that others. The subsequent tasks
+do not depend on it.</strong></p>
+<ol class="arabic simple">
+<li>Add to the testing module a new test named <code class="docutils literal"><span class="pre">test_select_stop_retries</span></code> (Python) /
+<code class="docutils literal"><span class="pre">it</span> <span class="pre">'should</span> <span class="pre">should</span> <span class="pre">retry</span> <span class="pre">when</span> <span class="pre">an</span> <span class="pre">invalid</span> <span class="pre">bus</span> <span class="pre">selection</span> <span class="pre">is</span> <span class="pre">given'</span></code> (Ruby) /
+<code class="docutils literal"><span class="pre">testSelectStopRetries</span></code> (Java). In this test you will call the <code class="docutils literal"><span class="pre">select_stop_interactive</span></code>,
+using the same input data as for the previous test.</li>
+<li>Add to your test a call to Bond to spy the value returned from the function
+(instead of adding asserts that it returns a record with the right fields).</li>
+<li>You need to deploy a slightly more complex agent for the spy point that you
+used also for Task 6.<ul>
+<li>The first time the user is prompted for input, your mock should return
+the string &#8220;a&#8221;. This will force the logic to retry.</li>
+<li>On second call, the mock should return &#8220;&#8221; (empty string). This will
+also force the logic to retry.</li>
+<li>On third call, the mock should return &#8220;3&#8221;. This will
+also force the logic to retry, because the index is too large.</li>
+<li>On third call, the mock should return &#8220;0&#8221;. This will
+also force the logic to retry, because the index is too small.</li>
+<li>On fourth call, the mock should return &#8220;2&#8221;. This should be a valid input
+and the code should return the second stop record.</li>
+<li>Hints:<ul>
+<li>Writing the logic for this mock can be a bit tricky, but the shortest
+solution is just 2 lines.</li>
+<li>Your agent should use a function as a <code class="docutils literal"><span class="pre">result</span></code> parameter (in Java,
+use a <code class="docutils literal"><span class="pre">Resulter</span></code> as the argument to the <code class="docutils literal"><span class="pre">withResult()</span></code> method on <code class="docutils literal"><span class="pre">SpyAgent</span></code>).</li>
+<li>The function should be written to return &#8220;a&#8221; the first time it is
+called, &#8220;&#8221; the second time, etc.</li>
+</ul>
+</li>
+<li>Note that this test should find a bug in the app code. Fix it, to make
+the test pass.</li>
+</ul>
+</li>
+<li>Run the tests, verify and accept the initial observations for the new test</li>
+</ol>
+</div>
+<div class="section" id="task-8-writing-mocks-for-the-http-requests">
+<h2>Task 8: Writing mocks for the HTTP requests<a class="headerlink" href="#task-8-writing-mocks-for-the-http-requests" title="Permalink to this headline">¶</a></h2>
+<p>Now we are going to test the main function, <code class="docutils literal"><span class="pre">get_closest_buses</span></code>. There are
+no new concepts for this part, it is going to be similar mocking as for the
+previous two tasks.</p>
+<ol class="arabic simple">
+<li>Add to the testing module a new test named <code class="docutils literal"><span class="pre">test_integration</span></code> (Python) /
+<code class="docutils literal"><span class="pre">it</span> <span class="pre">'should</span> <span class="pre">integrate</span> <span class="pre">correctly'</span></code> (Ruby) / <code class="docutils literal"><span class="pre">testIntegration</span></code> (Java). In this test you will
+call the <code class="docutils literal"><span class="pre">get_closest_buses</span></code>, with no arguments, and you should spy the result.</li>
+<li>You need to add a spy point to intercept the two HTTP requests. Your spy point
+should:<ul>
+<li>observe the parameters of the request</li>
+<li>not observe the result of the request (it is big)</li>
+<li>declare that it needs a mock result, or else the
+execution should fail. We don&#8217;t want actual HTTP requests during testing.</li>
+</ul>
+</li>
+<li>In your test you will need to deploy two agents, one for each kind of
+request<ul>
+<li>Your agents will have to provide mock results for the two HTTP requests.</li>
+<li>To get good samples, run the buses app directly, and you will see that it
+prints the URLs that it is accessing. Use a command-line tool (e.g.,
+curl) to make the same request and get the output. (Be careful to quote
+the URL when you use it on the command line, because it contains
+characters such as &#8216;&amp;&#8217; which are special in the shell.)</li>
+<li>The <code class="docutils literal"><span class="pre">routeConfig</span></code> output is big, you only need the first 3 stops or so
+for your integration test. But when you extract that fragment be careful
+to preserve the XML file structure.</li>
+<li>When you copy the XML output in your test, be careful to use multi-line
+strings, e.g., <code class="docutils literal"><span class="pre">&quot;&quot;&quot;...&quot;&quot;&quot;</span></code> in Python or <code class="docutils literal"><span class="pre">%q(...)</span></code> in Ruby. Java doesn&#8217;t
+have anything like this, so you&#8217;ll need to use a series of String concatenations,
+but most IDEs will do this automatically for you when you paste in string blocks.</li>
+</ul>
+</li>
+<li>Run the tests, verify and accept the initial observations for the new test.</li>
+</ol>
+</div>
+<div class="section" id="task-9-some-code-maintenance">
+<h2>Task 9: Some code maintenance<a class="headerlink" href="#task-9-some-code-maintenance" title="Permalink to this headline">¶</a></h2>
+<p>You think you are done, but your product manager has just woken up with this
+nightmare that he was made to promise at gun-point that the buses application
+will be changed to provide the answers in kilometers instead of miles.</p>
+<a class="reference internal image-reference" href="_images/nightmare.jpeg"><img alt="_images/nightmare.jpeg" class="align-right" src="_images/nightmare.jpeg" style="height: 200px;" /></a>
+<p>So, he
+askes you to change to kilometers. Oh, no! The code change is small but all
+these precise tests will have to be changed. No sweat, you call in 007.</p>
+<ol class="arabic simple">
+<li>Change the function <code class="docutils literal"><span class="pre">compute_lat_long_distance</span></code> to replace the variable
+<code class="docutils literal"><span class="pre">earth_radius</span></code> from 3961 (miles) to 6373 (kilometers). That is all you
+need to change in the code.</li>
+<li>Re-run all your tests, and let Bond prompt you to accept the new
+observations. Inspect them then accept the new reference values.</li>
+</ol>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Practice Testing with Spies and Mocks</a><ul>
+<li><a class="reference internal" href="#acknowledgements">Acknowledgements</a></li>
+<li><a class="reference internal" href="#important-request">Important Request</a></li>
+<li><a class="reference internal" href="#task-1-get-started-with-the-provided-files">Task 1: Get Started with the Provided Files</a></li>
+<li><a class="reference internal" href="#task-2-run-the-buses-application">Task 2: Run the buses application</a></li>
+<li><a class="reference internal" href="#task-3-run-the-initial-tests">Task 3: Run the initial tests</a></li>
+<li><a class="reference internal" href="#task-4-read-the-documentation-for-the-bond-spying-and-mocking-library">Task 4: Read the documentation for the Bond spying and mocking library</a></li>
+<li><a class="reference internal" href="#task-5-use-spying-for-a-simple-unit-test">Task 5: Use spying for a simple unit test</a></li>
+<li><a class="reference internal" href="#task-6-write-the-first-mock">Task 6: Write the first mock</a></li>
+<li><a class="reference internal" href="#task-7-write-a-more-complex-mock-for-reading-input">Task 7: Write a more complex mock for reading input</a></li>
+<li><a class="reference internal" href="#task-8-writing-mocks-for-the-http-requests">Task 8: Writing mocks for the HTTP requests</a></li>
+<li><a class="reference internal" href="#task-9-some-code-maintenance">Task 9: Some code maintenance</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="development.html" title="previous chapter">Bond Development</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/buses_tutorial.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, George Necula, Erik Krogen.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+      |
+      <a href="_sources/buses_tutorial.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
