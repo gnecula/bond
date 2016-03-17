@@ -1,6 +1,6 @@
 .. _examples:
 
-Part 3: A Larger Example of Bond Usage
+Part 4: A Larger Example of Bond Usage
 -------------------------------------------
 
 We discuss here how you could use Bond to test a hypothetical example of a
