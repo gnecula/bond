@@ -185,6 +185,8 @@ class RecordReplaySpyAgent < SpyAgent
   def initialize(**opts)
     @current_call_args = nil
     @record_mode = false
+    @record_mode_temp = false # If true, @record_mode is only true for the duration of this
+                              # call to spy point
     @order_dependent = false
     @args_seen = Hash.new(0) # Map of argument observation -> number of times seen
     @doers = []
@@ -232,6 +234,10 @@ class RecordReplaySpyAgent < SpyAgent
   def after_result(observation, inital_call_arg_obs)
     observation[:__replay_result__] = ''
     ret = if @record_mode and (@order_dependent or not @args_seen.has_key?(inital_call_arg_obs))
+      if @record_mode_temp # Clear @record_mode if it was only set temporarily
+        @record_mode_temp = false
+        @record_mode = false
+      end
       current_result = observation[:result]
       observation[:result] = edit_confirm_result(inital_call_arg_obs, current_result)
       Bond.instance.add_replay_value(inital_call_arg_obs, observation[:result])
@@ -252,16 +258,38 @@ class RecordReplaySpyAgent < SpyAgent
   # called.
   def before_result(observation)
     observation[:__record_args__] = ''
-    if @record_mode and (@order_dependent or not @args_seen.has_key?(observation))
-      return { result: :agent_result_continue, should_yield: false, record_replay: true }
-    end
     observation[:__replay_index__] = get_index(observation)
     val = Bond.instance.get_replay_value(observation)
     observation.delete(:__replay_index__)
-    if val == :agent_result_none
-      raise RuntimeError, "RecordReplaySpyAgent could not find a replay value to return for: #{observation}"
+    if val == :agent_result_none and !@record_mode
+      case Bond.instance.reconcile_mode
+        when 'abort'
+          raise RuntimeError, "RecordReplaySpyAgent could not find a replay value to return for: #{observation}"
+        when 'accept'
+          @record_mode = true
+          @record_mode_temp = true
+        when 'console', 'dialog'
+          args = observation.clone
+          args.delete(:__spy_point__)
+          args.delete(:__record_args__)
+          before_prompt = "For test #{Bond.instance.test_name}:\n" +
+              "Attempting to make a request through #{observation[:__spy_point__]} for which " +
+              "no replay value is currently available. These are the arguments it was called with:"
+          after_prompt = 'Do you wish to allow this request to proceed?'
+          response = Utils.get_user_input(before_prompt, after_prompt, args, %w'accept deny', %w'a d')
+          if response == 'accept'
+            @record_mode = true
+            @record_mode_temp = true
+          else
+            raise RuntimeError, "RecordReplaySpyAgent could not find a replay value to return for: #{observation}"
+          end
+      end
     end
-    { result: val, should_yield: false, record_replay: true }
+    if @record_mode and (@order_dependent or not @args_seen.has_key?(observation))
+      { result: :agent_result_continue, should_yield: false, record_replay: true }
+    else
+      { result: val, should_yield: false, record_replay: true }
+    end
   end
 
   # Given the observation dictionary from the initial call to the method

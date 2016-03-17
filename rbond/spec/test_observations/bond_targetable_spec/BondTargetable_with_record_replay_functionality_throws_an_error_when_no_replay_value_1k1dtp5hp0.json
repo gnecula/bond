@@ -1,0 +1,13 @@
+[
+{
+    "__record_args__": "",
+    "__spy_point__": "TestClass#annotated_side_effect_method",
+    "array": [
+        "foo"
+    ]
+},
+{
+    "__spy_point__": "rescued",
+    "error": "RecordReplaySpyAgent could not find a replay value to return for: {:array=>[\"foo\"], :__spy_point__=>\"TestClass#annotated_side_effect_method\", :__record_args__=>\"\"}"
+}
+]

@@ -2,12 +2,14 @@ require 'singleton'
 require 'neatjson'
 require 'fileutils'
 require 'shellwords'
+require_relative 'bond/targetable'
 
 # Singleton class providing the core functionality of Bond. You will generally
 # access this through the {BondTargetable#bond} method exported to you when you
 # `extend` BondTargetable, but it can also be accessed (e.g. for functions not
 # contained in a class/module) via `Bond.instance`.
 class Bond
+  extend BondTargetable
   include Singleton
   # TODO ETK make this able to use other test frameworks as well
 
@@ -175,6 +177,12 @@ class Bond
   # Only invocations whose parameters match the recorded invocation exactly will be
   # replayed; a single spy point can store multiple replay values with different
   # call arguments simultaneously.
+  # When in replay mode, if a stored value cannot be found, the behavior depends on
+  # the current reconcile mode set for bond:
+  #   - accept: It is treated as if the spy point was in record mode.
+  #   - abort: An error is thrown
+  #   - dialog/console: The user is asked whether or not the spy point should
+  #                     proceed as if in record mode or abort and throw an error.
   # @param spy_point_name [#to_s] The name of the spy point for which to deploy this agent
   # @param (see RecordReplaySpyAgent#initialize)
   def deploy_record_replay_agent(spy_point_name, **opts)
@@ -257,6 +265,12 @@ class Bond
     @replay_values[cleaned_obs] = value
   end
 
+  # Clear all replay values; used for testing purposes only
+  # @private
+  def clear_replay_values
+    @replay_values.clear
+  end
+
   # Internal method; used to retrieve the name associated with a given object instance.
   # @param object_instance [Object] The object instance for which to look up a name
   # @return `nil` if no name is associated with `object_instance`, else the associated name
@@ -264,6 +278,13 @@ class Bond
   # @private
   def instance_name(object_instance)
     @instance_names[object_instance.object_id]
+  end
+
+  bond.spy_point(mock_only: true)
+  # Return the current reconciliation mode
+  # @private
+  def reconcile_mode
+    @reconcile
   end
 
   private
@@ -452,6 +473,5 @@ class Bond
 end
 
 
-require_relative 'bond/targetable'
 require_relative 'bond/spy_agent'
 require_relative 'bond/utils'

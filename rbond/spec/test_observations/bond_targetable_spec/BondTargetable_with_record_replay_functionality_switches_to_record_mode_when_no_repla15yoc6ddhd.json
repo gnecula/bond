@@ -1,0 +1,21 @@
+[
+{
+    "__record_args__": "",
+    "__spy_point__": "TestClass#annotated_side_effect_method",
+    "array": [
+        "foo"
+    ]
+},
+{
+    "__replay_result__": "",
+    "__spy_point__": "TestClass#annotated_side_effect_method.result",
+    "result": "foo,bar"
+},
+{
+    "array": [
+        "foo",
+        "new value"
+    ],
+    "result": "foo,bar"
+}
+]

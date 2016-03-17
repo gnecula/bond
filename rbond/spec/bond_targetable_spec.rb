@@ -268,7 +268,8 @@ describe BondTargetable do
       bond.spy('after', ret: ret, array: array)
     end
 
-    it 'throws an error when in replay mode and no replay value is found' do
+    it 'throws an error when in replay mode and no replay value is found and bond_reconcile is abort' do
+      bond.deploy_agent('Bond#reconcile_mode', result: 'abort')
       bond.deploy_record_replay_agent('TestClass#annotated_side_effect_method')
       array = ['foo']
       begin
@@ -276,6 +277,65 @@ describe BondTargetable do
       rescue Exception => e
         bond.spy('rescued', error: e)
       end
+      bond.deploy_agent('Bond#reconcile_mode', result: :agent_result_continue)
+    end
+
+    it 'switches to record mode when no replay value is found and bond_reconcile is accept' do
+      bond.clear_replay_values
+      bond.deploy_agent('Utils.get_user_input_with_edits', result: ['Accept', 'foo,bar'])
+      bond.deploy_agent('Bond#reconcile_mode', result: 'accept')
+      bond.deploy_record_replay_agent('TestClass#annotated_side_effect_method')
+      array = ['foo']
+      bond.spy(array: array, result: tc.annotated_side_effect_method(array))
+      bond.deploy_agent('Bond#reconcile_mode', result: :agent_result_continue)
+    end
+
+    it 'switches to record mode when no replay value is found and bond_reconcile is dialog and the user accepts' do
+      bond.clear_replay_values
+      bond.deploy_agent('Utils.get_user_input', result: 'accept')
+      bond.deploy_agent('Utils.get_user_input_with_edits', result: ['Accept', 'foo,bar'])
+      bond.deploy_agent('Bond#reconcile_mode', result: 'dialog')
+      bond.deploy_record_replay_agent('TestClass#annotated_side_effect_method')
+      array = ['foo']
+      bond.spy(array: array, result: tc.annotated_side_effect_method(array))
+      bond.deploy_agent('Bond#reconcile_mode', result: :agent_result_continue)
+    end
+
+    it 'throws an error when no replay value is found and bond_reconcile is dialog and the user denies' do
+      bond.deploy_agent('Utils.get_user_input', result: 'deny')
+      bond.deploy_agent('Bond#reconcile_mode', result: 'dialog')
+      bond.deploy_record_replay_agent('TestClass#annotated_side_effect_method')
+      array = ['foo']
+      begin
+        tc.annotated_side_effect_method(array)
+      rescue Exception => e
+        bond.spy('rescued', error: e)
+      end
+      bond.deploy_agent('Bond#reconcile_mode', result: :agent_result_continue)
+    end
+
+    it 'switches to record mode when no replay value is found and bond_reconcile is console and the user accepts' do
+      bond.clear_replay_values
+      bond.deploy_agent('Utils.get_user_input', result: 'accept')
+      bond.deploy_agent('Utils.get_user_input_with_edits', result: ['Accept', 'foo,bar'])
+      bond.deploy_agent('Bond#reconcile_mode', result: 'console')
+      bond.deploy_record_replay_agent('TestClass#annotated_side_effect_method')
+      array = ['foo']
+      bond.spy(array: array, result: tc.annotated_side_effect_method(array))
+      bond.deploy_agent('Bond#reconcile_mode', result: :agent_result_continue)
+    end
+
+    it 'throws an error when no replay value is found and bond_reconcile is console and the user denies' do
+      bond.deploy_agent('Utils.get_user_input', result: 'deny')
+      bond.deploy_agent('Bond#reconcile_mode', result: 'console')
+      bond.deploy_record_replay_agent('TestClass#annotated_side_effect_method')
+      array = ['foo']
+      begin
+        tc.annotated_side_effect_method(array)
+      rescue Exception => e
+        bond.spy('rescued', error: e)
+      end
+      bond.deploy_agent('Bond#reconcile_mode', result: :agent_result_continue)
     end
 
     it 'returns built-in values to their original form' do
